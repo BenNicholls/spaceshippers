@@ -46,9 +46,7 @@ func main() {
     UpdateSpeedUI()
 
     PlayerShip = NewShip("The Undestructable")
-    PlayerShip.Crew[2].CurrentTask = NewRepairRoomJob(PlayerShip.Rooms[BRIDGE])
     
-
     running := true
 
     for running {
@@ -112,10 +110,8 @@ func UpdateCrewUI() {
         crewUI[i].Add(ui.NewTextbox(w, 1, 0, 0, 0, false, false, PlayerShip.Crew[i].Name))
         crewUI[i].Add(ui.NewTextbox(w-2, 1, 2, 1, 0, false, false, "is " + PlayerShip.Crew[i].GetStatus()))
         jobstring := ""
-        if PlayerShip.Crew[i].CurrentTask == nil {
-            jobstring = "is idling."
-        } else {
-            jobstring = PlayerShip.Crew[i].CurrentTask.GetDescription()
+        if PlayerShip.Crew[i].CurrentTask != nil {
+            jobstring = "is " + PlayerShip.Crew[i].CurrentTask.GetDescription()
         }
         crewUI[i].Add(ui.NewTextbox(w-2, 1, 2, 2, 0, false, false, jobstring))
         crew.Add(crewUI[i])
@@ -164,13 +160,15 @@ func HandleKeypress(key sdl.Keycode) {
 }
 
 func Update() {
-    SpaceTime += GetIncrement()
 
-    for i, _ := range PlayerShip.Crew {
-        PlayerShip.Crew[i].Update()
+    for i := 0; i < GetIncrement(); i++ {
+        SpaceTime++
+        for i, _ := range PlayerShip.Crew {
+            PlayerShip.Crew[i].Update()
+        }
     }
-    UpdateCrewUI()
 
+    UpdateCrewUI()
     missiontime.ChangeText(fmt.Sprintf("%.4d", SpaceTime/100000) + "d:" + fmt.Sprintf("%.1d", (SpaceTime/10000)%10) + "h:" + fmt.Sprintf("%.2d", (SpaceTime/100)%100) + "m:" + fmt.Sprintf("%.2d", SpaceTime%100) + "s")
 
 }
@@ -195,6 +193,11 @@ func Execute() {
     default:
         output.Append("I do not understand that command, you dummo. Try \"help\"")
     }
+    output.ScrollToBottom()
+}
+
+func AddMessage(s string) {
+    output.Append(s)
     output.ScrollToBottom()
 }
 

@@ -19,11 +19,11 @@ func NewShip(n string) *Ship {
     s.Crew = make([]*Crewman, 6)
     s.Rooms = make([]*Room, 5)
 
-    s.Rooms[BRIDGE] = &Room{"Bridge", 100, 1}
-    s.Rooms[ENGINEERING] = &Room{"Engineering", 100, 2}
-    s.Rooms[MESSHALL] = &Room{"Messhall", 100, 0}
-    s.Rooms[MEDBAY] = &Room{"Medbay", 100 , 0}
-    s.Rooms[QUARTERS] = &Room{"Quarters", 100, 0}
+    s.Rooms[BRIDGE] = &Room{"Bridge", 100, 1, 1000}
+    s.Rooms[ENGINEERING] = &Room{"Engineering", 100, 1, 1000}
+    s.Rooms[MESSHALL] = &Room{"Messhall", 100, 1, 500}
+    s.Rooms[MEDBAY] = &Room{"Medbay", 100 , 1, 700}
+    s.Rooms[QUARTERS] = &Room{"Quarters", 100, 1, 500}
 
     for i, _ := range s.Crew {
         s.Crew[i] = NewCrewman()
@@ -46,8 +46,10 @@ const (
 
 type Room struct {
     name string
+
     state int //state of repair. 
     upkeep int //periodic decay of repair state.
+    repairDifficulty int //default time to repair by 1 unit.
 }
 
 func (r Room) PrintStatus() {

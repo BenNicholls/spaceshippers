@@ -29,6 +29,11 @@ func (c *Crewman) randomizeName() {
 
 //general per-tick update function. 
 func (c *Crewman) Update() {
+    if c.CurrentTask != nil {
+        c.CurrentTask.OnTick()
+    } else {
+        //job finding code goes here, write the code why don't you
+    }
 }
 
 func (c Crewman) GetStatus() string {
@@ -43,4 +48,13 @@ func (c Crewman) GetStatus() string {
     } else {
         return "Dead"
     }
+}
+
+func (c *Crewman) ConsumeJob(j  Job) {
+    if c.CurrentTask != nil {
+        c.CurrentTask.OnInterrupt()
+    }
+
+    c.CurrentTask = j
+    c.CurrentTask.SetWorker(c)
 }
