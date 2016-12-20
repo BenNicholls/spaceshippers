@@ -73,3 +73,21 @@ func (rj *RepairRoomJob) OnEnd() {
     rj.Task.OnEnd()
 }
 
+type SleepJob struct {
+    Task
+    //restfulness int //quality of sleep, determines amount of alertness recovered per tick
+}
+
+func NewSleepJob() *SleepJob {
+    return &SleepJob{Task{"Sleep", "Sleeping", 0, 0, nil}}
+}
+
+func (sj *SleepJob) OnTick() {
+    sj.Task.OnTick()
+
+    sj.worker.Awakeness.Mod(4)
+
+    if sj.worker.Awakeness.IsMax() {
+        sj.OnEnd()
+    }
+}

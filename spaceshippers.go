@@ -25,6 +25,12 @@ var SimSpeed int //4 speeds, plus pause (0)
 
 var PlayerShip *Ship
 
+const (
+    MINUTE int = 100
+    HOUR int = 10000
+    DAY int = 100000
+)
+
 func main() {
 
     runtime.LockOSThread()
@@ -163,6 +169,9 @@ func Update() {
 
     for i := 0; i < GetIncrement(); i++ {
         SpaceTime++
+
+        PlayerShip.Update()
+
         for i, _ := range PlayerShip.Crew {
             PlayerShip.Crew[i].Update()
         }

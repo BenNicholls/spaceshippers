@@ -11,7 +11,6 @@ type Ship struct {
     //status numbers.
     Hull int
     HullMax int
-    Parts int //used for repairs.
 }
 
 func NewShip(n string) *Ship {
@@ -32,6 +31,16 @@ func NewShip(n string) *Ship {
     s.name = n
 
     return s
+}
+
+func (s *Ship) Update() {
+    for i, _ := range s.Rooms {
+        s.Rooms[i].Update()
+    }
+
+    for i, _ := range s.Crew {
+        s.Crew[i].Update()
+    }
 }
 
 //room indexes
@@ -73,4 +82,8 @@ func (r Room) PrintStatus() {
 
 func (r *Room) ApplyUpkeep() {
     r.state -= r.upkeep
+}
+
+func (r *Room) Update() {
+
 }
