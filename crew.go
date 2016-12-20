@@ -72,9 +72,9 @@ func (c Crewman) GetStatus() string {
 
 func (c Crewman) IsAwake() bool {
     if c.CurrentTask != nil && c.CurrentTask.GetName() == "Sleep" {
-        return true
+        return false
     }
-    return false
+    return true
 }
 
 func (c *Crewman) ConsumeJob(j  Job) {

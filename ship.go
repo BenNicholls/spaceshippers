@@ -9,8 +9,7 @@ type Ship struct {
     Rooms []*Room
     
     //status numbers.
-    Hull int
-    HullMax int
+    Hull Stat
 }
 
 func NewShip(n string) *Ship {

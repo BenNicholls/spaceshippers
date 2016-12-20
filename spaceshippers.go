@@ -113,7 +113,9 @@ func UpdateCrewUI() {
     crew.ClearElements()
     for i, _ := range PlayerShip.Crew {
         crewUI[i] = ui.NewContainer(w, 3, 0, i*3, 1, false)
-        crewUI[i].Add(ui.NewTextbox(w, 1, 0, 0, 0, false, false, PlayerShip.Crew[i].Name))
+        name := ui.NewProgressBar(w, 1, 0, 0, 0, false, false, PlayerShip.Crew[i].Name, 0xFFFF0000)
+        name.SetProgress(PlayerShip.Crew[i].Awakeness.GetPct())
+        crewUI[i].Add(name)
         crewUI[i].Add(ui.NewTextbox(w-2, 1, 2, 1, 0, false, false, "is " + PlayerShip.Crew[i].GetStatus()))
         jobstring := ""
         if PlayerShip.Crew[i].CurrentTask != nil {
