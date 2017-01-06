@@ -61,9 +61,8 @@ func (rj *RepairRoomJob) OnTick() {
 	rj.Task.OnTick()
 
 	if rj.timeInvested%rj.location.repairDifficulty == 0 {
-		rj.location.state += 1
-		if rj.location.state >= 100 {
-			rj.location.state = 100
+        rj.location.state.Mod(1)
+		if rj.location.state.IsMax() {
 			rj.OnEnd()
 		}
 	}

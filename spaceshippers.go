@@ -197,6 +197,7 @@ func Update() {
 
 func Render() {
 	DrawStarfield()
+	PlayerShip.Draw()
 	window.Render()
 }
 
