@@ -17,12 +17,12 @@ const (
 type Room struct {
 	name string
 
-	x,y int
-	w,h int //rectange rooms for now, use a little bitmap later
+	x, y int
+	w, h int //rectange rooms for now, use a little bitmap later
 
 	state            Stat //state of repair.
-	upkeep           int //periodic decay of repair state.
-	repairDifficulty int //default time to repair by 1 unit.
+	upkeep           int  //periodic decay of repair state.
+	repairDifficulty int  //default time to repair by 1 unit.
 }
 
 func (r Room) PrintStatus() {
@@ -47,8 +47,7 @@ func (r Room) PrintStatus() {
 func (r Room) Draw() {
 
 	//get colour (interp over state for now, red -> green)
-	b := console.MakeColour(255 - (255*r.state.GetPct()/100), 255*r.state.GetPct()/100, 0)
-
+	b := console.MakeColour(255-(255*r.state.GetPct()/100), 255*r.state.GetPct()/100, 0)
 
 	var left, right, up, down bool
 	var g int
@@ -57,8 +56,8 @@ func (r Room) Draw() {
 		down = (j == r.h-1)
 
 		for i := 0; i < r.w; i++ {
-			left = (i==0)
-			right = (i==r.w-1)
+			left = (i == 0)
+			right = (i == r.w-1)
 			g = 0
 			if up {
 				g += 1
@@ -67,13 +66,13 @@ func (r Room) Draw() {
 				g += 2
 			}
 			if down {
-				g+=4
+				g += 4
 			}
 			if left {
 				g += 8
 			}
 
-			shipdisplay.Draw(r.x + i, r.y + j, 0x80 + g, 0xFFFFFFFF, b)
+			shipdisplay.Draw(r.x+i, r.y+j, 0x80+g, 0xFFFFFFFF, b)
 		}
 	}
 }

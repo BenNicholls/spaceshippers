@@ -24,7 +24,7 @@ var crewUI []*ui.Container //one container for each crew member.
 var SpaceTime int //measured in Standard Galactic Seconds
 var SimSpeed int  //4 speeds, plus pause (0)
 
-//time values in DIGITAL SECONDS
+//time values in DIGITAL SECONDS. One digital day = 100000 seconds, which is 14% longer than a regular day.
 const (
 	MINUTE int = 100
 	HOUR   int = 10000
