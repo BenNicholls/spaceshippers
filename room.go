@@ -1,7 +1,7 @@
 package main
 
 import "strconv"
-import "github.com/bennicholls/delvetown/console"
+import "github.com/bennicholls/delveengine/console"
 
 //room indexes
 const (

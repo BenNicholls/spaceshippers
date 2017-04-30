@@ -1,14 +1,17 @@
 package main
 
-import "github.com/veandco/go-sdl2/sdl"
-import "github.com/bennicholls/delvetown/console"
-import "github.com/bennicholls/delvetown/ui"
-import "github.com/bennicholls/delvetown/util"
-import "runtime"
-import "fmt"
-import "strings"
-import "time"
-import "math/rand"
+import (
+	"fmt"
+	"math/rand"
+	"runtime"
+	"strings"
+	"time"
+
+	"github.com/bennicholls/delveengine/console"
+	"github.com/bennicholls/delveengine/ui"
+	"github.com/bennicholls/delvetown/util"
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 var window *ui.Container
 var input *ui.Inputbox
@@ -118,7 +121,7 @@ func SetupUI() {
 func UpdateCrewUI() {
 	w, _ := crew.Dims()
 	crew.ClearElements()
-	for i, _ := range PlayerShip.Crew {
+	for i := range PlayerShip.Crew {
 		crewUI[i] = ui.NewContainer(w, 3, 0, i*3, 1, false)
 		name := ui.NewProgressBar(w, 1, 0, 0, 0, false, false, PlayerShip.Crew[i].Name, 0xFFFF0000)
 		name.SetProgress(PlayerShip.Crew[i].Awakeness.GetPct())
@@ -181,7 +184,7 @@ func Update() {
 
 		PlayerShip.Update()
 
-		for i, _ := range PlayerShip.Crew {
+		for i := range PlayerShip.Crew {
 			PlayerShip.Crew[i].Update()
 		}
 
