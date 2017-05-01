@@ -43,12 +43,14 @@ func main() {
 
 	var event sdl.Event
 
-	err := console.Setup(96, 54, "Bisasam_16x16.bmp", "Spaceshippers")
+	err := console.Setup(80, 45, "res/curses24x24.bmp", "res/DelveFont12x24.bmp", "Spaceshippers")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	defer console.Cleanup()
+
+	console.SetFullscreen()
 
 	SetupUI()
 
@@ -89,29 +91,29 @@ func main() {
 }
 
 func SetupUI() {
-	window = ui.NewContainer(94, 52, 1, 1, 0, true)
+	window = ui.NewContainer(78, 43, 1, 1, 0, true)
 	window.SetTitle("SPACESHIPPERS. THE GAME OF SPACE SHIPS.")
 	window.ToggleFocus()
-	input = ui.NewInputbox(60, 1, 1, 50, 2, true)
+	input = ui.NewInputbox(50, 1, 1, 41, 2, true)
 	input.ToggleFocus()
 	input.SetTitle("SCIPPIE V6.18")
-	output = ui.NewList(60, 47, 1, 1, 1, true, "The Ship Computer Interactive Parameter Parser/Interface Entity, or SCIPPIE, is your computerized second in command. Ask questions, give commands and observe your ship through the high-tech text-tacular wonders of 38th century UI technology! Ask SCIPPIE a question, or give him a command!")
+	output = ui.NewList(50, 37, 1, 1, 1, true, "The Ship Computer Interactive Parameter Parser/Interface Entity, or SCIPPIE, is your computerized second in command. Ask questions, give commands and observe your ship through the high-tech text-tacular wonders of 38th century UI technology! Ask SCIPPIE a question, or give him a command!")
 	output.ToggleHighlight()
 
-	crew = ui.NewContainer(32, 18, 62, 1, 0, true)
+	crew = ui.NewContainer(26, 18, 52, 1, 0, true)
 	crew.SetTitle("Crew")
 	crewUI = make([]*ui.Container, 6)
 
-	shipdisplay = ui.NewTileView(32, 16, 62, 20, 0, false)
-	starField = make([]int, 32*16)
+	shipdisplay = ui.NewTileView(26, 16, 52, 20, 0, false)
+	starField = make([]int, 26*16)
 	initStarField()
 
-	shipstatus = ui.NewContainer(32, 10, 62, 36, 0, false)
-	shipstatus.Add(ui.NewTextbox(32, 1, 0, 0, 0, false, true, "The Unsinkable"))
+	shipstatus = ui.NewContainer(26, 10, 52, 36, 0, false)
+	shipstatus.Add(ui.NewTextbox(26, 1, 0, 0, 0, false, true, "The Unsinkable"))
 
-	speeddisplay = ui.NewTileView(4, 1, 88, 50, 2, true)
+	speeddisplay = ui.NewTileView(4, 1, 68, 41, 2, true)
 
-	missiontime = ui.NewTextbox(16, 1, 67, 50, 1, true, true, "")
+	missiontime = ui.NewTextbox(16, 1, 53, 41, 1, true, true, "")
 	missiontime.SetTitle("Mission Time")
 
 	window.Add(input, output, crew, shipstatus, shipdisplay, speeddisplay, missiontime)
