@@ -20,6 +20,7 @@ var crew *ui.Container
 var shipstatus *ui.Container
 var missiontime *ui.Textbox
 var speeddisplay *ui.TileView
+var menubar *ui.Container
 var shipdisplay *ui.TileView
 var crewUI []*ui.Container //one container for each crew member.
 
@@ -53,6 +54,9 @@ func main() {
 	console.SetFullscreen()
 
 	SetupUI()
+
+	
+	initStarField()
 
 	SpaceTime = 0
 	SimSpeed = 1
@@ -91,32 +95,29 @@ func main() {
 }
 
 func SetupUI() {
-	window = ui.NewContainer(78, 43, 1, 1, 0, true)
-	window.SetTitle("SPACESHIPPERS. THE GAME OF SPACE SHIPS.")
-	window.ToggleFocus()
-	input = ui.NewInputbox(50, 1, 1, 41, 2, true)
+	window = ui.NewContainer(80, 45, 0, 0, 0, false)
+
+	missiontime = ui.NewTextbox(8, 1, 1, 1, 1, true, true, "")
+	speeddisplay = ui.NewTileView(8, 1, 1, 3, 1, true)
+	menubar = ui.NewContainer(69, 1, 10, 1, 1, true)
+
+	shipdisplay = ui.NewTileView(80, 28, 0, 3, 0, false)
+
+	shipstatus = ui.NewContainer(26, 12, 1, 32, 1, true)
+	shipstatus.Add(ui.NewTextbox(26, 1, 0, 11, 0, false, true, "The Unsinkable"))
+
+	input = ui.NewInputbox(51, 1, 28, 43, 2, true)
 	input.ToggleFocus()
 	input.SetTitle("SCIPPIE V6.18")
-	output = ui.NewList(50, 37, 1, 1, 1, true, "The Ship Computer Interactive Parameter Parser/Interface Entity, or SCIPPIE, is your computerized second in command. Ask questions, give commands and observe your ship through the high-tech text-tacular wonders of 38th century UI technology! Ask SCIPPIE a question, or give him a command!")
+	output = ui.NewList(51, 10, 28, 32, 1, true, "The Ship Computer Interactive Parameter Parser/Interface Entity, or SCIPPIE, is your computerized second in command. Ask questions, give commands and observe your ship through the high-tech text-tacular wonders of 38th century UI technology! Ask SCIPPIE a question, or give him a command!")
 	output.ToggleHighlight()
 
-	crew = ui.NewContainer(26, 18, 52, 1, 0, true)
-	crew.SetTitle("Crew")
+	crew = ui.NewContainer(26, 18, 27, 13, 3, true)
+	crew.SetTitle("Crew Roster")
+	crew.SetVisibility(false)
 	crewUI = make([]*ui.Container, 6)
 
-	shipdisplay = ui.NewTileView(26, 16, 52, 20, 0, false)
-	starField = make([]int, 26*16)
-	initStarField()
-
-	shipstatus = ui.NewContainer(26, 10, 52, 36, 0, false)
-	shipstatus.Add(ui.NewTextbox(26, 1, 0, 0, 0, false, true, "The Unsinkable"))
-
-	speeddisplay = ui.NewTileView(4, 1, 68, 41, 2, true)
-
-	missiontime = ui.NewTextbox(16, 1, 53, 41, 1, true, true, "")
-	missiontime.SetTitle("Mission Time")
-
-	window.Add(input, output, crew, shipstatus, shipdisplay, speeddisplay, missiontime)
+	window.Add(input, output, shipstatus, shipdisplay, speeddisplay, missiontime, menubar)
 }
 
 //n = crew index
@@ -175,6 +176,8 @@ func HandleKeypress(key sdl.Keycode) {
 				SimSpeed--
 				UpdateSpeedUI()
 			}
+		case sdl.K_F1:
+			crew.ToggleVisible()
 		}
 	}
 }
@@ -195,7 +198,9 @@ func Update() {
 		}
 	}
 
-	UpdateCrewUI()
+	if crew.IsVisible() {
+		UpdateCrewUI()
+	}
 	missiontime.ChangeText(fmt.Sprintf("%.4d", SpaceTime/100000) + "d:" + fmt.Sprintf("%.1d", (SpaceTime/10000)%10) + "h:" + fmt.Sprintf("%.2d", (SpaceTime/100)%100) + "m:" + fmt.Sprintf("%.2d", SpaceTime%100) + "s")
 
 }
@@ -204,6 +209,7 @@ func Render() {
 	DrawStarfield()
 	PlayerShip.Draw()
 	window.Render()
+	crew.Render()
 }
 
 func Execute() {

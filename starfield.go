@@ -7,6 +7,8 @@ var starField []int
 const starFrequency int = 20
 
 func initStarField() {
+	w, h := shipdisplay.Dims()
+	starField = make([]int, w*h)
 	for i := 0; i < len(starField); i++ {
 		if rand.Intn(starFrequency) == 0 {
 			starField[i] = 1

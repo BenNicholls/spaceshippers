@@ -16,12 +16,12 @@ func NewShip(n string) *Ship {
 	s.Crew = make([]*Crewman, 6)
 	s.Rooms = make([]*Room, MAX_ROOMS)
 
-	s.Rooms[BRIDGE] = &Room{"Bridge", 18, 6, 3, 3, Stat{100, 100}, 500, 1000}
-	s.Rooms[ENGINEERING] = &Room{"Engineering", 10, 5, 2, 5, Stat{100, 100}, 700, 1000}
-	s.Rooms[MESSHALL] = &Room{"Messhall", 12, 4, 3, 3, Stat{100, 100}, 1000, 500}
-	s.Rooms[MEDBAY] = &Room{"Medbay", 15, 4, 3, 3, Stat{100, 100}, 1000, 700}
-	s.Rooms[QUARTERS] = &Room{"Quarters", 12, 8, 6, 3, Stat{100, 100}, 900, 500}
-	s.Rooms[HALLWAY] = &Room{"Hallway", 12, 7, 6, 1, Stat{100, 100}, 0, 500}
+	s.Rooms[BRIDGE] = &Room{"Bridge", 38, 16, 3, 3, Stat{100, 100}, 500, 1000}
+	s.Rooms[ENGINEERING] = &Room{"Engineering", 30, 15, 2, 5, Stat{100, 100}, 700, 1000}
+	s.Rooms[MESSHALL] = &Room{"Messhall", 32, 14, 3, 3, Stat{100, 100}, 1000, 500}
+	s.Rooms[MEDBAY] = &Room{"Medbay", 35, 14, 3, 3, Stat{100, 100}, 1000, 700}
+	s.Rooms[QUARTERS] = &Room{"Quarters", 32, 18, 6, 3, Stat{100, 100}, 900, 500}
+	s.Rooms[HALLWAY] = &Room{"Hallway", 32, 17, 6, 1, Stat{100, 100}, 0, 500}
 
 	for i, _ := range s.Crew {
 		s.Crew[i] = NewCrewman()
