@@ -16,8 +16,8 @@ const (
 type Room struct {
 	name string
 
-	x, y int
-	w, h int //rectange rooms for now, use a little bitmap later
+	X, Y int
+	W, H int
 
 	state            Stat //state of repair.
 	upkeep           int  //periodic decay of repair state.

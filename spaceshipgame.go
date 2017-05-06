@@ -2,9 +2,9 @@ package main
 
 import "github.com/bennicholls/burl/ui"
 import "github.com/bennicholls/burl/util"
+import "github.com/bennicholls/burl/core"
 import "github.com/veandco/go-sdl2/sdl"
 import "fmt"
-import "strings"
 
 //time values in DIGITAL SECONDS. One digital day = 100000 seconds, which is 14% longer than a regular day.
 const (
@@ -12,6 +12,10 @@ const (
 	HOUR   int = 10000
 	DAY    int = 100000
 )
+
+//load some tile data
+var TILE_FLOOR = core.LoadTileData("Floor", true, true, 0xB0, 0xFF444444)
+var TILE_WALL = core.LoadTileData("Wall", false, false, 0x23, 0xFF888888)
 
 type SpaceshipGame struct {
 
@@ -34,6 +38,9 @@ type SpaceshipGame struct {
 	starField []int
 	starFrequency int
 
+	shipMap *core.TileMap
+	viewX, viewY int
+
 	PlayerShip *Ship
 
 }
@@ -44,12 +51,20 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.SpaceTime = 0
 	sg.SimSpeed = 1
 	sg.PlayerShip = NewShip("The Undestructable")
+	sg.shipMap = core.NewMap(100, 100)
 	sg.starFrequency = 20
-
+	sg.viewX = 0
+	sg.viewY = 0
 
 	sg.SetupUI()
 	sg.UpdateSpeedUI()
 	sg.initStarField()
+
+	for _, r := range sg.PlayerShip.Rooms {
+		for i := 0; i < r.W*r.H; i ++ {
+			sg.shipMap.ChangeTileType(r.X + i%r.W, r.Y + i/r.W, TILE_FLOOR)
+		}
+	}
 
 	return sg
 }
@@ -122,20 +137,28 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			sg.input.Delete()
 		case sdl.K_SPACE:
 			sg.input.Insert(" ")
-		case sdl.K_UP:
-			sg.output.ScrollUp()
-		case sdl.K_DOWN:
-			sg.output.ScrollDown()
 		case sdl.K_PAGEUP:
+			sg.output.ScrollUp()
+		case sdl.K_PAGEDOWN:
+			sg.output.ScrollDown()
+		case sdl.K_KP_PLUS:
 			if sg.SimSpeed < 4 {
 				sg.SimSpeed++
 				sg.UpdateSpeedUI()
 			}
-		case sdl.K_PAGEDOWN:
+		case sdl.K_KP_MINUS:
 			if sg.SimSpeed > 0 {
 				sg.SimSpeed--
 				sg.UpdateSpeedUI()
 			}
+		case sdl.K_UP:
+			sg.viewY -= 1
+		case sdl.K_DOWN:
+			sg.viewY += 1
+		case sdl.K_LEFT:
+			sg.viewX -= 1
+		case sdl.K_RIGHT:
+			sg.viewY += 1
 		case sdl.K_F1:
 			sg.crew.ToggleVisible()
 		}
@@ -167,32 +190,25 @@ func (sg *SpaceshipGame) Update() {
 
 func (sg *SpaceshipGame) Render() {
 	sg.DrawStarfield()
+
+	w, h := sg.shipMap.Dims()
+	x, y := 0, 0
+
+	for i := 0; i < w*h; i++ {
+		//shipdisplay-space coords
+		x = i%w + sg.viewX
+		y = i/w + sg.viewY
+
+		if util.CheckBounds(x, y, sg.shipdisplay.Width, sg.shipdisplay.Height) {
+			if sg.shipMap.GetTileType(i%w, i/w) != 0 {
+				tv := sg.shipMap.GetTile(i%w, i/w).GetVisuals()
+				sg.shipdisplay.Draw(x, y, tv.Glyph, tv.ForeColour, 0xFF000000)
+			}
+		}
+	}
+
 	sg.window.Render()
 	sg.crew.Render()
-}
-
-func (sg *SpaceshipGame) Execute() {
-	sg.output.Append("")
-	sg.output.Append(">>> " + sg.input.GetText())
-	sg.output.Append("")
-	switch strings.ToLower(sg.input.GetText()) {
-	case "status":
-		for _, r := range sg.PlayerShip.Rooms {
-			sg.output.Append(r.GetStatus())
-		}
-	case "help":
-		sg.output.Append("S.C.I.P.P.I.E. is your AI helper. Give him one of the following commands, and he'll get 'r done!")
-		sg.output.Append("   status     prints ship room status")
-		sg.output.Append("   help       prints a mysterious menu")
-	default:
-		sg.output.Append("I do not understand that command, you dummo. Try \"help\"")
-	}
-	sg.output.ScrollToBottom()
-}
-
-func (sg *SpaceshipGame) AddMessage(s string) {
-	sg.output.Append(s)
-	sg.output.ScrollToBottom()
 }
 
 func (sg *SpaceshipGame) GetIncrement() int {
