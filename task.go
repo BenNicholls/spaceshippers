@@ -69,7 +69,7 @@ func (rj *RepairRoomJob) OnTick() {
 }
 
 func (rj *RepairRoomJob) OnEnd() {
-	AddMessage("Repair of " + rj.location.name + " by " + rj.worker.Name + " completed.")
+	//AddMessage("Repair of " + rj.location.name + " by " + rj.worker.Name + " completed.")
 	rj.Task.OnEnd()
 }
 

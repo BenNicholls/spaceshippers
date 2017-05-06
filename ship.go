@@ -33,18 +33,12 @@ func NewShip(n string) *Ship {
 	return s
 }
 
-func (s *Ship) Update() {
+func (s *Ship) Update(spaceTime int) {
 	for i, _ := range s.Rooms {
-		s.Rooms[i].Update()
+		s.Rooms[i].Update(spaceTime)
 	}
 
 	for i, _ := range s.Crew {
 		s.Crew[i].Update()
-	}
-}
-
-func (s Ship) Draw() {
-	for _, r := range s.Rooms {
-		r.Draw()
 	}
 }
