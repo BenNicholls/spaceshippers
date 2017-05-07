@@ -2,7 +2,7 @@ package main
 
 import "github.com/bennicholls/burl/core"
 import "github.com/bennicholls/burl/util"
-import "fmt"
+import "math/rand"
 
 type Ship struct {
 	name string
@@ -50,6 +50,15 @@ func NewShip(n string) *Ship {
 
 	for i, _ := range s.Crew {
 		s.Crew[i] = NewCrewman()
+		start := s.Rooms[rand.Intn(len(s.Rooms))]
+		for {
+			rx, ry := util.GenerateCoord(start.X, start.Y, start.W, start.H)
+			if s.ShipMap.GetTile(rx, ry).Empty() {
+				s.ShipMap.AddEntity(rx, ry, s.Crew[i])
+				s.Crew[i].MoveTo(rx, ry)
+				break
+			}
+		}
 	}
 
 	s.name = n
@@ -90,8 +99,6 @@ func (s *Ship) ConnectRooms(r1, r2 *Room) {
 		
 		x = util.Max(r1.X, r2.X)
 		l = util.Min(r1.X + r1.W, r2.X + r2.W) - x - 1
-
-		fmt.Println(x, y, l)
 		
 		s.ShipMap.ChangeTileType(x + l/2, y, TILE_DOOR)
 		s.ShipMap.ChangeTileType(x + l/2 + 1, y, TILE_DOOR)
@@ -106,5 +113,12 @@ func (s *Ship) Update(spaceTime int) {
 
 	for i, _ := range s.Crew {
 		s.Crew[i].Update()
+		if spaceTime%20 == 0 {
+			dx, dy := util.GenerateDirection()
+			if s.ShipMap.GetTile(s.Crew[i].X + dx, s.Crew[i].Y + dy).Empty() {
+				s.ShipMap.MoveEntity(s.Crew[i].X, s.Crew[i].Y, dx, dy)
+				s.Crew[i].Move(dx, dy)
+			}
+		}
 	}
 }

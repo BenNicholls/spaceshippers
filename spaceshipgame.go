@@ -83,7 +83,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.shipdisplay = ui.NewTileView(80, 28, 0, 3, 0, false)
 
 	sg.shipstatus = ui.NewContainer(26, 12, 1, 32, 1, true)
-	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 11, 0, false, true, "The Prototype"))
+	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 11, 0, false, true, "The USS Prototype"))
 
 	sg.input = ui.NewInputbox(51, 1, 28, 43, 2, true)
 	sg.input.ToggleFocus()
@@ -196,6 +196,11 @@ func (sg *SpaceshipGame) Render() {
 			if t.TileType() != 0 {
 				tv := t.GetVisuals()
 				sg.shipdisplay.Draw(x, y, tv.Glyph, tv.ForeColour, 0xFF000000)
+			}
+
+			if sg.PlayerShip.ShipMap.GetEntity(i%w, i/w) != nil {
+				e := sg.PlayerShip.ShipMap.GetEntity(i%w, i/w)
+				sg.shipdisplay.Draw(x, y, e.GetVisuals().Glyph, e.GetVisuals().ForeColour, 0xFF000000)
 			}
 		}
 	}
