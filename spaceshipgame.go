@@ -16,6 +16,7 @@ const (
 //load some tile data
 var TILE_FLOOR = core.LoadTileData("Floor", true, true, 0xB0, 0xFF444444)
 var TILE_WALL = core.LoadTileData("Wall", false, false, 0x23, 0xFF888888)
+var TILE_DOOR = core.LoadTileData("Door", true, false, 0xF0, 0xFF888888)
 
 type SpaceshipGame struct {
 
@@ -38,7 +39,6 @@ type SpaceshipGame struct {
 	starField []int
 	starFrequency int
 
-	shipMap *core.TileMap
 	viewX, viewY int
 
 	PlayerShip *Ship
@@ -51,7 +51,6 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.SpaceTime = 0
 	sg.SimSpeed = 1
 	sg.PlayerShip = NewShip("The Undestructable")
-	sg.shipMap = core.NewMap(100, 100)
 	sg.starFrequency = 20
 	sg.viewX = 0
 	sg.viewY = 0
@@ -59,12 +58,6 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.SetupUI()
 	sg.UpdateSpeedUI()
 	sg.initStarField()
-
-	for _, r := range sg.PlayerShip.Rooms {
-		for i := 0; i < r.W*r.H; i ++ {
-			sg.shipMap.ChangeTileType(r.X + i%r.W, r.Y + i/r.W, TILE_FLOOR)
-		}
-	}
 
 	return sg
 }
@@ -90,7 +83,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.shipdisplay = ui.NewTileView(80, 28, 0, 3, 0, false)
 
 	sg.shipstatus = ui.NewContainer(26, 12, 1, 32, 1, true)
-	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 11, 0, false, true, "The Unsinkable"))
+	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 11, 0, false, true, "The Prototype"))
 
 	sg.input = ui.NewInputbox(51, 1, 28, 43, 2, true)
 	sg.input.ToggleFocus()
@@ -106,7 +99,6 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar)
 }
 
-//n = crew index
 func (sg *SpaceshipGame) UpdateCrewUI() {
 	w, _ := sg.crew.Dims()
 	sg.crew.ClearElements()
@@ -158,7 +150,7 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 		case sdl.K_LEFT:
 			sg.viewX -= 1
 		case sdl.K_RIGHT:
-			sg.viewY += 1
+			sg.viewX += 1
 		case sdl.K_F1:
 			sg.crew.ToggleVisible()
 		}
@@ -191,7 +183,7 @@ func (sg *SpaceshipGame) Update() {
 func (sg *SpaceshipGame) Render() {
 	sg.DrawStarfield()
 
-	w, h := sg.shipMap.Dims()
+	w, h := sg.PlayerShip.ShipMap.Dims()
 	x, y := 0, 0
 
 	for i := 0; i < w*h; i++ {
@@ -200,8 +192,9 @@ func (sg *SpaceshipGame) Render() {
 		y = i/w + sg.viewY
 
 		if util.CheckBounds(x, y, sg.shipdisplay.Width, sg.shipdisplay.Height) {
-			if sg.shipMap.GetTileType(i%w, i/w) != 0 {
-				tv := sg.shipMap.GetTile(i%w, i/w).GetVisuals()
+			t := sg.PlayerShip.ShipMap.GetTile(i%w, i/w)
+			if t.TileType() != 0 {
+				tv := t.GetVisuals()
 				sg.shipdisplay.Draw(x, y, tv.Glyph, tv.ForeColour, 0xFF000000)
 			}
 		}

@@ -2,26 +2,47 @@ package main
 
 import "strconv"
 
-//room indexes
-const (
-	BRIDGE int = iota
-	ENGINEERING
-	MESSHALL
-	MEDBAY
-	QUARTERS
-	HALLWAY
-	MAX_ROOMS
-)
-
 type Room struct {
 	name string
 
 	X, Y int
 	W, H int
 
+	connected []*Room
+
 	state            Stat //state of repair.
 	upkeep           int  //periodic decay of repair state.
 	repairDifficulty int  //default time to repair by 1 unit.
+}
+
+func NewRoom(name string, x, y, w, h, upkeep, repair int) *Room {
+	r := new(Room)
+	r.X, r.Y, r.W, r.H = x, y, w, h
+	r.upkeep = upkeep
+	r.repairDifficulty = repair
+	r.state = Stat{100, 100}
+	r.connected = make([]*Room, 10)
+
+	return r
+}
+
+func (r *Room) AddConnection(c *Room) {
+	//check if room is already connected
+	for _, room := range r.connected {
+		if room == c {
+			return
+		}
+	}
+	
+	r.connected = append(r.connected, c)
+}
+
+func (r *Room) RemoveConnection(c *Room) {
+	for i, room := range r.connected {
+		if room == c {
+			r.connected = append(r.connected[:i], r.connected[i+1:]...)
+		}
+	}
 }
 
 func (r Room) GetStatus() string {
