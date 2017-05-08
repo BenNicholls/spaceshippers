@@ -11,7 +11,7 @@ type Ship struct {
 	Rooms []*Room
 
 	//status numbers.
-	Hull  Stat
+	Hull  core.Stat
 	Pilot *Crewman
 
 	ShipMap *core.TileMap
@@ -113,7 +113,7 @@ func (s *Ship) Update(spaceTime int) {
 
 	for i, _ := range s.Crew {
 		s.Crew[i].Update()
-		if spaceTime%20 == 0 {
+		if spaceTime%20 == 0 && s.Crew[i].IsAwake() {
 			dx, dy := util.GenerateDirection()
 			if s.ShipMap.GetTile(s.Crew[i].X + dx, s.Crew[i].Y + dy).Empty() {
 				s.ShipMap.MoveEntity(s.Crew[i].X, s.Crew[i].Y, dx, dy)

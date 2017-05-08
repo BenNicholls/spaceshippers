@@ -15,8 +15,8 @@ type Crewman struct {
 	core.BurlEntity
 
 	//defining characteristics of various types
-	HP        Stat
-	Awakeness Stat
+	HP        core.Stat
+	Awakeness core.Stat
 
 	CurrentTask Job
 }
@@ -25,8 +25,8 @@ func NewCrewman() *Crewman {
 	c := new(Crewman)
 	c.Vis.Glyph = 0x01
 	c.Vis.ForeColour = 0xFFFFFFFF
-	c.HP = NewStat(100)
-	c.Awakeness = NewStat(9 * HOUR)
+	c.HP = core.NewStat(100)
+	c.Awakeness = core.NewStat((rand.Intn(4) + 7) * HOUR)
 	c.randomizeName()
 	return c
 }

@@ -1,6 +1,7 @@
 package main
 
 import "strconv"
+import "github.com/bennicholls/burl/core"
 
 type Room struct {
 	name string
@@ -10,7 +11,7 @@ type Room struct {
 
 	connected []*Room
 
-	state            Stat //state of repair.
+	state            core.Stat //state of repair.
 	upkeep           int  //periodic decay of repair state.
 	repairDifficulty int  //default time to repair by 1 unit.
 }
@@ -20,7 +21,7 @@ func NewRoom(name string, x, y, w, h, upkeep, repair int) *Room {
 	r.X, r.Y, r.W, r.H = x, y, w, h
 	r.upkeep = upkeep
 	r.repairDifficulty = repair
-	r.state = Stat{100, 100}
+	r.state = core.NewStat(100)
 	r.connected = make([]*Room, 10)
 
 	return r
