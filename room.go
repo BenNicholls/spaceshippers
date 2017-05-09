@@ -76,3 +76,7 @@ func (r *Room) ApplyUpkeep(spaceTime int) {
 func (r *Room) Update(spaceTime int) {
 	r.ApplyUpkeep(spaceTime)
 }
+
+func (r Room) Rect() (int, int, int, int) {
+	return r.X, r.Y, r.Width, r.Height
+}

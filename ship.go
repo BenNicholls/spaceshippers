@@ -91,41 +91,23 @@ func (s *Ship) CalcShipDims() {
 }
 
 //Finds the intersection of the two rooms and puts doors there!
-//TODO: smarter. currently only works if they are set up right in the first place
-//TODO: this is a monstrosity.
+//If rooms not properly lined up, does nothing.
 func (s *Ship) ConnectRooms(r1, r2 *Room) {
-	r1.AddConnection(r2)
-	r2.AddConnection(r1)
+	
+	x,y,w,h := util.FindIntersectionRect(r1, r2)
 
-	x, y, l := 0,0,0
-
-	//left/right connection
-	if r1.X + r1.Width - 1 == r2.X || r2.X + r2.Width - 1 == r1.X  {
-		if r1.X + r1.Width - 1 == r2.X {
-			x = r2.X
-		} else {
-			x = r1.X
-		}
-		
-		y = util.Max(r1.Y, r2.Y)
-		l = util.Min(r1.Y + r1.Height, r2.Y + r2.Height) - y - 1
-		
-		s.ShipMap.ChangeTileType(x, y+l/2, TILE_DOOR)
-		s.ShipMap.ChangeTileType(x, y+l/2 + 1, TILE_DOOR)
-
-	} else if r1.Y + r1.Height - 1 == r2.Y || r2.Y + r2.Height - 1 == r1.Y  {
-		if r1.Y + r1.Height - 1 == r2.Y {
-			y = r2.Y
-		} else {
-			y = r1.Y
-		}
-		
-		x = util.Max(r1.X, r2.X)
-		l = util.Min(r1.X + r1.Width, r2.X + r2.Width) - x - 1
-		
-		s.ShipMap.ChangeTileType(x + l/2, y, TILE_DOOR)
-		s.ShipMap.ChangeTileType(x + l/2 + 1, y, TILE_DOOR)
-
+	if w == 1 && h >= 3 {
+		//left-right rooms
+		r1.AddConnection(r2)
+		r2.AddConnection(r1)
+		s.ShipMap.ChangeTileType(x, y+h/2 - 1, TILE_DOOR)
+		s.ShipMap.ChangeTileType(x, y+h/2 , TILE_DOOR)
+	} else if h == 1 && w >= 3 {
+		//up-down rooms
+		r1.AddConnection(r2)
+		r2.AddConnection(r1)
+		s.ShipMap.ChangeTileType(x + w/2 - 1, y, TILE_DOOR)
+		s.ShipMap.ChangeTileType(x + w/2 , y, TILE_DOOR)
 	}
 }
 
