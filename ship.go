@@ -15,6 +15,9 @@ type Ship struct {
 	Pilot *Crewman
 
 	ShipMap *core.TileMap
+
+	X, Y, Width, Height int //bounding box holding the ship
+	Volume int
 }
 
 func NewShip(n string) *Ship {
@@ -22,6 +25,7 @@ func NewShip(n string) *Ship {
 	s.ShipMap = core.NewMap(100, 100)
 	s.Crew = make([]*Crewman, 6)
 	s.Rooms = make([]*Room, 7)
+	s.name = n
 
 	s.Rooms[0] = NewRoom("Bridge", 20, 6, 6, 12, 500, 1000)
 	s.Rooms[1] = NewRoom("Engineering", 5, 8, 5, 8, 700, 1000)
@@ -31,6 +35,7 @@ func NewShip(n string) *Ship {
 	s.Rooms[5] = NewRoom("Quarters 2", 9, 13, 6, 6, 900, 500)
 	s.Rooms[6] = NewRoom("Hallway", 9, 10, 12, 4, 0, 500)
 
+	//draw ship to shipmap, one room at a time.
 	for _, r := range s.Rooms {
 		for i := 0; i < r.W*r.H; i ++ {
 			if i < r.W || i%r.W == 0 || i%r.W == r.W - 1 || i/r.W == r.H - 1 {
@@ -40,13 +45,15 @@ func NewShip(n string) *Ship {
 			}
 		}
 	}
-
+	
 	s.ConnectRooms(s.Rooms[6], s.Rooms[0])
 	s.ConnectRooms(s.Rooms[6], s.Rooms[1])
 	s.ConnectRooms(s.Rooms[6], s.Rooms[2])
 	s.ConnectRooms(s.Rooms[6], s.Rooms[3])
 	s.ConnectRooms(s.Rooms[6], s.Rooms[4])
 	s.ConnectRooms(s.Rooms[6], s.Rooms[5])
+
+	s.CalcShipDims()
 
 	for i, _ := range s.Crew {
 		s.Crew[i] = NewCrewman()
@@ -61,10 +68,26 @@ func NewShip(n string) *Ship {
 		}
 	}
 
-	s.name = n
-	s.Pilot = nil
-
 	return s
+}
+
+//Calculates the bounding box for the current ship configuration, as well as the volume.
+func (s *Ship) CalcShipDims() {
+	s.X, s.Y = s.ShipMap.Dims()
+	x2, y2 := 0, 0
+
+	for _, r := range s.Rooms {
+		s.X = util.Min(s.X, r.X)
+		x2 = util.Max(x2, r.X + r.W)
+		s.Y = util.Min(s.Y, r.Y)
+		y2 = util.Max(y2, r.Y + r.H)
+
+		//calculates interior volume (effectively floorspace)
+		s.Volume += (r.W-2)*(r.H-2)
+	}
+
+	s.Width = x2 - s.X
+	s.Height = y2 - s.Y	
 }
 
 //Finds the intersection of the two rooms and puts doors there!

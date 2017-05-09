@@ -52,14 +52,20 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.SimSpeed = 1
 	sg.PlayerShip = NewShip("The Undestructable")
 	sg.starFrequency = 20
-	sg.viewX = 0
-	sg.viewY = 0
 
 	sg.SetupUI()
 	sg.UpdateSpeedUI()
 	sg.initStarField()
+	sg.CenterShip()
 
 	return sg
+}
+
+//Centers the map of the ship in the main view.
+func (sg *SpaceshipGame) CenterShip() {
+	sg.PlayerShip.CalcShipDims()
+	sg.viewX = sg.shipdisplay.Width/2 - sg.PlayerShip.Width/2 - sg.PlayerShip.X
+	sg.viewY = sg.shipdisplay.Height/2 - sg.PlayerShip.Height/2 - sg.PlayerShip.Y
 }
 
 func (sg *SpaceshipGame) UpdateSpeedUI() {
@@ -133,6 +139,8 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			sg.output.ScrollUp()
 		case sdl.K_PAGEDOWN:
 			sg.output.ScrollDown()
+		case sdl.K_HOME:
+			sg.CenterShip()
 		case sdl.K_KP_PLUS:
 			if sg.SimSpeed < 4 {
 				sg.SimSpeed++
