@@ -37,11 +37,11 @@ func NewShip(n string) *Ship {
 
 	//draw ship to shipmap, one room at a time.
 	for _, r := range s.Rooms {
-		for i := 0; i < r.W*r.H; i ++ {
-			if i < r.W || i%r.W == 0 || i%r.W == r.W - 1 || i/r.W == r.H - 1 {
-				s.ShipMap.ChangeTileType(r.X + i%r.W, r.Y + i/r.W, TILE_WALL)	
+		for i := 0; i < r.Width*r.Height; i ++ {
+			if i < r.Width || i%r.Width == 0 || i%r.Width == r.Width - 1 || i/r.Width == r.Height - 1 {
+				s.ShipMap.ChangeTileType(r.X + i%r.Width, r.Y + i/r.Width, TILE_WALL)	
 			} else {
-				s.ShipMap.ChangeTileType(r.X + i%r.W, r.Y + i/r.W, TILE_FLOOR)
+				s.ShipMap.ChangeTileType(r.X + i%r.Width, r.Y + i/r.Width, TILE_FLOOR)
 			}
 		}
 	}
@@ -59,7 +59,7 @@ func NewShip(n string) *Ship {
 		s.Crew[i] = NewCrewman()
 		start := s.Rooms[rand.Intn(len(s.Rooms))]
 		for {
-			rx, ry := util.GenerateCoord(start.X, start.Y, start.W, start.H)
+			rx, ry := util.GenerateCoord(start.X, start.Y, start.Width, start.Height)
 			if s.ShipMap.GetTile(rx, ry).Empty() {
 				s.ShipMap.AddEntity(rx, ry, s.Crew[i])
 				s.Crew[i].MoveTo(rx, ry)
@@ -78,12 +78,12 @@ func (s *Ship) CalcShipDims() {
 
 	for _, r := range s.Rooms {
 		s.X = util.Min(s.X, r.X)
-		x2 = util.Max(x2, r.X + r.W)
+		x2 = util.Max(x2, r.X + r.Width)
 		s.Y = util.Min(s.Y, r.Y)
-		y2 = util.Max(y2, r.Y + r.H)
+		y2 = util.Max(y2, r.Y + r.Height)
 
 		//calculates interior volume (effectively floorspace)
-		s.Volume += (r.W-2)*(r.H-2)
+		s.Volume += (r.Width-2)*(r.Height-2)
 	}
 
 	s.Width = x2 - s.X
@@ -100,28 +100,28 @@ func (s *Ship) ConnectRooms(r1, r2 *Room) {
 	x, y, l := 0,0,0
 
 	//left/right connection
-	if r1.X + r1.W - 1 == r2.X || r2.X + r2.W - 1 == r1.X  {
-		if r1.X + r1.W - 1 == r2.X {
+	if r1.X + r1.Width - 1 == r2.X || r2.X + r2.Width - 1 == r1.X  {
+		if r1.X + r1.Width - 1 == r2.X {
 			x = r2.X
 		} else {
 			x = r1.X
 		}
 		
 		y = util.Max(r1.Y, r2.Y)
-		l = util.Min(r1.Y + r1.H, r2.Y + r2.H) - y - 1
+		l = util.Min(r1.Y + r1.Height, r2.Y + r2.Height) - y - 1
 		
 		s.ShipMap.ChangeTileType(x, y+l/2, TILE_DOOR)
 		s.ShipMap.ChangeTileType(x, y+l/2 + 1, TILE_DOOR)
 
-	} else if r1.Y + r1.H - 1 == r2.Y || r2.Y + r2.H - 1 == r1.Y  {
-		if r1.Y + r1.H - 1 == r2.Y {
+	} else if r1.Y + r1.Height - 1 == r2.Y || r2.Y + r2.Height - 1 == r1.Y  {
+		if r1.Y + r1.Height - 1 == r2.Y {
 			y = r2.Y
 		} else {
 			y = r1.Y
 		}
 		
 		x = util.Max(r1.X, r2.X)
-		l = util.Min(r1.X + r1.W, r2.X + r2.W) - x - 1
+		l = util.Min(r1.X + r1.Width, r2.X + r2.Width) - x - 1
 		
 		s.ShipMap.ChangeTileType(x + l/2, y, TILE_DOOR)
 		s.ShipMap.ChangeTileType(x + l/2 + 1, y, TILE_DOOR)

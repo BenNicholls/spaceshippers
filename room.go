@@ -7,7 +7,7 @@ type Room struct {
 	name string
 
 	X, Y int
-	W, H int
+	Width, Height int
 
 	connected []*Room
 
@@ -18,7 +18,7 @@ type Room struct {
 
 func NewRoom(name string, x, y, w, h, upkeep, repair int) *Room {
 	r := new(Room)
-	r.X, r.Y, r.W, r.H = x, y, w, h
+	r.X, r.Y, r.Width, r.Height = x, y, w, h
 	r.upkeep = upkeep
 	r.repairDifficulty = repair
 	r.state = core.NewStat(100)
