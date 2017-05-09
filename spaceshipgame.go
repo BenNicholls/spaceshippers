@@ -51,6 +51,12 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.SpaceTime = 0
 	sg.SimSpeed = 1
 	sg.PlayerShip = NewShip("The Undestructable")
+	sg.PlayerShip.AddRoom(NewRoom("Engineering", 5, 8, 5, 8, 700, 1000))
+	sg.PlayerShip.AddRoom(NewRoom("Messhall", 15, 5, 6, 6, 1000, 500))
+	sg.PlayerShip.AddRoom(NewRoom("Medbay", 9, 5, 6, 6, 1000, 700))
+	sg.PlayerShip.AddRoom(NewRoom("Quarters 1", 15, 13, 6, 6, 900, 500))
+	sg.PlayerShip.AddRoom(NewRoom("Quarters 2", 9, 13, 6, 6, 900, 500))
+	sg.PlayerShip.AddRoom(NewRoom("Hallway", 9, 10, 12, 4, 0, 500))
 	sg.starFrequency = 20
 
 	sg.SetupUI()
@@ -63,7 +69,6 @@ func NewSpaceshipGame() *SpaceshipGame {
 
 //Centers the map of the ship in the main view.
 func (sg *SpaceshipGame) CenterShip() {
-	sg.PlayerShip.CalcShipDims()
 	sg.viewX = sg.shipdisplay.Width/2 - sg.PlayerShip.Width/2 - sg.PlayerShip.X
 	sg.viewY = sg.shipdisplay.Height/2 - sg.PlayerShip.Height/2 - sg.PlayerShip.Y
 }

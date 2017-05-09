@@ -54,7 +54,7 @@ type RepairRoomJob struct {
 }
 
 func NewRepairRoomJob(r *Room) *RepairRoomJob {
-	return &RepairRoomJob{Task{"Repair", "Repairing " + r.name, 0, 0, nil}, r}
+	return &RepairRoomJob{Task{"Repair", "Repairing " + r.Name, 0, 0, nil}, r}
 }
 
 func (rj *RepairRoomJob) OnTick() {

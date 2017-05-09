@@ -20,55 +20,49 @@ type Ship struct {
 	Volume int
 }
 
+//Inits a new Ship. For now, starts with a bridge and 6 crew.
 func NewShip(n string) *Ship {
 	s := new(Ship)
 	s.ShipMap = core.NewMap(100, 100)
 	s.Crew = make([]*Crewman, 6)
-	s.Rooms = make([]*Room, 7)
+	s.Rooms = make([]*Room, 0, 10)
 	s.name = n
 
-	s.Rooms[0] = NewRoom("Bridge", 20, 6, 6, 12, 500, 1000)
-	s.Rooms[1] = NewRoom("Engineering", 5, 8, 5, 8, 700, 1000)
-	s.Rooms[2] = NewRoom("Messhall", 15, 5, 6, 6, 1000, 500)
-	s.Rooms[3] = NewRoom("Medbay", 9, 5, 6, 6, 1000, 700)
-	s.Rooms[4] = NewRoom("Quarters 1", 15, 13, 6, 6, 900, 500)
-	s.Rooms[5] = NewRoom("Quarters 2", 9, 13, 6, 6, 900, 500)
-	s.Rooms[6] = NewRoom("Hallway", 9, 10, 12, 4, 0, 500)
-
-	//draw ship to shipmap, one room at a time.
-	for _, r := range s.Rooms {
-		for i := 0; i < r.Width*r.Height; i ++ {
-			if i < r.Width || i%r.Width == 0 || i%r.Width == r.Width - 1 || i/r.Width == r.Height - 1 {
-				s.ShipMap.ChangeTileType(r.X + i%r.Width, r.Y + i/r.Width, TILE_WALL)	
-			} else {
-				s.ShipMap.ChangeTileType(r.X + i%r.Width, r.Y + i/r.Width, TILE_FLOOR)
-			}
-		}
-	}
-	
-	s.ConnectRooms(s.Rooms[6], s.Rooms[0])
-	s.ConnectRooms(s.Rooms[6], s.Rooms[1])
-	s.ConnectRooms(s.Rooms[6], s.Rooms[2])
-	s.ConnectRooms(s.Rooms[6], s.Rooms[3])
-	s.ConnectRooms(s.Rooms[6], s.Rooms[4])
-	s.ConnectRooms(s.Rooms[6], s.Rooms[5])
-
-	s.CalcShipDims()
+	s.AddRoom(NewRoom("Bridge", 20, 6, 6, 12, 500, 1000))
 
 	for i, _ := range s.Crew {
 		s.Crew[i] = NewCrewman()
-		start := s.Rooms[rand.Intn(len(s.Rooms))]
-		for {
-			rx, ry := util.GenerateCoord(start.X, start.Y, start.Width, start.Height)
-			if s.ShipMap.GetTile(rx, ry).Empty() {
-				s.ShipMap.AddEntity(rx, ry, s.Crew[i])
-				s.Crew[i].MoveTo(rx, ry)
-				break
-			}
-		}
 	}
 
+	s.PlaceCrew()
+
 	return s
+}
+
+//Adds a room to the ship and connects it.
+//TODO: Check if room is a valid add.
+func (s *Ship) AddRoom(r *Room) {
+	s.Rooms = append(s.Rooms, r)
+
+	//attempt to connect to each current room
+	for _, room := range s.Rooms {
+		s.ConnectRooms(room, r)
+	}
+
+	s.DrawRoom(r)
+	s.CalcShipDims()
+}
+
+func (s *Ship) ConnectRooms(r1, r2 *Room) {
+	r1.AddConnection(r2)
+	r2.AddConnection(r1)
+}
+
+//Draws a room onto the shipmap
+func (s *Ship) DrawRoom(r *Room) {
+	for i := 0; i < r.Width*r.Height; i++ {
+		s.ShipMap.ChangeTileType(r.X + i%r.Width, r.Y + i/r.Width, r.RoomMap.GetTileType(i%r.Width, i/r.Width))	
+	}
 }
 
 //Calculates the bounding box for the current ship configuration, as well as the volume.
@@ -90,24 +84,18 @@ func (s *Ship) CalcShipDims() {
 	s.Height = y2 - s.Y	
 }
 
-//Finds the intersection of the two rooms and puts doors there!
-//If rooms not properly lined up, does nothing.
-func (s *Ship) ConnectRooms(r1, r2 *Room) {
-	
-	x,y,w,h := util.FindIntersectionRect(r1, r2)
-
-	if w == 1 && h >= 3 {
-		//left-right rooms
-		r1.AddConnection(r2)
-		r2.AddConnection(r1)
-		s.ShipMap.ChangeTileType(x, y+h/2 - 1, TILE_DOOR)
-		s.ShipMap.ChangeTileType(x, y+h/2 , TILE_DOOR)
-	} else if h == 1 && w >= 3 {
-		//up-down rooms
-		r1.AddConnection(r2)
-		r2.AddConnection(r1)
-		s.ShipMap.ChangeTileType(x + w/2 - 1, y, TILE_DOOR)
-		s.ShipMap.ChangeTileType(x + w/2 , y, TILE_DOOR)
+//Inits crew. For now just randomizes their positions.
+func (s *Ship) PlaceCrew() {
+	for i, _ := range s.Crew {
+		start := s.Rooms[rand.Intn(len(s.Rooms))]
+		for {
+			rx, ry := util.GenerateCoord(start.X, start.Y, start.Width, start.Height)
+			if s.ShipMap.GetTile(rx, ry).Empty() {
+				s.ShipMap.AddEntity(rx, ry, s.Crew[i])
+				s.Crew[i].MoveTo(rx, ry)
+				break
+			}
+		}
 	}
 }
 
