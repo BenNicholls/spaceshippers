@@ -4,17 +4,27 @@ import "github.com/veandco/go-sdl2/sdl"
 import "github.com/bennicholls/burl/util"
 
 func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
-	if util.ValidText(rune(key)) {
-		sg.input.InsertText(rune(key))
+	//if we're inputting commands to scippie
+	if sg.activeMenu == sg.input {
+		if util.ValidText(rune(key)) {
+			sg.input.InsertText(rune(key))
+		} else {
+			switch key {
+			case sdl.K_RETURN:
+				sg.Execute()
+				sg.input.Reset()
+				sg.DeactivateMenu()
+			case sdl.K_BACKSPACE:
+				sg.input.Delete()
+			case sdl.K_SPACE:
+				sg.input.Insert(" ")
+			case sdl.K_ESCAPE:
+				sg.DeactivateMenu()
+				sg.input.Reset()
+			}
+		}
 	} else {
 		switch key {
-		case sdl.K_RETURN:
-			sg.Execute()
-			sg.input.Reset()
-		case sdl.K_BACKSPACE:
-			sg.input.Delete()
-		case sdl.K_SPACE:
-			sg.input.Insert(" ")
 		case sdl.K_PAGEUP:
 			sg.output.ScrollUp()
 		case sdl.K_PAGEDOWN:
@@ -45,13 +55,15 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			} else {
 				sg.ActivateMenu(sg.crew)
 			}
-		case sdl.K_ESCAPE:
+		case sdl.K_SPACE:
 			sg.paused = !sg.paused
 			if sg.paused {
 				sg.AddMessage("Game Paused")
 			} else {
 				sg.AddMessage("Game Unpaused")
 			}
+		case sdl.K_ESCAPE:
+			sg.ActivateMenu(sg.input)
 		}
 	}
 }

@@ -104,12 +104,13 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.shipstatus = ui.NewContainer(26, 12, 1, 32, 1, true)
 	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 11, 0, false, true, "The USS Prototype"))
 
-	sg.input = ui.NewInputbox(51, 1, 28, 43, 2, true)
+	sg.input = ui.NewInputbox(50, 1, 15, 27, 2, true)
 	sg.input.ToggleFocus()
+	sg.input.SetVisibility(false)
 	sg.input.SetTitle("SCIPPIE V6.18")
-	sg.output = ui.NewList(51, 10, 28, 32, 1, true, "The Ship Computer Interactive Parameter Parser/Interface Entity, or SCIPPIE, is your computerized second in command. Ask questions, give commands and observe your ship through the high-tech text-tacular wonders of 38th century UI technology! Ask SCIPPIE a question, or give him a command!")
-	sg.output.ToggleHighlight()
 
+	sg.output = ui.NewList(51, 12, 28, 32, 1, true, "The Ship Computer Interactive Parameter Parser/Interface Entity, or SCIPPIE, is your computerized second in command. Ask questions, give commands and observe your ship through the high-tech text-tacular wonders of 38th century UI technology! Ask SCIPPIE a question, or give him a command!")
+	sg.output.ToggleHighlight()
 
 	sg.crew = ui.NewContainer(20, 27, 59, 4, 3, true)
 	sg.crew.SetTitle("Crew Roster")
@@ -204,7 +205,10 @@ func (sg *SpaceshipGame) ActivateMenu(m ui.UIElem) {
 		sg.activeMenu.SetVisibility(false)
 	}
 	sg.activeMenu = m
-	sg.CenterShip()
+
+	if m != sg.input {
+		sg.CenterShip()
+	}
 }
 
 //deactivates the open menu (if there is one)
