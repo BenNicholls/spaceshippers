@@ -3,7 +3,6 @@ package main
 import "github.com/bennicholls/burl/ui"
 import "github.com/bennicholls/burl/util"
 import "github.com/bennicholls/burl/core"
-import "github.com/veandco/go-sdl2/sdl"
 import "fmt"
 
 //time values in DIGITAL SECONDS. One digital day = 100000 seconds, which is 14% longer than a regular day.
@@ -24,17 +23,22 @@ type SpaceshipGame struct {
 	window *ui.Container
 	input *ui.Inputbox
 	output *ui.List
-	crew *ui.Container
 	shipstatus *ui.Container
 	missiontime *ui.Textbox
 	speeddisplay *ui.TileView
 	menubar *ui.Container
 	shipdisplay *ui.TileView
+
+	//submenus. these are stored always for fast switching.
+	crew *ui.Container
 	crewUI []*ui.Container //one container for each crew member.
+
+	activeMenu ui.UIElem
 
 	//Time Globals.
 	SpaceTime int //measured in Standard Galactic Seconds
 	SimSpeed int  //4 speeds, plus pause (0)
+	paused bool
 
 	starField []int
 	starFrequency int
@@ -71,6 +75,10 @@ func NewSpaceshipGame() *SpaceshipGame {
 func (sg *SpaceshipGame) CenterShip() {
 	sg.viewX = sg.shipdisplay.Width/2 - sg.PlayerShip.Width/2 - sg.PlayerShip.X
 	sg.viewY = sg.shipdisplay.Height/2 - sg.PlayerShip.Height/2 - sg.PlayerShip.Y
+	if sg.activeMenu != nil {
+		w, _ := sg.activeMenu.Dims()
+		sg.viewX -= w/2
+	}
 }
 
 func (sg *SpaceshipGame) UpdateSpeedUI() {
@@ -102,7 +110,8 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.output = ui.NewList(51, 10, 28, 32, 1, true, "The Ship Computer Interactive Parameter Parser/Interface Entity, or SCIPPIE, is your computerized second in command. Ask questions, give commands and observe your ship through the high-tech text-tacular wonders of 38th century UI technology! Ask SCIPPIE a question, or give him a command!")
 	sg.output.ToggleHighlight()
 
-	sg.crew = ui.NewContainer(26, 18, 27, 13, 3, true)
+
+	sg.crew = ui.NewContainer(20, 27, 59, 4, 3, true)
 	sg.crew.SetTitle("Crew Roster")
 	sg.crew.SetVisibility(false)
 	sg.crewUI = make([]*ui.Container, 6)
@@ -128,50 +137,9 @@ func (sg *SpaceshipGame) UpdateCrewUI() {
 	}
 }
 
-func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
-	if util.ValidText(rune(key)) {
-		sg.input.InsertText(rune(key))
-	} else {
-		switch key {
-		case sdl.K_RETURN:
-			sg.Execute()
-			sg.input.Reset()
-		case sdl.K_BACKSPACE:
-			sg.input.Delete()
-		case sdl.K_SPACE:
-			sg.input.Insert(" ")
-		case sdl.K_PAGEUP:
-			sg.output.ScrollUp()
-		case sdl.K_PAGEDOWN:
-			sg.output.ScrollDown()
-		case sdl.K_HOME:
-			sg.CenterShip()
-		case sdl.K_KP_PLUS:
-			if sg.SimSpeed < 4 {
-				sg.SimSpeed++
-				sg.UpdateSpeedUI()
-			}
-		case sdl.K_KP_MINUS:
-			if sg.SimSpeed > 0 {
-				sg.SimSpeed--
-				sg.UpdateSpeedUI()
-			}
-		case sdl.K_UP:
-			sg.viewY -= 1
-		case sdl.K_DOWN:
-			sg.viewY += 1
-		case sdl.K_LEFT:
-			sg.viewX -= 1
-		case sdl.K_RIGHT:
-			sg.viewX += 1
-		case sdl.K_F1:
-			sg.crew.ToggleVisible()
-		}
-	}
-}
-
 func (sg *SpaceshipGame) Update() {
 
+	//simulation!
 	for i := 0; i < sg.GetIncrement(); i++ {
 		sg.SpaceTime++
 
@@ -186,9 +154,10 @@ func (sg *SpaceshipGame) Update() {
 		}
 	}
 
-	if sg.crew.IsVisible() {
+	if sg.activeMenu == sg.crew {
 		sg.UpdateCrewUI()
 	}
+
 	sg.missiontime.ChangeText(fmt.Sprintf("%.4d", sg.SpaceTime/100000) + "d:" + fmt.Sprintf("%.1d", (sg.SpaceTime/10000)%10) + "h:" + fmt.Sprintf("%.2d", (sg.SpaceTime/100)%100) + "m:" + fmt.Sprintf("%.2d", sg.SpaceTime%100) + "s")
 
 }
@@ -219,13 +188,41 @@ func (sg *SpaceshipGame) Render() {
 	}
 
 	sg.window.Render()
-	sg.crew.Render()
+	if sg.activeMenu != nil {
+		sg.activeMenu.Render()
+	}
 }
 
-func (sg *SpaceshipGame) GetIncrement() int {
-	switch sg.SimSpeed {
-	case 0:
+//Activates a menu (crew, rooms, systems, etc). Does nothing if menu already active.
+func (sg *SpaceshipGame) ActivateMenu(m ui.UIElem) {
+	if sg.activeMenu == m {
+		return
+	}
+
+	m.SetVisibility(true)
+	if sg.activeMenu != nil {
+		sg.activeMenu.SetVisibility(false)
+	}
+	sg.activeMenu = m
+	sg.CenterShip()
+}
+
+//deactivates the open menu (if there is one)
+func (sg *SpaceshipGame) DeactivateMenu() {
+	if sg.activeMenu == nil {
+		return
+	}
+	sg.activeMenu.SetVisibility(false)
+	sg.activeMenu = nil
+	sg.CenterShip()
+}
+
+func (sg SpaceshipGame) GetIncrement() int {
+	if sg.paused {
 		return 0
+	}
+
+	switch sg.SimSpeed {
 	case 1:
 		return 1
 	case 2:
@@ -234,7 +231,7 @@ func (sg *SpaceshipGame) GetIncrement() int {
 		return 100
 	case 4:
 		return 1000
+	default:
+		return 0
 	}
-
-	return 0
 }
