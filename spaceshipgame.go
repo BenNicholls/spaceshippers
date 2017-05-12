@@ -30,8 +30,10 @@ type SpaceshipGame struct {
 	shipdisplay *ui.TileView
 
 	//submenus. these are stored always for fast switching.
-	crew *ui.Container
-	crewUI []*ui.Container //one container for each crew member.
+	//crew menu (F1)
+	crewMenu *ui.Container
+	crewList *ui.List
+	crewDetails *ui.Container
 
 	activeMenu ui.UIElem
 
@@ -63,7 +65,7 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.PlayerShip.AddRoom(NewRoom("Hallway", 9, 10, 12, 4, 0, 500))
 	sg.starFrequency = 20
 
-	sg.SetupUI()
+	sg.SetupUI() //must be done after ship setup
 	sg.UpdateSpeedUI()
 	sg.initStarField()
 	sg.CenterShip()
@@ -112,30 +114,9 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.output = ui.NewList(51, 12, 28, 32, 1, true, "The Ship Computer Interactive Parameter Parser/Interface Entity, or SCIPPIE, is your computerized second in command. Ask questions, give commands and observe your ship through the high-tech text-tacular wonders of 38th century UI technology! Ask SCIPPIE a question, or give him a command!")
 	sg.output.ToggleHighlight()
 
-	sg.crew = ui.NewContainer(20, 27, 59, 4, 3, true)
-	sg.crew.SetTitle("Crew Roster")
-	sg.crew.SetVisibility(false)
-	sg.crewUI = make([]*ui.Container, 6)
+	sg.SetupCrewMenu()
 
 	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar)
-}
-
-func (sg *SpaceshipGame) UpdateCrewUI() {
-	w, _ := sg.crew.Dims()
-	sg.crew.ClearElements()
-	for i := range sg.PlayerShip.Crew {
-		sg.crewUI[i] = ui.NewContainer(w, 3, 0, i*3, 1, false)
-		name := ui.NewProgressBar(w, 1, 0, 0, 0, false, false, sg.PlayerShip.Crew[i].Name, 0xFFFF0000)
-		name.SetProgress(sg.PlayerShip.Crew[i].Awakeness.GetPct())
-		sg.crewUI[i].Add(name)
-		sg.crewUI[i].Add(ui.NewTextbox(w-2, 1, 2, 1, 0, false, false, "is "+sg.PlayerShip.Crew[i].GetStatus()))
-		jobstring := ""
-		if sg.PlayerShip.Crew[i].CurrentTask != nil {
-			jobstring = "is " + sg.PlayerShip.Crew[i].CurrentTask.GetDescription()
-		}
-		sg.crewUI[i].Add(ui.NewTextbox(w-2, 1, 2, 2, 0, false, false, jobstring))
-		sg.crew.Add(sg.crewUI[i])
-	}
 }
 
 func (sg *SpaceshipGame) Update() {
@@ -155,8 +136,8 @@ func (sg *SpaceshipGame) Update() {
 		}
 	}
 
-	if sg.activeMenu == sg.crew {
-		sg.UpdateCrewUI()
+	if sg.activeMenu == sg.crewMenu && sg.crewDetails.IsVisible() {
+		sg.UpdateCrewDetails()
 	}
 
 	sg.missiontime.ChangeText(fmt.Sprintf("%.4d", sg.SpaceTime/100000) + "d:" + fmt.Sprintf("%.1d", (sg.SpaceTime/10000)%10) + "h:" + fmt.Sprintf("%.2d", (sg.SpaceTime/100)%100) + "m:" + fmt.Sprintf("%.2d", sg.SpaceTime%100) + "s")
