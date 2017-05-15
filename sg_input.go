@@ -8,6 +8,8 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 	//general keys -- works in all menus, modes, etc. Mainly menu switching stuff
 	switch key {
 	case sdl.K_F1:
+		sg.crewMenuButton.ToggleFocus()
+		sg.crewMenuButton.Press()
 		if sg.activeMenu == sg.crewMenu {
 			sg.DeactivateMenu()
 		} else {

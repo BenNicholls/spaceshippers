@@ -6,6 +6,7 @@ func (sg *SpaceshipGame) SetupCrewMenu() {
 	sg.crewMenu = ui.NewContainer(20, 27, 59, 4, 3, true)
 	sg.crewMenu.SetTitle("Crew Roster")
 	sg.crewMenu.SetVisibility(false)
+	sg.crewMenu.ToggleFocus()
 	w, h := sg.crewMenu.Dims()
 	sg.crewList = ui.NewList(w, h, 0, 0, 0, false, "")
 	for _, c := range sg.PlayerShip.Crew {

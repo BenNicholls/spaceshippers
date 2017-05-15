@@ -26,8 +26,16 @@ type SpaceshipGame struct {
 	shipstatus *ui.Container
 	missiontime *ui.Textbox
 	speeddisplay *ui.TileView
-	menubar *ui.Container
 	shipdisplay *ui.TileView
+
+	//top menu. contains buttons for submenus
+	menubar *ui.Container
+	crewMenuButton *ui.Button
+	shipMenuButton *ui.Button
+	roomMenuButton *ui.Button
+	mainMenuButton *ui.Button
+	starchartMenuButton *ui.Button
+	scippieMenuButton *ui.Button
 
 	//submenus. these are stored always for fast switching.
 	//crew menu (F1)
@@ -99,7 +107,15 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.missiontime = ui.NewTextbox(8, 1, 1, 1, 1, true, true, "")
 	sg.speeddisplay = ui.NewTileView(8, 1, 1, 3, 1, true)
-	sg.menubar = ui.NewContainer(69, 1, 10, 1, 1, true)
+
+	sg.menubar = ui.NewContainer(69, 1, 12, 1, 1, false)
+	sg.crewMenuButton = ui.NewButton(9, 1, 1, 0, 1, true, true, "Crew")
+	sg.shipMenuButton = ui.NewButton(9, 1, 12, 0, 1, true, true, "Ship")
+	sg.roomMenuButton = ui.NewButton(9, 1, 23, 0, 1, true, true, "Room")
+	sg.starchartMenuButton = ui.NewButton(9, 1, 34, 0, 1, true, true, "Star Chart")
+	sg.scippieMenuButton = ui.NewButton(9, 1, 45, 0, 1, true, true, "S.C.I.P.P.I.E.")
+	sg.mainMenuButton = ui.NewButton(9, 1, 56, 0, 1, true, true, "Main  Menu")
+	sg.menubar.Add(sg.crewMenuButton, sg.shipMenuButton, sg.roomMenuButton, sg.roomMenuButton, sg.starchartMenuButton, sg.scippieMenuButton, sg.mainMenuButton)
 
 	sg.shipdisplay = ui.NewTileView(80, 28, 0, 3, 0, false)
 
