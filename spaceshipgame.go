@@ -83,8 +83,9 @@ func NewSpaceshipGame() *SpaceshipGame {
 
 //Centers the map of the ship in the main view.
 func (sg *SpaceshipGame) CenterShip() {
-	sg.viewX = sg.shipdisplay.Width/2 - sg.PlayerShip.Width/2 - sg.PlayerShip.X
-	sg.viewY = sg.shipdisplay.Height/2 - sg.PlayerShip.Height/2 - sg.PlayerShip.Y
+	displayWidth, displayHeight := sg.shipdisplay.Dims()
+	sg.viewX = displayWidth/2 - sg.PlayerShip.Width/2 - sg.PlayerShip.X
+	sg.viewY = displayHeight/2 - sg.PlayerShip.Height/2 - sg.PlayerShip.Y
 	if sg.activeMenu != nil {
 		w, _ := sg.activeMenu.Dims()
 		sg.viewX -= w/2
@@ -140,13 +141,13 @@ func (sg *SpaceshipGame) Update() {
 	//simulation!
 	for i := 0; i < sg.GetIncrement(); i++ {
 		sg.SpaceTime++
-
 		sg.PlayerShip.Update(sg.SpaceTime)
 
 		for i := range sg.PlayerShip.Crew {
 			sg.PlayerShip.Crew[i].Update()
 		}
 
+		//need starfield shift speed controlled here (currently hardcoded to shift every 100 seconds)
 		if sg.SpaceTime%100 == 0 {
 			sg.shiftStarField()
 		}
@@ -165,13 +166,15 @@ func (sg *SpaceshipGame) Render() {
 
 	w, h := sg.PlayerShip.ShipMap.Dims()
 	x, y := 0, 0
+	displayWidth, displayHeight := sg.shipdisplay.Dims()
 
 	for i := 0; i < w*h; i++ {
 		//shipdisplay-space coords
 		x = i%w + sg.viewX
 		y = i/w + sg.viewY
+		
 
-		if util.CheckBounds(x, y, sg.shipdisplay.Width, sg.shipdisplay.Height) {
+		if util.CheckBounds(x, y, displayWidth, displayHeight) {
 			t := sg.PlayerShip.ShipMap.GetTile(i%w, i/w)
 			if t.TileType() != 0 {
 				tv := t.GetVisuals()
