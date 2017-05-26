@@ -43,6 +43,8 @@ type SpaceshipGame struct {
 	crewList *ui.List
 	crewDetails *ui.Container
 
+	shipMenu *ShipMenu
+
 	activeMenu ui.UIElem
 
 	//Time Globals.
@@ -132,8 +134,9 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.output.ToggleHighlight()
 
 	sg.SetupCrewMenu()
+	sg.shipMenu = InitShipMenu()
 
-	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar)
+	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar, sg.shipMenu)
 }
 
 func (sg *SpaceshipGame) Update() {
