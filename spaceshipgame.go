@@ -43,13 +43,18 @@ type SpaceshipGame struct {
 	crewList *ui.List
 	crewDetails *ui.Container
 
+	//custom ui element, we'll see how this works
 	shipMenu *ShipMenu
+
+	//starchart (F4)
+	starchartMenu *StarchartMenu
+
 
 	activeMenu ui.UIElem
 
 	//Time Globals.
-	SpaceTime int //measured in Standard Galactic Seconds
-	SimSpeed int  //4 speeds, plus pause (0)
+	spaceTime int //measured in Standard Galactic Seconds
+	simSpeed int  //4 speeds, plus pause (0)
 	paused bool
 
 	starField []int
@@ -57,22 +62,28 @@ type SpaceshipGame struct {
 
 	viewX, viewY int
 
-	PlayerShip *Ship
-
+	galaxy *Galaxy
+	playerShip *Ship
 }
 
 func NewSpaceshipGame() *SpaceshipGame {
 	sg := new(SpaceshipGame)
 
-	sg.SpaceTime = 0
-	sg.SimSpeed = 1
-	sg.PlayerShip = NewShip("The Undestructable")
-	sg.PlayerShip.AddRoom(NewRoom("Engineering", 5, 8, 5, 8, 700, 1000))
-	sg.PlayerShip.AddRoom(NewRoom("Messhall", 15, 5, 6, 6, 1000, 500))
-	sg.PlayerShip.AddRoom(NewRoom("Medbay", 9, 5, 6, 6, 1000, 700))
-	sg.PlayerShip.AddRoom(NewRoom("Quarters 1", 15, 13, 6, 6, 900, 500))
-	sg.PlayerShip.AddRoom(NewRoom("Quarters 2", 9, 13, 6, 6, 900, 500))
-	sg.PlayerShip.AddRoom(NewRoom("Hallway", 9, 10, 12, 4, 0, 500))
+	sg.spaceTime = 0
+	sg.simSpeed = 1
+
+	sg.galaxy = NewGalaxy()
+
+	sg.playerShip = NewShip("The Undestructable")
+	sg.playerShip.AddRoom(NewRoom("Engineering", 5, 8, 5, 8, 700, 1000))
+	sg.playerShip.AddRoom(NewRoom("Messhall", 15, 5, 6, 6, 1000, 500))
+	sg.playerShip.AddRoom(NewRoom("Medbay", 9, 5, 6, 6, 1000, 700))
+	sg.playerShip.AddRoom(NewRoom("Quarters 1", 15, 13, 6, 6, 900, 500))
+	sg.playerShip.AddRoom(NewRoom("Quarters 2", 9, 13, 6, 6, 900, 500))
+	sg.playerShip.AddRoom(NewRoom("Hallway", 9, 10, 12, 4, 0, 500))
+	sg.playerShip.SetLocation(sg.galaxy.GetSector(10, 10))
+	sg.galaxy.GetSector(10, 10).SetExplored()
+
 	sg.starFrequency = 20
 
 	sg.SetupUI() //must be done after ship setup
@@ -86,8 +97,8 @@ func NewSpaceshipGame() *SpaceshipGame {
 //Centers the map of the ship in the main view.
 func (sg *SpaceshipGame) CenterShip() {
 	displayWidth, displayHeight := sg.shipdisplay.Dims()
-	sg.viewX = displayWidth/2 - sg.PlayerShip.Width/2 - sg.PlayerShip.X
-	sg.viewY = displayHeight/2 - sg.PlayerShip.Height/2 - sg.PlayerShip.Y
+	sg.viewX = displayWidth/2 - sg.playerShip.Width/2 - sg.playerShip.X
+	sg.viewY = displayHeight/2 - sg.playerShip.Height/2 - sg.playerShip.Y
 	if sg.activeMenu != nil {
 		w, _ := sg.activeMenu.Dims()
 		sg.viewX -= w/2
@@ -97,7 +108,7 @@ func (sg *SpaceshipGame) CenterShip() {
 func (sg *SpaceshipGame) UpdateSpeedUI() {
 	sg.speeddisplay.Clear()
 	for i := 0; i < 4; i++ {
-		if i < sg.SimSpeed {
+		if i < sg.simSpeed {
 			sg.speeddisplay.Draw(i, 0, 0x10, 0xFFFFFFFF, 0x00000000)
 		} else {
 			sg.speeddisplay.Draw(i, 0, 0x5F, 0xFFFFFFFF, 0x00000000)
@@ -123,7 +134,22 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.shipdisplay = ui.NewTileView(80, 28, 0, 3, 0, false)
 
 	sg.shipstatus = ui.NewContainer(26, 12, 1, 32, 1, true)
-	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 11, 0, false, true, "The USS Prototype"))
+	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 0, 0, false, true, "The USS Prototype"))
+	
+	locString := "Location: "
+	dstString := "Destination: "
+	if sg.playerShip.Location != nil {
+		locString += sg.playerShip.Location.GetName()
+	} else {
+		locString += "NO LOCATION. HOW'D YOU DO THIS."
+	}
+	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 10, 0, false, false, locString))
+	if sg.playerShip.Destination != nil {
+		dstString += sg.playerShip.Destination.GetName()
+	} else {
+		dstString += "NO DESTINATION. Let's go somewhere!!"
+	}
+	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 11, 0, false, false, dstString))
 
 	sg.input = ui.NewInputbox(50, 1, 15, 27, 2, true)
 	sg.input.ToggleFocus()
@@ -134,24 +160,25 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.output.ToggleHighlight()
 
 	sg.SetupCrewMenu()
+	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)
 	sg.shipMenu = InitShipMenu()
 
-	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar, sg.shipMenu)
+	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar, sg.shipMenu, sg.starchartMenu)
 }
 
 func (sg *SpaceshipGame) Update() {
 
 	//simulation!
 	for i := 0; i < sg.GetIncrement(); i++ {
-		sg.SpaceTime++
-		sg.PlayerShip.Update(sg.SpaceTime)
+		sg.spaceTime++
+		sg.playerShip.Update(sg.spaceTime)
 
-		for i := range sg.PlayerShip.Crew {
-			sg.PlayerShip.Crew[i].Update()
+		for i := range sg.playerShip.Crew {
+			sg.playerShip.Crew[i].Update()
 		}
 
 		//need starfield shift speed controlled here (currently hardcoded to shift every 100 seconds)
-		if sg.SpaceTime%100 == 0 {
+		if sg.spaceTime%100 == 0 {
 			sg.shiftStarField()
 		}
 	}
@@ -160,14 +187,14 @@ func (sg *SpaceshipGame) Update() {
 		sg.UpdateCrewDetails()
 	}
 
-	sg.missiontime.ChangeText(fmt.Sprintf("%.4d", sg.SpaceTime/100000) + "d:" + fmt.Sprintf("%.1d", (sg.SpaceTime/10000)%10) + "h:" + fmt.Sprintf("%.2d", (sg.SpaceTime/100)%100) + "m:" + fmt.Sprintf("%.2d", sg.SpaceTime%100) + "s")
+	sg.missiontime.ChangeText(fmt.Sprintf("%.4d", sg.spaceTime/100000) + "d:" + fmt.Sprintf("%.1d", (sg.spaceTime/10000)%10) + "h:" + fmt.Sprintf("%.2d", (sg.spaceTime/100)%100) + "m:" + fmt.Sprintf("%.2d", sg.spaceTime%100) + "s")
 
 }
 
 func (sg *SpaceshipGame) Render() {
 	sg.DrawStarfield()
 
-	w, h := sg.PlayerShip.ShipMap.Dims()
+	w, h := sg.playerShip.ShipMap.Dims()
 	x, y := 0, 0
 	displayWidth, displayHeight := sg.shipdisplay.Dims()
 
@@ -178,14 +205,14 @@ func (sg *SpaceshipGame) Render() {
 		
 
 		if util.CheckBounds(x, y, displayWidth, displayHeight) {
-			t := sg.PlayerShip.ShipMap.GetTile(i%w, i/w)
+			t := sg.playerShip.ShipMap.GetTile(i%w, i/w)
 			if t.TileType() != 0 {
 				tv := t.GetVisuals()
 				sg.shipdisplay.Draw(x, y, tv.Glyph, tv.ForeColour, 0xFF000000)
 			}
 
-			if sg.PlayerShip.ShipMap.GetEntity(i%w, i/w) != nil {
-				e := sg.PlayerShip.ShipMap.GetEntity(i%w, i/w)
+			if sg.playerShip.ShipMap.GetEntity(i%w, i/w) != nil {
+				e := sg.playerShip.ShipMap.GetEntity(i%w, i/w)
 				sg.shipdisplay.Draw(x, y, e.GetVisuals().Glyph, e.GetVisuals().ForeColour, 0xFF000000)
 			}
 		}
@@ -229,7 +256,7 @@ func (sg SpaceshipGame) GetIncrement() int {
 		return 0
 	}
 
-	switch sg.SimSpeed {
+	switch sg.simSpeed {
 	case 1:
 		return 1
 	case 2:

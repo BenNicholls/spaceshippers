@@ -21,6 +21,13 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 		} else {
 			sg.ActivateMenu(sg.shipMenu)
 		}
+	case sdl.K_F4:
+		sg.starchartMenuButton.Press()
+		if sg.activeMenu == sg.starchartMenu {
+			sg.DeactivateMenu()
+		} else {
+			sg.ActivateMenu(sg.starchartMenu)
+		}
 	default:
 	//Check for active menus. If nothing, apply to base game.
 		switch sg.activeMenu {
@@ -28,6 +35,8 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			sg.HandleKeypressInput(key)
 		case sg.crewMenu:
 			sg.HandleKeypressCrewMenu(key)
+		case sg.starchartMenu:
+			sg.HandleKeypressStarchartMenu(key)
 		default:
 			switch key {
 			case sdl.K_PAGEUP:
@@ -37,13 +46,13 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			case sdl.K_HOME:
 				sg.CenterShip()
 			case sdl.K_KP_PLUS:
-				if sg.SimSpeed < 4 {
-					sg.SimSpeed++
+				if sg.simSpeed < 4 {
+					sg.simSpeed++
 					sg.UpdateSpeedUI()
 				}
 			case sdl.K_KP_MINUS:
-				if sg.SimSpeed > 0 {
-					sg.SimSpeed--
+				if sg.simSpeed > 0 {
+					sg.simSpeed--
 					sg.UpdateSpeedUI()
 				}
 			case sdl.K_UP:
@@ -96,5 +105,18 @@ func (sg *SpaceshipGame) HandleKeypressCrewMenu(key sdl.Keycode) {
 		sg.crewList.Next()
 	case sdl.K_RETURN:
 		sg.ToggleCrewDetails()
+	}
+}
+
+func (sg *SpaceshipGame) HandleKeypressStarchartMenu(key sdl.Keycode) {
+	switch key {
+	case sdl.K_UP:
+		sg.starchartMenu.MoveSectorCursor(0, -1)
+	case sdl.K_DOWN:
+		sg.starchartMenu.MoveSectorCursor(0, 1)
+	case sdl.K_LEFT:
+		sg.starchartMenu.MoveSectorCursor(-1, 0)
+	case sdl.K_RIGHT:
+		sg.starchartMenu.MoveSectorCursor(1, 0)
 	}
 }

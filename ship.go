@@ -16,8 +16,12 @@ type Ship struct {
 
 	ShipMap *core.TileMap
 
-	X, Y, Width, Height int //bounding box holding the ship
+	X, Y, Width, Height int //bounding box holding the ship on the shipMap
 	Volume int
+
+	xSector, ySector int //current sector
+	Location Locatable
+	Destination Locatable
 }
 
 //Inits a new Ship. For now, starts with a bridge and 6 crew.
@@ -37,6 +41,10 @@ func NewShip(n string) *Ship {
 	s.PlaceCrew()
 
 	return s
+}
+
+func (s *Ship) SetLocation(l Locatable) {
+	s.Location = l
 }
 
 //Adds a room to the ship and connects it.

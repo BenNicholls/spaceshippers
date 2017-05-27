@@ -9,7 +9,7 @@ func (sg *SpaceshipGame) SetupCrewMenu() {
 	sg.crewMenu.ToggleFocus()
 	w, h := sg.crewMenu.Dims()
 	sg.crewList = ui.NewList(w, h, 0, 0, 0, false, "")
-	for _, c := range sg.PlayerShip.Crew {
+	for _, c := range sg.playerShip.Crew {
 		sg.crewList.Append(c.Name)
 	}
 	sg.crewDetails = ui.NewContainer(w, 3*h/4, 0, h/4 + 1, 0, true)
@@ -21,14 +21,14 @@ func (sg *SpaceshipGame) SetupCrewMenu() {
 func (sg *SpaceshipGame) UpdateCrewList() {
 	i := sg.crewList.GetSelection()
 	sg.crewList.ClearElements()
-	for _, c := range sg.PlayerShip.Crew {
+	for _, c := range sg.playerShip.Crew {
 		sg.crewList.Append(c.Name)
 	}
 	sg.crewList.Select(i)
 }
 
 func (sg *SpaceshipGame) UpdateCrewDetails() {
-	c := sg.PlayerShip.Crew[sg.crewList.GetSelection()]
+	c := sg.playerShip.Crew[sg.crewList.GetSelection()]
 	w, _ := sg.crewDetails.Dims()
 
 	name := ui.NewTextbox(w, 1, 0, 0, 0, false, true, c.Name)

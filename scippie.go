@@ -8,7 +8,7 @@ func (sg *SpaceshipGame) Execute() {
 	sg.output.Append("")
 	switch strings.ToLower(sg.input.GetText()) {
 	case "status":
-		for _, r := range sg.PlayerShip.Rooms {
+		for _, r := range sg.playerShip.Rooms {
 			sg.output.Append(r.GetStatus())
 		}
 	case "help":
