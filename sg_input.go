@@ -29,7 +29,7 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			sg.ActivateMenu(sg.starchartMenu)
 		}
 	default:
-	//Check for active menus. If nothing, apply to base game.
+		//Check for active menus. If nothing, apply to base game.
 		switch sg.activeMenu {
 		case sg.input:
 			sg.HandleKeypressInput(key)

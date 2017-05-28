@@ -30,5 +30,3 @@ func main() {
 		return
 	}
 }
-
-

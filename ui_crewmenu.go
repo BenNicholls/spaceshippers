@@ -12,7 +12,7 @@ func (sg *SpaceshipGame) SetupCrewMenu() {
 	for _, c := range sg.playerShip.Crew {
 		sg.crewList.Append(c.Name)
 	}
-	sg.crewDetails = ui.NewContainer(w, 3*h/4, 0, h/4 + 1, 0, true)
+	sg.crewDetails = ui.NewContainer(w, 3*h/4, 0, h/4+1, 0, true)
 	sg.crewDetails.SetTitle("Crew Detail")
 	sg.crewDetails.SetVisibility(false)
 	sg.crewMenu.Add(sg.crewList, sg.crewDetails)
@@ -36,7 +36,7 @@ func (sg *SpaceshipGame) UpdateCrewDetails() {
 	hp.SetProgress(c.HP.GetPct())
 	awake := ui.NewProgressBar(w, 1, 0, 4, 0, false, true, "Awakeness: Lots", 0xFF00FF00)
 	awake.SetProgress(c.Awakeness.GetPct())
-	status := ui.NewTextbox(w, 1, 0, 6, 0, false, false, c.Name + " is " + c.GetStatus())
+	status := ui.NewTextbox(w, 1, 0, 6, 0, false, false, c.Name+" is "+c.GetStatus())
 	jobstring := c.Name + " is "
 	if c.CurrentTask != nil {
 		jobstring += c.CurrentTask.GetDescription()

@@ -20,27 +20,27 @@ var TILE_DOOR = core.LoadTileData("Door", true, false, 0xF0, 0xFF888888)
 type SpaceshipGame struct {
 
 	//ui stuff
-	window *ui.Container
-	input *ui.Inputbox
-	output *ui.List
-	shipstatus *ui.Container
-	missiontime *ui.Textbox
+	window       *ui.Container
+	input        *ui.Inputbox
+	output       *ui.List
+	shipstatus   *ui.Container
+	missiontime  *ui.Textbox
 	speeddisplay *ui.TileView
-	shipdisplay *ui.TileView
+	shipdisplay  *ui.TileView
 
 	//top menu. contains buttons for submenus
-	menubar *ui.Container
-	crewMenuButton *ui.Button
-	shipMenuButton *ui.Button
-	roomMenuButton *ui.Button
-	mainMenuButton *ui.Button
+	menubar             *ui.Container
+	crewMenuButton      *ui.Button
+	shipMenuButton      *ui.Button
+	roomMenuButton      *ui.Button
+	mainMenuButton      *ui.Button
 	starchartMenuButton *ui.Button
-	scippieMenuButton *ui.Button
+	scippieMenuButton   *ui.Button
 
 	//submenus. these are stored always for fast switching.
 	//crew menu (F1)
-	crewMenu *ui.Container
-	crewList *ui.List
+	crewMenu    *ui.Container
+	crewList    *ui.List
 	crewDetails *ui.Container
 
 	//custom ui element, we'll see how this works
@@ -49,20 +49,19 @@ type SpaceshipGame struct {
 	//starchart (F4)
 	starchartMenu *StarchartMenu
 
-
 	activeMenu ui.UIElem
 
 	//Time Globals.
 	spaceTime int //measured in Standard Galactic Seconds
-	simSpeed int  //4 speeds, plus pause (0)
-	paused bool
+	simSpeed  int //4 speeds, plus pause (0)
+	paused    bool
 
-	starField []int
+	starField     []int
 	starFrequency int
 
 	viewX, viewY int
 
-	galaxy *Galaxy
+	galaxy     *Galaxy
 	playerShip *Ship
 }
 
@@ -101,7 +100,7 @@ func (sg *SpaceshipGame) CenterShip() {
 	sg.viewY = displayHeight/2 - sg.playerShip.Height/2 - sg.playerShip.Y
 	if sg.activeMenu != nil {
 		w, _ := sg.activeMenu.Dims()
-		sg.viewX -= w/2
+		sg.viewX -= w / 2
 	}
 }
 
@@ -135,7 +134,7 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.shipstatus = ui.NewContainer(26, 12, 1, 32, 1, true)
 	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 0, 0, false, true, "The USS Prototype"))
-	
+
 	locString := "Location: "
 	dstString := "Destination: "
 	if sg.playerShip.Location != nil {
@@ -202,7 +201,6 @@ func (sg *SpaceshipGame) Render() {
 		//shipdisplay-space coords
 		x = i%w + sg.viewX
 		y = i/w + sg.viewY
-		
 
 		if util.CheckBounds(x, y, displayWidth, displayHeight) {
 			t := sg.playerShip.ShipMap.GetTile(i%w, i/w)

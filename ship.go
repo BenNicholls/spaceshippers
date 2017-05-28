@@ -17,11 +17,11 @@ type Ship struct {
 	ShipMap *core.TileMap
 
 	X, Y, Width, Height int //bounding box holding the ship on the shipMap
-	Volume int
+	Volume              int
 
 	xSector, ySector int //current sector
-	Location Locatable
-	Destination Locatable
+	Location         Locatable
+	Destination      Locatable
 }
 
 //Inits a new Ship. For now, starts with a bridge and 6 crew.
@@ -69,7 +69,7 @@ func (s *Ship) ConnectRooms(r1, r2 *Room) {
 //Draws a room onto the shipmap
 func (s *Ship) DrawRoom(r *Room) {
 	for i := 0; i < r.Width*r.Height; i++ {
-		s.ShipMap.ChangeTileType(r.X + i%r.Width, r.Y + i/r.Width, r.RoomMap.GetTileType(i%r.Width, i/r.Width))	
+		s.ShipMap.ChangeTileType(r.X+i%r.Width, r.Y+i/r.Width, r.RoomMap.GetTileType(i%r.Width, i/r.Width))
 	}
 }
 
@@ -80,16 +80,16 @@ func (s *Ship) CalcShipDims() {
 
 	for _, r := range s.Rooms {
 		s.X = util.Min(s.X, r.X)
-		x2 = util.Max(x2, r.X + r.Width)
+		x2 = util.Max(x2, r.X+r.Width)
 		s.Y = util.Min(s.Y, r.Y)
-		y2 = util.Max(y2, r.Y + r.Height)
+		y2 = util.Max(y2, r.Y+r.Height)
 
 		//calculates interior volume (effectively floorspace)
-		s.Volume += (r.Width-2)*(r.Height-2)
+		s.Volume += (r.Width - 2) * (r.Height - 2)
 	}
 
 	s.Width = x2 - s.X
-	s.Height = y2 - s.Y	
+	s.Height = y2 - s.Y
 }
 
 //Inits crew. For now just randomizes their positions.
@@ -116,7 +116,7 @@ func (s *Ship) Update(spaceTime int) {
 		s.Crew[i].Update()
 		if spaceTime%20 == 0 && s.Crew[i].IsAwake() {
 			dx, dy := util.GenerateDirection()
-			if s.ShipMap.GetTile(s.Crew[i].X + dx, s.Crew[i].Y + dy).Empty() {
+			if s.ShipMap.GetTile(s.Crew[i].X+dx, s.Crew[i].Y+dy).Empty() {
 				s.ShipMap.MoveEntity(s.Crew[i].X, s.Crew[i].Y, dx, dy)
 				s.Crew[i].Move(dx, dy)
 			}

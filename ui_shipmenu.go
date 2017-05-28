@@ -4,7 +4,6 @@ import "github.com/bennicholls/burl/ui"
 
 type ShipMenu struct {
 	ui.Container
-
 }
 
 func InitShipMenu() (sm *ShipMenu) {

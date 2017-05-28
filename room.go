@@ -7,7 +7,7 @@ import "github.com/bennicholls/burl/util"
 type Room struct {
 	Name string
 
-	X, Y int
+	X, Y          int
 	Width, Height int
 
 	RoomMap *core.TileMap
@@ -15,8 +15,8 @@ type Room struct {
 	connected []*Room
 
 	state            core.Stat //state of repair.
-	upkeep           int  //periodic decay of repair state.
-	repairDifficulty int  //default time to repair by 1 unit.
+	upkeep           int       //periodic decay of repair state.
+	repairDifficulty int       //default time to repair by 1 unit.
 }
 
 func NewRoom(name string, x, y, w, h, upkeep, repair int) *Room {
@@ -26,8 +26,8 @@ func NewRoom(name string, x, y, w, h, upkeep, repair int) *Room {
 
 	r.RoomMap = core.NewMap(r.Width, r.Height)
 	for i := 0; i < r.Width*r.Height; i++ {
-		if i < r.Width || i%r.Width == 0 || i%r.Width == r.Width - 1 || i/r.Width == r.Height - 1 {
-			r.RoomMap.ChangeTileType(i%r.Width, i/r.Width, TILE_WALL)	
+		if i < r.Width || i%r.Width == 0 || i%r.Width == r.Width-1 || i/r.Width == r.Height-1 {
+			r.RoomMap.ChangeTileType(i%r.Width, i/r.Width, TILE_WALL)
 		} else {
 			r.RoomMap.ChangeTileType(i%r.Width, i/r.Width, TILE_FLOOR)
 		}
@@ -52,27 +52,27 @@ func (r *Room) AddConnection(c *Room) {
 	}
 
 	//check if rooms intersect properly
-	x,y,w,h := util.FindIntersectionRect(c, r)
+	x, y, w, h := util.FindIntersectionRect(c, r)
 	if w != 1 && h != 1 {
 		return
 	}
 
 	//translate coords from shipspace to roomspace
-	x, y = x - r.X, y - r.Y
+	x, y = x-r.X, y-r.Y
 
-	if w == 1 && h >= 3 {		
+	if w == 1 && h >= 3 {
 		if h > 3 {
-			r.RoomMap.ChangeTileType(x, y+h/2 - 1, TILE_DOOR)
+			r.RoomMap.ChangeTileType(x, y+h/2-1, TILE_DOOR)
 		}
-		r.RoomMap.ChangeTileType(x, y+h/2 , TILE_DOOR)
+		r.RoomMap.ChangeTileType(x, y+h/2, TILE_DOOR)
 	} else if h == 1 && w >= 3 {
 		//up-down rooms
 		if w > 3 {
-			r.RoomMap.ChangeTileType(x + w/2 - 1, y, TILE_DOOR)
+			r.RoomMap.ChangeTileType(x+w/2-1, y, TILE_DOOR)
 		}
-		r.RoomMap.ChangeTileType(x + w/2 , y, TILE_DOOR)
+		r.RoomMap.ChangeTileType(x+w/2, y, TILE_DOOR)
 	}
-	
+
 	r.connected = append(r.connected, c)
 }
 
