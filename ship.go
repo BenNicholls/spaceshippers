@@ -19,9 +19,9 @@ type Ship struct {
 	X, Y, Width, Height int //bounding box holding the ship on the shipMap
 	Volume              int
 
-	ShipCoords       Coordinates //actual coordinates on the galactic map
-	Location         Locatable //Current location (planet, star system, sector, whatever)
-	Destination      Locatable //where we're going
+	ShipCoords  Coordinates //actual coordinates on the galactic map
+	Location    Locatable   //Current location (planet, star system, sector, whatever)
+	Destination Locatable   //where we're going
 }
 
 //Inits a new Ship. For now, starts with a bridge and 6 crew.
@@ -37,7 +37,7 @@ func NewShip(n string) *Ship {
 	for i, _ := range s.Crew {
 		s.Crew[i] = NewCrewman()
 	}
-	
+
 	s.ShipCoords = NewCoordinate(coord_LOCAL)
 
 	s.PlaceCrew()

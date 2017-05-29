@@ -18,7 +18,7 @@ func NewGalaxy() (g *Galaxy) {
 	g = new(Galaxy)
 	g.name = "The Galaxy of Terror"
 	g.width, g.height = 25, 25
-	g.sectorSize = 1000         
+	g.sectorSize = 1000
 
 	g.sectors = make([]*Sector, 0, g.width*g.height)
 
@@ -86,5 +86,3 @@ func (s Sector) ProperName() string {
 type StarSystem struct {
 	Location
 }
-
-
