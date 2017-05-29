@@ -21,7 +21,7 @@ type StarchartMenu struct {
 	sectorKnownText    *ui.Textbox
 	sectorLocationText *ui.Textbox
 
-	sx, sy int //selected sector for viewing
+	selectedSector Coordinates
 
 	galaxy     *Galaxy //to know what we're drawing
 	playerShip *Ship   //to know where we are, current course, etc
@@ -31,7 +31,7 @@ func NewStarchartMenu(gal *Galaxy, ship *Ship) (sm *StarchartMenu) {
 	sm = new(StarchartMenu)
 	sm.galaxy = gal
 	sm.playerShip = ship
-	sm.sx, sm.sy = ship.Location.GetSectorCoords() //start sector picker on player ship
+	sm.selectedSector = ship.Location.GetCoords() //start sector picker on player ship
 
 	//ui setup
 	sm.Container = *ui.NewContainer(40, 26, 39, 4, 1, true)
@@ -50,7 +50,8 @@ func NewStarchartMenu(gal *Galaxy, ship *Ship) (sm *StarchartMenu) {
 	sm.sectorKnownText = ui.NewTextbox(15, 2, 0, 8, 1, false, true, "We know nothing about this sector.")
 	sm.sectorDetails.Add(sm.sectorCoordsText, sm.sectorNameText, sm.sectorDensityText, sm.sectorExploredText, sm.sectorLocationText, sm.sectorKnownText)
 
-	sm.mapHighlight = ui.NewPulseAnimation(sm.sx, sm.sy, 1, 1, 50, 10, true)
+	x, y := sm.selectedSector.Sector()
+	sm.mapHighlight = ui.NewPulseAnimation(x, y, 1, 1, 50, 10, true)
 	sm.mapHighlight.Activate()
 	sm.mapView.AddAnimation(sm.mapHighlight)
 	sm.Add(sm.mapView, sm.galaxynameText, sm.sectorDetails)
@@ -62,8 +63,9 @@ func NewStarchartMenu(gal *Galaxy, ship *Ship) (sm *StarchartMenu) {
 }
 
 func (sm *StarchartMenu) UpdateSectorInfo() {
-	sector := sm.galaxy.GetSector(sm.sx, sm.sy)
-	sm.sectorCoordsText.ChangeText("Sector (" + sm.galaxy.GetSector(sm.sx, sm.sy).ProperName() + ")")
+	sx, sy := sm.selectedSector.Sector()
+	sector := sm.galaxy.GetSector(sx, sy)
+	sm.sectorCoordsText.ChangeText("Sector (" + sm.galaxy.GetSector(sx, sy).ProperName() + ")")
 	sm.sectorNameText.ChangeText("\"" + sector.GetName() + "\"")
 	sm.sectorDensityText.ChangeText("Star Density: " + strconv.Itoa(sector.Density) + "%")
 	if sector.IsExplored() {
@@ -72,10 +74,10 @@ func (sm *StarchartMenu) UpdateSectorInfo() {
 		sm.sectorExploredText.ChangeText("SECTOR UNEXPLORED")
 	}
 
-	if x, y := sm.playerShip.Location.GetSectorCoords(); sm.sx == x && sm.sy == y {
+	if x, y := sm.playerShip.Location.GetCoords().Sector(); sx == x && sy == y {
 		sm.sectorLocationText.ChangeText("We're currently here!")
 	} else if sm.playerShip.Destination != nil {
-		if x, y := sm.playerShip.Destination.GetSectorCoords(); sm.sx == x && sm.sy == y {
+		if x, y := sm.playerShip.Destination.GetCoords().Sector(); sx == x && sy == y {
 			sm.sectorLocationText.ChangeText("We're currently going here!")
 		}
 	} else {
@@ -83,7 +85,7 @@ func (sm *StarchartMenu) UpdateSectorInfo() {
 		sm.sectorLocationText.ChangeText("We could go here!")
 	}
 
-	sm.mapHighlight.MoveTo(sm.sx, sm.sy)
+	sm.mapHighlight.MoveTo(sx, sy)
 }
 
 //draws the required map. galaxy map, sector map, star system map
@@ -100,15 +102,15 @@ func (sm *StarchartMenu) DrawMap() {
 		sm.mapView.Draw(x, y, g, console.MakeColour(bright, bright, bright), 0xFF000000)
 	}
 
-	x, y := sm.playerShip.Location.GetSectorCoords()
+	x, y := sm.playerShip.Location.GetCoords().Sector()
 	sm.mapView.Draw(x, y, 0x02, 0xFFFFFFFF, 0xFF000000)
 }
 
 func (sm *StarchartMenu) MoveSectorCursor(dx, dy int) {
 	w, h := sm.mapView.Dims()
-	if util.CheckBounds(sm.sx+dx, sm.sy+dy, w, h) {
-		sm.sx += dx
-		sm.sy += dy
+	sx, sy := sm.selectedSector.Sector()
+	if util.CheckBounds(sx+dx, sy+dy, w, h) {
+		sm.selectedSector.Move(dx, dy, coord_SECTOR)
 		sm.UpdateSectorInfo()
 	}
 }

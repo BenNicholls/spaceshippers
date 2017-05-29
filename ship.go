@@ -19,9 +19,9 @@ type Ship struct {
 	X, Y, Width, Height int //bounding box holding the ship on the shipMap
 	Volume              int
 
-	xSector, ySector int //current sector
-	Location         Locatable
-	Destination      Locatable
+	ShipCoords       Coordinates //actual coordinates on the galactic map
+	Location         Locatable //Current location (planet, star system, sector, whatever)
+	Destination      Locatable //where we're going
 }
 
 //Inits a new Ship. For now, starts with a bridge and 6 crew.
@@ -37,6 +37,8 @@ func NewShip(n string) *Ship {
 	for i, _ := range s.Crew {
 		s.Crew[i] = NewCrewman()
 	}
+	
+	s.ShipCoords = NewCoordinate(coord_LOCAL)
 
 	s.PlaceCrew()
 
@@ -45,6 +47,9 @@ func NewShip(n string) *Ship {
 
 func (s *Ship) SetLocation(l Locatable) {
 	s.Location = l
+	c := s.Location.GetCoords()
+	s.ShipCoords.xSector = c.xSector
+	s.ShipCoords.ySector = c.ySector
 }
 
 //Adds a room to the ship and connects it.
@@ -108,6 +113,9 @@ func (s *Ship) PlaceCrew() {
 }
 
 func (s *Ship) Update(spaceTime int) {
+
+	s.ShipCoords.Move(1000, 0, coord_LOCAL)
+
 	for i, _ := range s.Rooms {
 		s.Rooms[i].Update(spaceTime)
 	}
@@ -115,7 +123,7 @@ func (s *Ship) Update(spaceTime int) {
 	for i, _ := range s.Crew {
 		s.Crew[i].Update()
 		if spaceTime%20 == 0 && s.Crew[i].IsAwake() {
-			dx, dy := util.GenerateDirection()
+			dx, dy := util.RandomDirection()
 			if s.ShipMap.GetTile(s.Crew[i].X+dx, s.Crew[i].Y+dy).Empty() {
 				s.ShipMap.MoveEntity(s.Crew[i].X, s.Crew[i].Y, dx, dy)
 				s.Crew[i].Move(dx, dy)

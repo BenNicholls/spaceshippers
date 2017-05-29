@@ -28,6 +28,9 @@ type SpaceshipGame struct {
 	speeddisplay *ui.TileView
 	shipdisplay  *ui.TileView
 
+	//FIX
+	coordsText *ui.Textbox
+
 	//top menu. contains buttons for submenus
 	menubar             *ui.Container
 	crewMenuButton      *ui.Button
@@ -150,6 +153,9 @@ func (sg *SpaceshipGame) SetupUI() {
 	}
 	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 11, 0, false, false, dstString))
 
+	sg.coordsText = ui.NewTextbox(26, 1, 0, 10, 0, false, false, "")
+	sg.shipstatus.Add(sg.coordsText)
+
 	sg.input = ui.NewInputbox(50, 1, 15, 27, 2, true)
 	sg.input.ToggleFocus()
 	sg.input.SetVisibility(false)
@@ -185,9 +191,9 @@ func (sg *SpaceshipGame) Update() {
 	if sg.activeMenu == sg.crewMenu && sg.crewDetails.IsVisible() {
 		sg.UpdateCrewDetails()
 	}
-
+	xStr, yStr := sg.playerShip.ShipCoords.GetCoordStrings()
+	sg.coordsText.ChangeText(xStr + " by " + yStr)
 	sg.missiontime.ChangeText(fmt.Sprintf("%.4d", sg.spaceTime/100000) + "d:" + fmt.Sprintf("%.1d", (sg.spaceTime/10000)%10) + "h:" + fmt.Sprintf("%.2d", (sg.spaceTime/100)%100) + "m:" + fmt.Sprintf("%.2d", sg.spaceTime%100) + "s")
-
 }
 
 func (sg *SpaceshipGame) Render() {

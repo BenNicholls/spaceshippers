@@ -1,6 +1,5 @@
 package main
 
-import "strconv"
 import "math"
 import "math/rand"
 import "github.com/bennicholls/burl/util"
@@ -18,8 +17,8 @@ type Galaxy struct {
 func NewGalaxy() (g *Galaxy) {
 	g = new(Galaxy)
 	g.name = "The Galaxy of Terror"
-	g.width, g.height = 25, 25 //NOTE: This is currently the size of the star cart window. Don't screw with this just yet!
-	g.sectorSize = 100         //Just a guess. Pretty small galaxy, but whatever.
+	g.width, g.height = 25, 25
+	g.sectorSize = 1000         
 
 	g.sectors = make([]*Sector, 0, g.width*g.height)
 
@@ -69,7 +68,7 @@ func NewSector(x, y, size, density int) (s *Sector) {
 	} else {
 		name = "Galactic Core Space"
 	}
-	s.Location = Location{name, loc_SECTOR, false, true, x, y}
+	s.Location = Location{name, loc_SECTOR, false, true, NewSectorCoordinate(x, y)}
 	s.size = size
 	s.Density = util.Max(density, 0) //ensures density is at least 0
 
@@ -80,60 +79,12 @@ func NewSector(x, y, size, density int) (s *Sector) {
 
 //generates the name of the sector based on its (x, y).
 func (s Sector) ProperName() string {
-	return strconv.Itoa(s.xSector) + "-" + strconv.Itoa(s.ySector)
+	x, y := s.coords.GetCoordStrings()
+	return x + "-" + y
 }
 
 type StarSystem struct {
 	Location
-	x, y int //location in the sector, in ly from the top left corner
 }
 
-//defines any place where your ship can travel to
-type Locatable interface {
-	GetName() string
-	GetLocationType() int
-	IsExplored() bool
-	IsKnown() bool //it is known
-	GetSectorCoords() (int, int)
-}
 
-//different types of locations
-const (
-	loc_NONE int = iota
-	loc_SECTOR
-	loc_STARSYSTEM
-	loc_PLANET
-	loc_ANOMALY
-)
-
-type Location struct {
-	name             string
-	locationType     int  //see location type defs above
-	explored         bool //have we been there
-	known            bool //do we know about this place
-	xSector, ySector int  //sector coordinates
-}
-
-func (l Location) GetName() string {
-	return l.name
-}
-
-func (l Location) GetLocationType() int {
-	return l.locationType
-}
-
-func (l Location) IsExplored() bool {
-	return l.explored
-}
-
-func (l *Location) SetExplored() {
-	l.explored = true
-}
-
-func (l Location) IsKnown() bool {
-	return l.known
-}
-
-func (l Location) GetSectorCoords() (int, int) {
-	return l.xSector, l.ySector
-}
