@@ -62,10 +62,10 @@ const (
 )
 
 const (
-	coord_SECTOR_MAX         = 25            //25x25 sectors in a galaxy
-	coord_SUBSECTOR_MAX      = 1000          //1000x1000 subsectors in a sector
-	coord_STARSYSTEM_MAX     = 1000          //1000x1000 locations for stars in a subsector
-	coord_LOCAL_MAX          = 9461000000000 //9.416e12 meters in a starsystem segment
+	coord_SECTOR_MAX     = 25            //25x25 sectors in a galaxy
+	coord_SUBSECTOR_MAX  = 1000          //1000x1000 subsectors in a sector
+	coord_STARSYSTEM_MAX = 1000          //1000x1000 locations for stars in sector
+	coord_LOCAL_MAX      = 9461000000000 //9.416e12 meters to a side for a starsystem
 )
 
 type Coordinates struct {
@@ -110,14 +110,14 @@ func (c Coordinates) GetCoordStrings() (xString string, yString string) {
 		return
 	}
 
-	xString += ":" + strconv.Itoa(c.xStarCoord)
-	yString += ":" + strconv.Itoa(c.yStarCoord)
+	xString += ":" + strconv.FormatInt(int64(c.xStarCoord), 36)
+	yString += ":" + strconv.FormatInt(int64(c.yStarCoord), 36)
 	if c.resolution == coord_STARSYSTEM {
 		return
 	}
 
-	xString += ":" + strconv.Itoa(c.xLocal)
-	yString += ":" + strconv.Itoa(c.yLocal)
+	xString += ":" + strconv.FormatInt(int64(c.xLocal), 36)
+	yString += ":" + strconv.FormatInt(int64(c.yLocal), 36)
 
 	return
 }
