@@ -114,7 +114,7 @@ func (s *Ship) PlaceCrew() {
 
 func (s *Ship) Update(spaceTime int) {
 
-	s.ShipCoords.Move(1000, 0, coord_LOCAL)
+	s.ShipCoords.Move(-1000, 10000, coord_LOCAL)
 
 	for i, _ := range s.Rooms {
 		s.Rooms[i].Update(spaceTime)

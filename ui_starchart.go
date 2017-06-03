@@ -74,7 +74,7 @@ func (sm *StarchartMenu) UpdateSectorInfo() {
 		sm.sectorExploredText.ChangeText("SECTOR UNEXPLORED")
 	}
 
-	if x, y := sm.playerShip.Location.GetCoords().Sector(); sx == x && sy == y {
+	if x, y := sm.playerShip.ShipCoords.Sector(); sx == x && sy == y {
 		sm.sectorLocationText.ChangeText("We're currently here!")
 	} else if sm.playerShip.Destination != nil {
 		if x, y := sm.playerShip.Destination.GetCoords().Sector(); sx == x && sy == y {
@@ -102,7 +102,7 @@ func (sm *StarchartMenu) DrawMap() {
 		sm.mapView.Draw(x, y, g, console.MakeColour(bright, bright, bright), 0xFF000000)
 	}
 
-	x, y := sm.playerShip.Location.GetCoords().Sector()
+	x, y := sm.playerShip.ShipCoords.Sector()
 	sm.mapView.Draw(x, y, 0x02, 0xFFFFFFFF, 0xFF000000)
 }
 

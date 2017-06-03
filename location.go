@@ -65,7 +65,7 @@ const (
 	coord_SECTOR_MAX         = 25            //25x25 sectors in a galaxy
 	coord_SUBSECTOR_MAX      = 1000          //1000x1000 subsectors in a sector
 	coord_STARSYSTEM_MAX     = 1000          //1000x1000 locations for stars in a subsector
-	coord_LOCAL_MAX      int = 9461000000000 //9.416e12 meters in a starsystem segment
+	coord_LOCAL_MAX          = 9461000000000 //9.416e12 meters in a starsystem segment
 )
 
 type Coordinates struct {
@@ -126,7 +126,6 @@ func (c Coordinates) Sector() (int, int) {
 	return c.xSector, c.ySector
 }
 
-//Holy damn this is not right.
 func (c *Coordinates) Move(dx, dy, res int) {
 	//check to ensure this coord handles the proper resolution
 	if res > c.resolution {
@@ -135,16 +134,50 @@ func (c *Coordinates) Move(dx, dy, res int) {
 
 	switch res {
 	case coord_LOCAL:
-		c.xLocal = util.ModularClamp(c.xLocal+dx, 0, coord_LOCAL_MAX)
-		c.yLocal = util.ModularClamp(c.yLocal+dy, 0, coord_LOCAL_MAX)
+		c.moveLocal(dx, dy)
 	case coord_STARSYSTEM:
-		c.xStarCoord = util.ModularClamp(c.xStarCoord+dx, 0, coord_STARSYSTEM_MAX)
-		c.yStarCoord = util.ModularClamp(c.yStarCoord+dy, 0, coord_STARSYSTEM_MAX)
+		c.moveStarSystem(dx, dy)
 	case coord_SUBSECTOR:
-		c.xSubSector = util.ModularClamp(c.xSubSector+dx, 0, coord_SUBSECTOR_MAX)
-		c.ySubSector = util.ModularClamp(c.ySubSector+dy, 0, coord_SUBSECTOR_MAX)
+		c.moveSubSector(dx, dy)
 	case coord_SECTOR:
-		c.xSector = util.Clamp(c.xSector+dx, 0, coord_SECTOR_MAX-1)
-		c.ySector = util.Clamp(c.ySector+dy, 0, coord_SECTOR_MAX-1)
+		c.moveSector(dx, dy)
 	}
+}
+
+func (c *Coordinates) moveLocal(dx, dy int) {
+	var odx, ody int
+
+	c.xLocal, odx = util.ModularClamp(c.xLocal+dx, 0, coord_LOCAL_MAX-1)
+	c.yLocal, ody = util.ModularClamp(c.yLocal+dy, 0, coord_LOCAL_MAX-1)
+
+	if odx != 0 || ody != 0 {
+		c.moveStarSystem(odx, ody)
+	}
+}
+
+func (c *Coordinates) moveStarSystem(dx, dy int) {
+	var odx, ody int
+
+	c.xStarCoord, odx = util.ModularClamp(c.xStarCoord+dx, 0, coord_STARSYSTEM_MAX-1)
+	c.yStarCoord, ody = util.ModularClamp(c.yStarCoord+dy, 0, coord_STARSYSTEM_MAX-1)
+
+	if odx != 0 || ody != 0 {
+		c.moveSubSector(odx, ody)
+	}
+}
+
+func (c *Coordinates) moveSubSector(dx, dy int) {
+	var odx, ody int
+
+	c.xSubSector, odx = util.ModularClamp(c.xSubSector+dx, 0, coord_SUBSECTOR_MAX-1)
+	c.ySubSector, ody = util.ModularClamp(c.ySubSector+dy, 0, coord_SUBSECTOR_MAX-1)
+
+	if odx != 0 || ody != 0 {
+		c.moveSector(odx, ody)
+	}
+}
+
+func (c *Coordinates) moveSector(dx, dy int) {
+	c.xSector = util.Clamp(c.xSector+dx, 0, coord_SECTOR_MAX-1)
+	c.ySector = util.Clamp(c.ySector+dy, 0, coord_SECTOR_MAX-1)
 }
