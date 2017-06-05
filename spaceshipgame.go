@@ -173,6 +173,8 @@ func (sg *SpaceshipGame) SetupUI() {
 
 func (sg *SpaceshipGame) Update() {
 
+	startCoords := sg.playerShip.ShipCoords
+
 	//simulation!
 	for i := 0; i < sg.GetIncrement(); i++ {
 		sg.spaceTime++
@@ -185,6 +187,15 @@ func (sg *SpaceshipGame) Update() {
 		//need starfield shift speed controlled here (currently hardcoded to shift every 100 seconds)
 		if sg.spaceTime%100 == 0 {
 			sg.shiftStarField()
+		}
+	}
+
+	//update starchart if ship has moved sectors
+	if sg.activeMenu == sg.starchartMenu {
+		sg.starchartMenu.UpdateSectorInfo()
+		delta := startCoords.CalcVector(sg.playerShip.ShipCoords)
+		if x, y := delta.Sector(); x != 0 || y != 0 {
+			sg.starchartMenu.DrawMap()
 		}
 	}
 

@@ -26,6 +26,7 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 		if sg.activeMenu == sg.starchartMenu {
 			sg.DeactivateMenu()
 		} else {
+			sg.starchartMenu.OnActivate()
 			sg.ActivateMenu(sg.starchartMenu)
 		}
 	default:

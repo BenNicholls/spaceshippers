@@ -2,6 +2,12 @@ package main
 
 import "strconv"
 import "github.com/bennicholls/burl/util"
+import "math"
+
+const (
+	METERS_PER_LY int = 9.461e15
+	LY_PER_SECTOR int = 1000
+)
 
 //defines any place where your ship can travel to
 type Locatable interface {
@@ -62,10 +68,10 @@ const (
 )
 
 const (
-	coord_SECTOR_MAX     = 25            //25x25 sectors in a galaxy
-	coord_SUBSECTOR_MAX  = 1000          //1000x1000 subsectors in a sector
-	coord_STARSYSTEM_MAX = 1000          //1000x1000 locations for stars in sector
-	coord_LOCAL_MAX      = 9461000000000 //9.416e12 meters to a side for a starsystem
+	coord_SECTOR_MAX     = 25                   //25x25 sectors in a galaxy
+	coord_SUBSECTOR_MAX  = 1000                 //1000x1000 subsectors in a sector
+	coord_STARSYSTEM_MAX = 1000                 //1000x1000 locations for stars in sector
+	coord_LOCAL_MAX      = METERS_PER_LY / 1000 //9.416e12 meters to a side for a starsystem
 )
 
 type Coordinates struct {
@@ -82,18 +88,27 @@ type Coordinates struct {
 	resolution int //how deep into the rabbit hole this coordinate goes. see above
 }
 
-func NewCoordinate(res int) Coordinates {
-	c := Coordinates{}
+//NewCoordinate makes a new Coordinate object, defaulted to the center of the galaxy.
+func NewCoordinate(res int) (c Coordinates) {
 	c.resolution = res
-	return c
+	c.xSector = coord_SECTOR_MAX / 2
+	c.ySector = coord_SECTOR_MAX / 2
+	c.xSubSector = coord_SUBSECTOR_MAX / 2
+	c.ySubSector = coord_SUBSECTOR_MAX / 2
+	c.xStarCoord = coord_STARSYSTEM_MAX / 2
+	c.yStarCoord = coord_STARSYSTEM_MAX / 2
+	c.xLocal = coord_LOCAL_MAX / 2
+	c.yLocal = coord_LOCAL_MAX / 2
+
+	return
 }
 
-func NewSectorCoordinate(x, y int) Coordinates {
-	c := Coordinates{}
+//NewCoordinate makes a new Coordinate object, defaulted to the center of a sector.
+func NewSectorCoordinate(x, y int) (c Coordinates) {
+	c = NewCoordinate(coord_SECTOR)
 	c.xSector, c.ySector = x, y
-	c.resolution = coord_SECTOR
 
-	return c
+	return
 }
 
 //Returns a string for each coordinate in the form
@@ -124,6 +139,21 @@ func (c Coordinates) GetCoordStrings() (xString string, yString string) {
 
 func (c Coordinates) Sector() (int, int) {
 	return c.xSector, c.ySector
+}
+
+//returns the subsector portion of the coord. REMEMBER: not all coords handle these!
+func (c Coordinates) SubSector() (int, int) {
+	return c.xSubSector, c.ySubSector
+}
+
+//returns the starcoord portion of the coord. REMEMBER: not all coords handle these!
+func (c Coordinates) StarCoord() (int, int) {
+	return c.xStarCoord, c.yStarCoord
+}
+
+//returns the local portion of the coord. REMEMBER: not all coords handle these!
+func (c Coordinates) LocalCoord() (int, int) {
+	return c.xLocal, c.yLocal
 }
 
 func (c *Coordinates) Move(dx, dy, res int) {
@@ -180,4 +210,40 @@ func (c *Coordinates) moveSubSector(dx, dy int) {
 func (c *Coordinates) moveSector(dx, dy int) {
 	c.xSector = util.Clamp(c.xSector+dx, 0, coord_SECTOR_MAX-1)
 	c.ySector = util.Clamp(c.ySector+dy, 0, coord_SECTOR_MAX-1)
+}
+
+//Galactic Vector. represents the vector between two points
+type GalVec struct {
+	Coordinates             //0-centered vector
+	c1, c2      Coordinates //endpoints in galactic-space. stored for... some reason.
+	Distance    float64     //magnitude in Ly
+}
+
+func (c1 Coordinates) CalcVector(c2 Coordinates) (g GalVec) {
+	g.c1 = c1
+	g.c2 = c2
+
+	g.xSector = c2.xSector - c1.xSector
+	xDistance := float64(g.xSector) * float64(LY_PER_SECTOR)
+	g.ySector = c2.ySector - c1.ySector
+	yDistance := float64(g.ySector) * float64(LY_PER_SECTOR)
+
+	g.xSubSector = c2.xSubSector - c1.xSubSector
+	g.ySubSector = c2.ySubSector - c1.ySubSector
+	xDistance += float64(g.xSubSector) * float64(LY_PER_SECTOR) / float64(coord_SUBSECTOR_MAX)
+	yDistance += float64(g.ySubSector) * float64(LY_PER_SECTOR) / float64(coord_SUBSECTOR_MAX)
+
+	g.xStarCoord = c2.xStarCoord - c1.xStarCoord
+	g.yStarCoord = c2.yStarCoord - c1.yStarCoord
+	xDistance += float64(g.xStarCoord) * float64(LY_PER_SECTOR) / float64(coord_SUBSECTOR_MAX) / float64(coord_STARSYSTEM_MAX)
+	yDistance += float64(g.yStarCoord) * float64(LY_PER_SECTOR) / float64(coord_SUBSECTOR_MAX) / float64(coord_STARSYSTEM_MAX)
+
+	g.xLocal = c2.xLocal - c1.xLocal
+	g.yLocal = c2.yLocal - c1.yLocal
+	xDistance += float64(g.xLocal) / float64(METERS_PER_LY)
+	yDistance += float64(g.yLocal) / float64(METERS_PER_LY)
+
+	g.Distance = math.Sqrt(xDistance*xDistance + yDistance*yDistance)
+
+	return
 }

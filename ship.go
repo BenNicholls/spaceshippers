@@ -16,8 +16,8 @@ type Ship struct {
 
 	ShipMap *core.TileMap
 
-	X, Y, Width, Height int //bounding box holding the ship on the shipMap
-	Volume              int
+	X, Y, Width, Height int //bounding box of the ship on the shipMap
+	Volume              int //total floorspace volume of the ship
 
 	ShipCoords  Coordinates //actual coordinates on the galactic map
 	Location    Locatable   //Current location (planet, star system, sector, whatever)
@@ -88,8 +88,6 @@ func (s *Ship) CalcShipDims() {
 		x2 = util.Max(x2, r.X+r.Width)
 		s.Y = util.Min(s.Y, r.Y)
 		y2 = util.Max(y2, r.Y+r.Height)
-
-		//calculates interior volume (effectively floorspace)
 		s.Volume += (r.Width - 2) * (r.Height - 2)
 	}
 
@@ -114,7 +112,7 @@ func (s *Ship) PlaceCrew() {
 
 func (s *Ship) Update(spaceTime int) {
 
-	s.ShipCoords.Move(-1000, 10000, coord_LOCAL)
+	s.ShipCoords.Move(-1000, 1000, coord_LOCAL)
 
 	for i, _ := range s.Rooms {
 		s.Rooms[i].Update(spaceTime)
