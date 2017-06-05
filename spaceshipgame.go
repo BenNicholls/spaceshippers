@@ -83,8 +83,10 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.playerShip.AddRoom(NewRoom("Quarters 1", 15, 13, 6, 6, 900, 500))
 	sg.playerShip.AddRoom(NewRoom("Quarters 2", 9, 13, 6, 6, 900, 500))
 	sg.playerShip.AddRoom(NewRoom("Hallway", 9, 10, 12, 4, 0, 500))
-	sg.playerShip.SetLocation(sg.galaxy.GetSector(10, 10))
-	sg.galaxy.GetSector(10, 10).SetExplored()
+
+	ss := sg.galaxy.GetSector(8, 8).GenerateSubSector(250, 171)
+	ss.star = NewStarSystem(ss.GetCoords())
+	sg.playerShip.SetLocation(ss.star.Planets[3]) //Earth!!
 
 	sg.starFrequency = 20
 
@@ -153,7 +155,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	}
 	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 11, 0, false, false, dstString))
 
-	sg.coordsText = ui.NewTextbox(26, 1, 0, 10, 0, false, false, "")
+	sg.coordsText = ui.NewTextbox(26, 1, 0, 9, 0, false, false, "")
 	sg.shipstatus.Add(sg.coordsText)
 
 	sg.input = ui.NewInputbox(50, 1, 15, 27, 2, true)

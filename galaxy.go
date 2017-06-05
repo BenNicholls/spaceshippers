@@ -7,7 +7,7 @@ import "github.com/bennicholls/burl/util"
 //galaxy creation parameters
 const (
 	galaxy_TOTALSTARS = 10000000 //ten million stars for now
-	galaxy_RADIUS     = 12
+	galaxy_RADIUS     = 12       //in sectors
 )
 
 //oh the places you'll go...
@@ -61,7 +61,7 @@ type Sector struct {
 	Explored bool
 	Density  int //0-100, determines propensity of stars
 
-	Stars []*StarSystem
+	subSectors map[int]*SubSector
 }
 
 func NewSector(x, y, density int) (s *Sector) {
@@ -81,7 +81,7 @@ func NewSector(x, y, density int) (s *Sector) {
 	s.Location = Location{name, loc_SECTOR, false, true, NewSectorCoordinate(x, y)}
 	s.Density = util.Max(density, 0) //ensures density is at least 0
 
-	s.Stars = make([]*StarSystem, 0, 50)
+	s.subSectors = make(map[int]*SubSector)
 
 	return
 }
@@ -92,6 +92,40 @@ func (s Sector) ProperName() string {
 	return x + "-" + y
 }
 
-type StarSystem struct {
+//GetSubSector attempts to retreive a subsector. If none exists, returns nil.
+func (s Sector) GetSubSector(x, y int) *SubSector {
+	if s, ok := s.subSectors[x+y*coord_SUBSECTOR_MAX]; ok {
+		return s
+	} else {
+		return nil
+	}
+}
+
+//generates a subsector and adds it to the subsector map. if (x, y) already exists, just returns the old one
+func (s *Sector) GenerateSubSector(x, y int) *SubSector {
+	if s, ok := s.subSectors[x+y*coord_SUBSECTOR_MAX]; ok {
+		return s
+	}
+
+	ss := new(SubSector)
+	ss.coords = s.coords
+	ss.coords.xStarCoord = x
+	ss.coords.yStarCoord = y
+
+	//PUT STAR GENERATION CODE HERE WHY DON'T YOU.
+
+	s.subSectors[x+y*coord_SUBSECTOR_MAX] = ss
+	return ss
+}
+
+type SubSector struct {
 	Location
+	star *StarSystem
+}
+
+func (s SubSector) HasStar() bool {
+	if s.star != nil {
+		return true
+	}
+	return false
 }

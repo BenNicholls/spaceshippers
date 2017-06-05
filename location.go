@@ -12,15 +12,17 @@ const (
 //defines any place where your ship can travel to
 type Locatable interface {
 	GetName() string
-	GetLocationType() int
+	GetLocationType() LocationType
 	IsExplored() bool
 	IsKnown() bool //it is known
 	GetCoords() Coordinates
 }
 
+type LocationType int
+
 //different types of locations
 const (
-	loc_NONE int = iota
+	loc_NONE LocationType = iota
 	loc_SECTOR
 	loc_STARSYSTEM
 	loc_PLANET
@@ -29,17 +31,17 @@ const (
 
 type Location struct {
 	name         string
-	locationType int         //see location type defs above
-	explored     bool        //have we been there
-	known        bool        //do we know about this place
-	coords       Coordinates //where it at
+	locationType LocationType //see location type defs above
+	explored     bool         //have we been there
+	known        bool         //do we know about this place
+	coords       Coordinates  //where it at
 }
 
 func (l Location) GetName() string {
 	return l.name
 }
 
-func (l Location) GetLocationType() int {
+func (l Location) GetLocationType() LocationType {
 	return l.locationType
 }
 
@@ -59,9 +61,11 @@ func (l Location) GetCoords() Coordinates {
 	return l.coords
 }
 
+type CoordResolution int
+
 //coordinate resolution levels
 const (
-	coord_SECTOR int = iota
+	coord_SECTOR CoordResolution = iota
 	coord_SUBSECTOR
 	coord_STARSYSTEM
 	coord_LOCAL
@@ -85,11 +89,11 @@ type Coordinates struct {
 	yStarCoord int
 	yLocal     int
 
-	resolution int //how deep into the rabbit hole this coordinate goes. see above
+	resolution CoordResolution //how deep into the rabbit hole this coordinate goes. see above
 }
 
 //NewCoordinate makes a new Coordinate object, defaulted to the center of the galaxy.
-func NewCoordinate(res int) (c Coordinates) {
+func NewCoordinate(res CoordResolution) (c Coordinates) {
 	c.resolution = res
 	c.xSector = coord_SECTOR_MAX / 2
 	c.ySector = coord_SECTOR_MAX / 2
@@ -156,7 +160,7 @@ func (c Coordinates) LocalCoord() (int, int) {
 	return c.xLocal, c.yLocal
 }
 
-func (c *Coordinates) Move(dx, dy, res int) {
+func (c *Coordinates) Move(dx, dy int, res CoordResolution) {
 	//check to ensure this coord handles the proper resolution
 	if res > c.resolution {
 		return
