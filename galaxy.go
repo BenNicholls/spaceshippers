@@ -109,8 +109,8 @@ func (s *Sector) GenerateSubSector(x, y int) *SubSector {
 
 	ss := new(SubSector)
 	ss.coords = s.coords
-	ss.coords.xStarCoord = x
-	ss.coords.yStarCoord = y
+	ss.coords.xSubSector = x
+	ss.coords.ySubSector = y
 
 	//PUT STAR GENERATION CODE HERE WHY DON'T YOU.
 

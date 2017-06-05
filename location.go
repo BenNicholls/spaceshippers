@@ -16,6 +16,7 @@ type Locatable interface {
 	IsExplored() bool
 	IsKnown() bool //it is known
 	GetCoords() Coordinates
+	GetLocations() []Locatable
 }
 
 type LocationType int
@@ -59,6 +60,13 @@ func (l Location) IsKnown() bool {
 
 func (l Location) GetCoords() Coordinates {
 	return l.coords
+}
+
+//This default method actually doesn't work, we don't want the Location object. Hmm.
+func (l Location) GetLocations() []Locatable {
+	a := make([]Locatable, 1)
+	a[0] = l
+	return a
 }
 
 type CoordResolution int

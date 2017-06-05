@@ -1,5 +1,8 @@
 package main
 
+import "math/rand"
+import "math"
+
 type StarSystem struct {
 	Location
 
@@ -29,6 +32,18 @@ func NewStarSystem(c Coordinates) (s *StarSystem) {
 	return
 }
 
+//Returns a list of all locations in the system. Right now that means the star and planets,
+//but it's set up to automatically grab locations in a hierarchy, so if planets get moons
+//at some point it will pick them up.
+func (s StarSystem) GetLocations() []Locatable {
+	l := make([]Locatable, 0)
+	l = append(l, s.Star)
+	for _, p := range s.Planets {
+		l = append(l, p.GetLocations()...)
+	}
+	return l
+}
+
 type Star struct {
 	Location
 }
@@ -46,16 +61,27 @@ func NewStar(c Coordinates, name string) (s Star) {
 
 type Planet struct {
 	Location
-	oDistance int //orbital distance
+	oDistance int     //orbital distance
+	oPosition float64 //orbital position in degrees
 }
 
 //NewPlanet creates a planet. c is the coords of the starsystem. orbit is the distance in meters from the star
 func NewPlanet(c Coordinates, orbit int, name string) (p Planet) {
 	p.name = name
-	p.oDistance = orbit
+	p.locationType = loc_PLANET
 	p.coords = c
-	p.coords.xLocal = (coord_LOCAL_MAX / 2) + p.oDistance
-	p.coords.yLocal = coord_LOCAL_MAX / 2
+
+	p.oDistance = orbit
+	p.oPosition = rand.Float64() * 2 * math.Pi
+	p.coords.xLocal = (coord_LOCAL_MAX / 2) + int(float64(p.oDistance)*math.Cos(p.oPosition))
+	p.coords.yLocal = (coord_LOCAL_MAX / 2) + int(float64(p.oDistance)*math.Sin(p.oPosition))
 
 	return
+}
+
+//NOTE: When moons and orbitting stuff gets implemented, be sure to add those here.
+func (p Planet) GetLocations() []Locatable {
+	l := make([]Locatable, 0)
+	l = append(l, p)
+	return l
 }

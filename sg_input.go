@@ -112,12 +112,16 @@ func (sg *SpaceshipGame) HandleKeypressCrewMenu(key sdl.Keycode) {
 func (sg *SpaceshipGame) HandleKeypressStarchartMenu(key sdl.Keycode) {
 	switch key {
 	case sdl.K_UP:
-		sg.starchartMenu.MoveSectorCursor(0, -1)
+		sg.starchartMenu.MoveMapCursor(0, -1)
 	case sdl.K_DOWN:
-		sg.starchartMenu.MoveSectorCursor(0, 1)
+		sg.starchartMenu.MoveMapCursor(0, 1)
 	case sdl.K_LEFT:
-		sg.starchartMenu.MoveSectorCursor(-1, 0)
+		sg.starchartMenu.MoveMapCursor(-1, 0)
 	case sdl.K_RIGHT:
-		sg.starchartMenu.MoveSectorCursor(1, 0)
+		sg.starchartMenu.MoveMapCursor(1, 0)
+	case sdl.K_PAGEUP:
+		sg.starchartMenu.ZoomIn()
+	case sdl.K_PAGEDOWN:
+		sg.starchartMenu.ZoomOut()
 	}
 }

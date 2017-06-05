@@ -47,9 +47,8 @@ func NewShip(n string) *Ship {
 
 func (s *Ship) SetLocation(l Locatable) {
 	s.Location = l
-	c := s.Location.GetCoords()
-	s.ShipCoords.xSector = c.xSector
-	s.ShipCoords.ySector = c.ySector
+	s.ShipCoords = l.GetCoords()
+	s.ShipCoords.resolution = coord_LOCAL
 }
 
 //Adds a room to the ship and connects it.
@@ -111,6 +110,8 @@ func (s *Ship) PlaceCrew() {
 }
 
 func (s *Ship) Update(spaceTime int) {
+
+	s.ShipCoords.Move(-10000, 10000, coord_LOCAL)
 
 	for i, _ := range s.Rooms {
 		s.Rooms[i].Update(spaceTime)

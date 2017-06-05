@@ -86,7 +86,7 @@ func NewSpaceshipGame() *SpaceshipGame {
 
 	ss := sg.galaxy.GetSector(8, 8).GenerateSubSector(250, 171)
 	ss.star = NewStarSystem(ss.GetCoords())
-	sg.playerShip.SetLocation(ss.star.Planets[3]) //Earth!!
+	sg.playerShip.SetLocation(ss.star.Planets[2]) //Earth!!
 
 	sg.starFrequency = 20
 
@@ -168,6 +168,7 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.SetupCrewMenu()
 	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)
+	sg.starchartMenu.LoadLocalInfo()
 	sg.shipMenu = InitShipMenu()
 
 	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar, sg.shipMenu, sg.starchartMenu)
@@ -194,10 +195,12 @@ func (sg *SpaceshipGame) Update() {
 
 	//update starchart if ship has moved sectors
 	if sg.activeMenu == sg.starchartMenu {
-		sg.starchartMenu.UpdateSectorInfo()
+		sg.starchartMenu.Update()
 		delta := startCoords.CalcVector(sg.playerShip.ShipCoords)
-		if x, y := delta.Sector(); x != 0 || y != 0 {
+		if x, y := delta.Sector(); sg.starchartMenu.mapMode == coord_SECTOR && (x != 0 || y != 0) {
 			sg.starchartMenu.DrawMap()
+		} else if sg.starchartMenu.mapMode == coord_LOCAL {
+			sg.starchartMenu.DrawSystem() //should we really do this every update tick??? ugh.
 		}
 	}
 
