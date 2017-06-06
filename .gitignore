@@ -2,3 +2,5 @@ debug
 log.txt
 .vscode/*
 *.pdn
+*.pprof
+*.exe

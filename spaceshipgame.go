@@ -59,8 +59,8 @@ type SpaceshipGame struct {
 	simSpeed  int //4 speeds, plus pause (0)
 	paused    bool
 
-	starField     []int
-	starFrequency int
+	starField []int
+	starShift int
 
 	viewX, viewY int
 
@@ -88,11 +88,11 @@ func NewSpaceshipGame() *SpaceshipGame {
 	ss.star = NewStarSystem(ss.GetCoords())
 	sg.playerShip.SetLocation(ss.star.Planets[2]) //Earth!!
 
-	sg.starFrequency = 20
+	sg.starShift = 0
 
 	sg.SetupUI() //must be done after ship setup
 	sg.UpdateSpeedUI()
-	sg.initStarField()
+	sg.initStarField(20)
 	sg.CenterShip()
 
 	return sg
