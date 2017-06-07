@@ -59,8 +59,7 @@ type SpaceshipGame struct {
 	simSpeed  int //4 speeds, plus pause (0)
 	paused    bool
 
-	starField []int
-	starShift int
+	Stars StarField
 
 	viewX, viewY int
 
@@ -88,11 +87,9 @@ func NewSpaceshipGame() *SpaceshipGame {
 	ss.star = NewStarSystem(ss.GetCoords())
 	sg.playerShip.SetLocation(ss.star.Planets[2]) //Earth!!
 
-	sg.starShift = 0
-
 	sg.SetupUI() //must be done after ship setup
 	sg.UpdateSpeedUI()
-	sg.initStarField(20)
+	
 	sg.CenterShip()
 
 	return sg
@@ -136,6 +133,8 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.menubar.Add(sg.crewMenuButton, sg.shipMenuButton, sg.roomMenuButton, sg.roomMenuButton, sg.starchartMenuButton, sg.scippieMenuButton, sg.mainMenuButton)
 
 	sg.shipdisplay = ui.NewTileView(80, 28, 0, 3, 0, false)
+	w, h := sg.shipdisplay.Dims()
+	sg.Stars = NewStarField(w, h, 20, sg.shipdisplay)
 
 	sg.shipstatus = ui.NewContainer(26, 12, 1, 32, 1, true)
 	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 0, 0, false, true, "The USS Prototype"))
@@ -189,7 +188,7 @@ func (sg *SpaceshipGame) Update() {
 
 		//need starfield shift speed controlled here (currently hardcoded to shift every 100 seconds)
 		if sg.spaceTime%100 == 0 {
-			sg.shiftStarField()
+			sg.Stars.Shift()
 		}
 	}
 
@@ -213,7 +212,7 @@ func (sg *SpaceshipGame) Update() {
 }
 
 func (sg *SpaceshipGame) Render() {
-	sg.DrawStarfield()
+	sg.Stars.Draw()
 
 	w, h := sg.playerShip.ShipMap.Dims()
 	x, y := 0, 0
@@ -231,8 +230,7 @@ func (sg *SpaceshipGame) Render() {
 				sg.shipdisplay.Draw(x, y, tv.Glyph, tv.ForeColour, 0xFF000000)
 			}
 
-			if sg.playerShip.ShipMap.GetEntity(i%w, i/w) != nil {
-				e := sg.playerShip.ShipMap.GetEntity(i%w, i/w)
+			if e := sg.playerShip.ShipMap.GetEntity(i%w, i/w); e != nil {
 				sg.shipdisplay.Draw(x, y, e.GetVisuals().Glyph, e.GetVisuals().ForeColour, 0xFF000000)
 			}
 		}
@@ -259,6 +257,13 @@ func (sg *SpaceshipGame) ActivateMenu(m ui.UIElem) {
 	if m != sg.input {
 		sg.CenterShip()
 	}
+}
+
+func (sg *SpaceshipGame) MoveShipCamera(dx, dy int) {
+	sg.Stars.dirty = true //clears the tileview
+
+	sg.viewX += dx
+	sg.viewY += dy
 }
 
 //deactivates the open menu (if there is one)

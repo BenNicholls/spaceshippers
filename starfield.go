@@ -2,31 +2,46 @@ package main
 
 import "math/rand"
 import "github.com/bennicholls/burl/util"
+import "github.com/bennicholls/burl/ui"
+
+type StarField struct {
+	field []int
+	starFrequency int
+	starShift int
+	view *ui.TileView
+	dirty bool
+}
 
 //initializes a starfield twice the width of the screen
-func (sg *SpaceshipGame) initStarField(starFrequency int) {
-	w, h := sg.shipdisplay.Dims()
-	sg.starField = make([]int, w*h*2)
-	for i := 0; i < len(sg.starField); i++ {
-		if rand.Intn(starFrequency) == 0 {
-			sg.starField[i] = 1
+func NewStarField(w, h, starFrequency int, v *ui.TileView) (sf StarField) {
+	sf.view = v
+	sf.field = make([]int, w*h*2)
+	sf.starFrequency = starFrequency
+	sf.dirty = true
+	for i := 0; i < len(sf.field); i++ {
+		if rand.Intn(sf.starFrequency) == 0 {
+			sf.field[i] = 1
 		}
 	}
+	return
 }
 
 //moves the "camera" on the stars.
-func (sg *SpaceshipGame) shiftStarField() {
-	w, _ := sg.shipdisplay.Dims()
-	sg.starShift, _ = util.ModularClamp(sg.starShift+1, 0, (w*2)-1)
+func (sf *StarField) Shift() {
+	w, _ := sf.view.Dims()
+	sf.starShift, _ = util.ModularClamp(sf.starShift+1, 0, (w*2)-1)
+	sf.dirty = true
 }
 
 //Draws the starfield, offset by the current starShift value.
-func (sg *SpaceshipGame) DrawStarfield() {
-	sg.shipdisplay.Clear()
-	w, h := sg.shipdisplay.Dims()
-	for i := 0; i < w*h; i++ {
-		if sg.starField[(i/w)*w*2+(i%w+sg.starShift)%(w*2)] != 0 {
-			sg.shipdisplay.Draw(i%w, i/w, 0x2a, 0xFF444444, 0xFF000000)
+func (sf *StarField) Draw() {
+	if sf.dirty {
+		sf.view.Clear()
+		w, h := sf.view.Dims()
+		for i := 0; i < w*h; i++ {
+			if sf.field[(i/w)*w*2+(i%w+sf.starShift)%(w*2)] != 0 {
+				sf.view.Draw(i%w, i/w, 0x2a, 0xFF444444, 0xFF000000)
+			}
 		}
 	}
 }

@@ -57,13 +57,13 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 					sg.UpdateSpeedUI()
 				}
 			case sdl.K_UP:
-				sg.viewY -= 1
+				sg.MoveShipCamera(0, -1)
 			case sdl.K_DOWN:
-				sg.viewY += 1
+				sg.MoveShipCamera(0, 1)
 			case sdl.K_LEFT:
-				sg.viewX -= 1
+				sg.MoveShipCamera(-1, 0)
 			case sdl.K_RIGHT:
-				sg.viewX += 1
+				sg.MoveShipCamera(1, 0)
 			case sdl.K_SPACE:
 				sg.paused = !sg.paused
 				if sg.paused {
