@@ -6,7 +6,7 @@ type ShipMenu struct {
 	ui.Container
 }
 
-func InitShipMenu() (sm *ShipMenu) {
+func NewShipMenu() (sm *ShipMenu) {
 	sm = new(ShipMenu)
 
 	sm.Container = *ui.NewContainer(20, 27, 59, 4, 3, true)

@@ -46,11 +46,8 @@ type SpaceshipGame struct {
 	crewList    *ui.List
 	crewDetails *ui.Container
 
-	//custom ui element, we'll see how this works
-	shipMenu *ShipMenu
-
-	//starchart (F4)
-	starchartMenu *StarchartMenu
+	shipMenu      *ShipMenu      //shipmenu (F3)
+	starchartMenu *StarchartMenu //starchart (F4)
 
 	activeMenu ui.UIElem
 
@@ -89,7 +86,7 @@ func NewSpaceshipGame() *SpaceshipGame {
 
 	sg.SetupUI() //must be done after ship setup
 	sg.UpdateSpeedUI()
-	
+
 	sg.CenterShip()
 
 	return sg
@@ -168,7 +165,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.SetupCrewMenu()
 	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)
 	sg.starchartMenu.LoadLocalInfo()
-	sg.shipMenu = InitShipMenu()
+	sg.shipMenu = NewShipMenu()
 
 	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar, sg.shipMenu, sg.starchartMenu)
 }

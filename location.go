@@ -224,7 +224,7 @@ func (c *Coordinates) moveSector(dx, dy int) {
 	c.ySector = util.Clamp(c.ySector+dy, 0, coord_SECTOR_MAX-1)
 }
 
-//Galactic Vector. represents the vector between two points
+//Galactic Vector. represents the vector between two points in the galaxy
 type GalVec struct {
 	Coordinates             //0-centered vector
 	c1, c2      Coordinates //endpoints in galactic-space. stored for... some reason.

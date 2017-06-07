@@ -16,7 +16,7 @@ type Galaxy struct {
 	width, height int
 	sectors       []*Sector
 
-	starFactor int //number of stars per density leve for a sector
+	starFactor int //number of stars per density level for a sector
 }
 
 func NewGalaxy() (g *Galaxy) {

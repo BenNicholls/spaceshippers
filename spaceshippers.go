@@ -1,16 +1,14 @@
 package main
 
-import (
-	"fmt"
-	"math/rand"
-	"time"
-
-	"github.com/bennicholls/burl"
-	"github.com/bennicholls/burl/console"
-)
+import "fmt"
+import "math/rand"
+import "time"
+import "github.com/bennicholls/burl"
+import "github.com/bennicholls/burl/console"
+//import "github.com/pkg/profile"
 
 func main() {
-
+	//defer profile.Start(profile.ProfilePath(".")).Stop()
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	err := console.Setup(80, 45, "res/curses24x24.bmp", "res/DelveFont12x24.bmp", "Spaceshippers")

@@ -5,11 +5,11 @@ import "github.com/bennicholls/burl/util"
 import "github.com/bennicholls/burl/ui"
 
 type StarField struct {
-	field []int
+	field         []int
 	starFrequency int
-	starShift int
-	view *ui.TileView
-	dirty bool
+	starShift     int
+	view          *ui.TileView
+	dirty         bool
 }
 
 //initializes a starfield twice the width of the screen
