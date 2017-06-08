@@ -123,5 +123,9 @@ func (sg *SpaceshipGame) HandleKeypressStarchartMenu(key sdl.Keycode) {
 		sg.starchartMenu.ZoomIn()
 	case sdl.K_PAGEDOWN:
 		sg.starchartMenu.ZoomOut()
+	case sdl.K_RETURN:
+		if sg.starchartMenu.mapMode == coord_LOCAL {
+			sg.playerShip.SetCourse(sg.starchartMenu.systemLocations[sg.starchartMenu.systemLocationsList.GetSelection()])
+		}
 	}
 }

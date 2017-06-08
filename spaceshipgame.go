@@ -4,6 +4,7 @@ import "github.com/bennicholls/burl/ui"
 import "github.com/bennicholls/burl/util"
 import "github.com/bennicholls/burl/core"
 import "fmt"
+import "strconv"
 
 //time values in DIGITAL SECONDS. One digital day = 100000 seconds, which is 14% longer than a regular day.
 const (
@@ -216,7 +217,7 @@ func (sg *SpaceshipGame) Update() {
 		sg.UpdateCrewDetails()
 	}
 	xStr, yStr := sg.playerShip.coords.GetCoordStrings()
-	sg.coordsText.ChangeText(xStr + " by " + yStr)
+	sg.coordsText.ChangeText(xStr + " by " + yStr + " - " + strconv.Itoa(sg.playerShip.Speed))
 	sg.missiontime.ChangeText(fmt.Sprintf("%.4d", sg.spaceTime/100000) + "d:" + fmt.Sprintf("%.1d", (sg.spaceTime/10000)%10) + "h:" + fmt.Sprintf("%.2d", (sg.spaceTime/100)%100) + "m:" + fmt.Sprintf("%.2d", sg.spaceTime%100) + "s")
 }
 

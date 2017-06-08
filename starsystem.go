@@ -79,6 +79,7 @@ func NewPlanet(c Coordinates, orbit, radius int, name string) (p Planet) {
 	p.name = name
 	p.locationType = loc_PLANET
 	p.coords = c
+	p.coords.resolution = coord_LOCAL
 
 	p.oDistance = orbit
 	p.oPosition = rand.Float64() * 2 * math.Pi

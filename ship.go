@@ -3,6 +3,8 @@ package main
 import "github.com/bennicholls/burl/core"
 import "github.com/bennicholls/burl/util"
 import "math/rand"
+import "math"
+import "fmt"
 
 type Ship struct {
 	Location //ship is technically a location, but you can't go there... you *are* there!
@@ -10,9 +12,14 @@ type Ship struct {
 	Crew  []*Crewman
 	Rooms []*Room
 
+	Engine *PropulsionSystem
+
 	//status numbers.
-	Hull  core.Stat
-	Pilot *Crewman
+	Hull core.Stat
+	Fuel core.Stat
+
+	Speed   int
+	Heading util.Vec2
 
 	ShipMap *core.TileMap
 
@@ -29,6 +36,11 @@ func NewShip(n string) *Ship {
 	s.ShipMap = core.NewMap(100, 100)
 	s.Crew = make([]*Crewman, 6)
 	s.Rooms = make([]*Room, 0, 10)
+	s.Engine = NewPropulsionSystem(s)
+
+	s.Fuel = core.NewStat(1000000)
+
+	s.Speed = 0
 
 	s.locationType = loc_SHIP
 	s.name = n
@@ -111,9 +123,24 @@ func (s *Ship) PlaceCrew() {
 	}
 }
 
+func (s *Ship) SetCourse(l Locatable) {
+	s.Destination = l
+
+	if l.GetCoords().resolution == coord_LOCAL {
+		g := s.coords.CalcVector(l.GetCoords())
+		s.Heading = g.local
+	}
+}
+
 func (s *Ship) Update(spaceTime int) {
 
-	s.coords.Move(-10000, 10000, coord_LOCAL)
+	s.Engine.Update()
+
+	angle := math.Atan2(float64(s.Heading.Y), float64(s.Heading.X))
+	x := int(float64(s.Speed) * math.Cos(angle))
+	y := int(float64(s.Speed) * math.Sin(angle))
+
+	s.coords.Move(x, y, coord_LOCAL)
 
 	for i, _ := range s.Rooms {
 		s.Rooms[i].Update(spaceTime)
