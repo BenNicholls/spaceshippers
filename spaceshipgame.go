@@ -182,13 +182,13 @@ func (sg *SpaceshipGame) Update() {
 		//change location if we move away,
 		if !sg.playerShip.coords.IsIn(sg.playerShip.CurrentLocation) {
 			c := sg.playerShip.coords
-			sg.playerShip.CurrentLocation = sg.galaxy.GetSector(c.xSector, c.ySector).GetSubSector(c.xSubSector, c.ySubSector).star
+			sg.playerShip.CurrentLocation = sg.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).star
 		}
 
 		//change destination/location when we arrive!
 		if sg.playerShip.coords.IsIn(sg.playerShip.Destination) {
 			sg.playerShip.CurrentLocation = sg.playerShip.Destination
-			sg.playerShip.Destination = nil			
+			sg.playerShip.Destination = nil
 		}
 
 		for i := range sg.playerShip.Crew {
@@ -205,7 +205,7 @@ func (sg *SpaceshipGame) Update() {
 	if sg.activeMenu == sg.starchartMenu {
 		sg.starchartMenu.Update()
 		delta := startCoords.CalcVector(sg.playerShip.coords)
-		if x, y := delta.Sector(); sg.starchartMenu.mapMode == coord_SECTOR && (x != 0 || y != 0) {
+		if sec := delta.Sector(); sg.starchartMenu.mapMode == coord_SECTOR && (sec.X != 0 || sec.Y != 0) {
 			sg.starchartMenu.DrawMap()
 		} else if sg.starchartMenu.mapMode == coord_LOCAL {
 			sg.starchartMenu.DrawSystem() //should we really do this every update tick??? ugh.

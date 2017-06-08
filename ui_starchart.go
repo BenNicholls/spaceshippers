@@ -46,7 +46,7 @@ func NewStarchartMenu(gal *Galaxy, ship *Ship) (sm *StarchartMenu) {
 	sm = new(StarchartMenu)
 	sm.galaxy = gal
 	sm.playerShip = ship
-	sm.xCursor, sm.yCursor = ship.coords.Sector() //start sector picker on player ship
+	sm.xCursor, sm.yCursor = ship.coords.Sector().Get() //start sector picker on player ship
 	sm.mapMode = coord_SECTOR
 
 	//ui setup
@@ -105,10 +105,10 @@ func (sm *StarchartMenu) UpdateSectorInfo() {
 		sm.sectorExploredText.ChangeText("SECTOR UNEXPLORED")
 	}
 
-	if x, y := sm.playerShip.coords.Sector(); sm.xCursor == x && sm.yCursor == y {
+	if sec := sm.playerShip.coords.Sector(); sm.xCursor == sec.X && sm.yCursor == sec.Y {
 		sm.sectorLocationText.ChangeText("We're currently here!")
 	} else if sm.playerShip.Destination != nil {
-		if x, y := sm.playerShip.Destination.GetCoords().Sector(); sm.xCursor == x && sm.yCursor == y {
+		if sec := sm.playerShip.Destination.GetCoords().Sector(); sm.xCursor == sec.X && sm.yCursor == sec.Y {
 			sm.sectorLocationText.ChangeText("We're currently going here!")
 		}
 	} else {
@@ -120,7 +120,7 @@ func (sm *StarchartMenu) UpdateSectorInfo() {
 //Loads the location list for the system being viewed.
 func (sm *StarchartMenu) LoadLocalInfo() {
 	c := sm.playerShip.coords
-	system := sm.galaxy.GetSector(c.xSector, c.ySector).GetSubSector(c.xSubSector, c.ySubSector).star
+	system := sm.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).star
 	sm.systemLocations = make([]Locatable, 1)
 	sm.systemLocations[0] = sm.playerShip
 	sm.systemLocations = append(sm.systemLocations, system.GetLocations()...)
@@ -132,7 +132,7 @@ func (sm *StarchartMenu) LoadLocalInfo() {
 
 func (sm *StarchartMenu) UpdateLocalInfo() {
 	c := sm.playerShip.coords
-	system := sm.galaxy.GetSector(c.xSector, c.ySector).GetSubSector(c.xSubSector, c.ySubSector).star
+	system := sm.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).star
 	sm.mapTitleText.ChangeText(system.GetName())
 
 	loc := sm.systemLocations[sm.systemLocationsList.GetSelection()]
@@ -144,7 +144,7 @@ func (sm *StarchartMenu) UpdateLocalInfo() {
 	case Planet:
 		sm.systemLocDescText.ChangeText("This is a planet. Planets are rocks that are big enough to be important. Some planets have life on them, but most of them are super boring.")
 	case *Ship:
-		sm.systemLocDescText.ChangeText("This is your ship! Look at it's heroic hull valiantly floating amongst the stars. One could almost weep.")	
+		sm.systemLocDescText.ChangeText("This is your ship! Look at it's heroic hull valiantly floating amongst the stars. One could almost weep.")
 	default:
 		sm.systemLocDescText.ChangeText("What is this? How did you select this?")
 	}
@@ -181,7 +181,7 @@ func (sm *StarchartMenu) DrawGalaxy() {
 		sm.mapView.Draw(x, y, g, console.MakeColour(bright, bright, bright), 0xFF000000)
 	}
 
-	x, y := sm.playerShip.coords.Sector()
+	x, y := sm.playerShip.coords.Sector().Get()
 	sm.mapView.Draw(x, y, 0x02, 0xFFFFFFFF, 0xFF000000)
 }
 
@@ -191,26 +191,26 @@ func (sm *StarchartMenu) DrawSystem() {
 	w, h := sm.mapView.Dims()
 	gFactor := coord_LOCAL_MAX / w / util.Pow(2, sm.localZoom)
 
-	xCamera := c.xLocal - (gFactor * w / 2)
-	yCamera := c.yLocal - (gFactor * h / 2)
+	xCamera := c.local.X - (gFactor * w / 2)
+	yCamera := c.local.Y - (gFactor * h / 2)
 
-	system := sm.galaxy.GetSector(c.xSector, c.ySector).GetSubSector(c.xSubSector, c.ySubSector).star
+	system := sm.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).star
 
 	//draw system things!
 	for _, p := range system.Planets {
-		x, y := p.GetCoords().LocalCoord()
+		x, y := p.GetCoords().LocalCoord().Get()
 		if util.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
 			sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, int(rune(p.name[0])), 0xFF825814, 0xFF000000)
 		}
 	}
 
-	x, y := system.Star.GetCoords().LocalCoord()
+	x, y := system.Star.GetCoords().LocalCoord().Get()
 	if util.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
 		sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, 0x0F, 0xFFFFFF00, 0xFF000000)
 	}
 
 	//draw player ship last to ensure nothing overwrites it
-	x, y = sm.playerShip.coords.LocalCoord()
+	x, y = sm.playerShip.coords.LocalCoord().Get()
 	if util.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
 		sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, 0x02, 0xFFFFFFFF, 0xFF000000)
 	}
@@ -271,7 +271,7 @@ func (sm *StarchartMenu) ZoomOut() {
 }
 
 func (sm *StarchartMenu) OnActivate() {
-	sm.xCursor, sm.yCursor = sm.playerShip.coords.Sector()
+	sm.xCursor, sm.yCursor = sm.playerShip.coords.Sector().Get()
 	sm.mapHighlight.MoveTo(sm.xCursor, sm.yCursor)
 	sm.Update()
 	sm.DrawMap()

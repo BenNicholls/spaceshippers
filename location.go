@@ -93,15 +93,10 @@ const (
 )
 
 type Coordinates struct {
-	xSector    int
-	xSubSector int
-	xStarCoord int
-	xLocal     int
-
-	ySector    int
-	ySubSector int
-	yStarCoord int
-	yLocal     int
+	sector    util.Vec2
+	subSector util.Vec2
+	starCoord util.Vec2
+	local     util.Vec2
 
 	resolution CoordResolution //how deep into the rabbit hole this coordinate goes. see above
 }
@@ -109,14 +104,10 @@ type Coordinates struct {
 //NewCoordinate makes a new Coordinate object, defaulted to the center of the galaxy.
 func NewCoordinate(res CoordResolution) (c Coordinates) {
 	c.resolution = res
-	c.xSector = coord_SECTOR_MAX / 2
-	c.ySector = coord_SECTOR_MAX / 2
-	c.xSubSector = coord_SUBSECTOR_MAX / 2
-	c.ySubSector = coord_SUBSECTOR_MAX / 2
-	c.xStarCoord = coord_STARSYSTEM_MAX / 2
-	c.yStarCoord = coord_STARSYSTEM_MAX / 2
-	c.xLocal = coord_LOCAL_MAX / 2
-	c.yLocal = coord_LOCAL_MAX / 2
+	c.sector.Set(coord_SECTOR_MAX/2, coord_SECTOR_MAX/2)
+	c.subSector.Set(coord_SUBSECTOR_MAX/2, coord_SUBSECTOR_MAX/2)
+	c.starCoord.Set(coord_STARSYSTEM_MAX/2, coord_STARSYSTEM_MAX/2)
+	c.local.Set(coord_LOCAL_MAX/2, coord_LOCAL_MAX/2)
 
 	return
 }
@@ -124,7 +115,7 @@ func NewCoordinate(res CoordResolution) (c Coordinates) {
 //NewCoordinate makes a new Coordinate object, defaulted to the center of a sector.
 func NewSectorCoordinate(x, y int) (c Coordinates) {
 	c = NewCoordinate(coord_SECTOR)
-	c.xSector, c.ySector = x, y
+	c.sector.Set(x, y)
 
 	return
 }
@@ -132,25 +123,25 @@ func NewSectorCoordinate(x, y int) (c Coordinates) {
 //Returns a string for each coordinate in the form
 //SECTOR:SUBSECTOR:STARCOORD:LOCAL, subject to resolution limits.
 func (c Coordinates) GetCoordStrings() (xString string, yString string) {
-	xString, yString = strconv.Itoa(c.xSector), strconv.Itoa(c.ySector)
+	xString, yString = strconv.Itoa(c.sector.X), strconv.Itoa(c.sector.Y)
 	if c.resolution == coord_SECTOR {
 		return
 	}
 
-	xString += ":" + strconv.Itoa(c.xSubSector)
-	yString += ":" + strconv.Itoa(c.ySubSector)
+	xString += ":" + strconv.Itoa(c.subSector.X)
+	yString += ":" + strconv.Itoa(c.subSector.Y)
 	if c.resolution == coord_SUBSECTOR {
 		return
 	}
 
-	xString += ":" + strconv.FormatInt(int64(c.xStarCoord), 36)
-	yString += ":" + strconv.FormatInt(int64(c.yStarCoord), 36)
+	xString += ":" + strconv.FormatInt(int64(c.starCoord.X), 36)
+	yString += ":" + strconv.FormatInt(int64(c.starCoord.Y), 36)
 	if c.resolution == coord_STARSYSTEM {
 		return
 	}
 
-	xString += ":" + strconv.FormatInt(int64(c.xLocal), 36)
-	yString += ":" + strconv.FormatInt(int64(c.yLocal), 36)
+	xString += ":" + strconv.FormatInt(int64(c.local.X), 36)
+	yString += ":" + strconv.FormatInt(int64(c.local.Y), 36)
 
 	return
 }
@@ -167,19 +158,19 @@ func (c1 Coordinates) IsIn(l Locatable) bool {
 		return false
 	}
 
-	if c1.xSector != c2.xSector || c1.ySector != c2.ySector {
+	if c1.sector != c2.sector {
 		return false
 	} else if c1.resolution == coord_SECTOR {
 		return true
 	}
 
-	if c1.xSubSector != c2.xSubSector || c1.ySubSector != c2.ySubSector {
+	if c1.subSector != c2.subSector {
 		return false
 	} else if c1.resolution == coord_SUBSECTOR {
 		return true
 	}
 
-	if c1.xStarCoord != c2.xStarCoord || c1.yStarCoord != c2.yStarCoord {
+	if c1.starCoord != c2.starCoord {
 		return false
 	} else if c1.resolution == coord_STARSYSTEM {
 		return true
@@ -203,23 +194,23 @@ func (c1 Coordinates) IsIn(l Locatable) bool {
 	return false
 }
 
-func (c Coordinates) Sector() (int, int) {
-	return c.xSector, c.ySector
+func (c Coordinates) Sector() util.Vec2 {
+	return c.sector
 }
 
 //returns the subsector portion of the coord. REMEMBER: not all coords handle these!
-func (c Coordinates) SubSector() (int, int) {
-	return c.xSubSector, c.ySubSector
+func (c Coordinates) SubSector() util.Vec2 {
+	return c.subSector
 }
 
 //returns the starcoord portion of the coord. REMEMBER: not all coords handle these!
-func (c Coordinates) StarCoord() (int, int) {
-	return c.xStarCoord, c.yStarCoord
+func (c Coordinates) StarCoord() util.Vec2 {
+	return c.starCoord
 }
 
 //returns the local portion of the coord. REMEMBER: not all coords handle these!
-func (c Coordinates) LocalCoord() (int, int) {
-	return c.xLocal, c.yLocal
+func (c Coordinates) LocalCoord() util.Vec2 {
+	return c.local
 }
 
 func (c *Coordinates) Move(dx, dy int, res CoordResolution) {
@@ -243,8 +234,8 @@ func (c *Coordinates) Move(dx, dy int, res CoordResolution) {
 func (c *Coordinates) moveLocal(dx, dy int) {
 	var odx, ody int
 
-	c.xLocal, odx = util.ModularClamp(c.xLocal+dx, 0, coord_LOCAL_MAX-1)
-	c.yLocal, ody = util.ModularClamp(c.yLocal+dy, 0, coord_LOCAL_MAX-1)
+	c.local.X, odx = util.ModularClamp(c.local.X+dx, 0, coord_LOCAL_MAX-1)
+	c.local.Y, ody = util.ModularClamp(c.local.Y+dy, 0, coord_LOCAL_MAX-1)
 
 	if odx != 0 || ody != 0 {
 		c.moveStarSystem(odx, ody)
@@ -254,8 +245,8 @@ func (c *Coordinates) moveLocal(dx, dy int) {
 func (c *Coordinates) moveStarSystem(dx, dy int) {
 	var odx, ody int
 
-	c.xStarCoord, odx = util.ModularClamp(c.xStarCoord+dx, 0, coord_STARSYSTEM_MAX-1)
-	c.yStarCoord, ody = util.ModularClamp(c.yStarCoord+dy, 0, coord_STARSYSTEM_MAX-1)
+	c.starCoord.X, odx = util.ModularClamp(c.starCoord.X+dx, 0, coord_STARSYSTEM_MAX-1)
+	c.starCoord.Y, ody = util.ModularClamp(c.starCoord.Y+dy, 0, coord_STARSYSTEM_MAX-1)
 
 	if odx != 0 || ody != 0 {
 		c.moveSubSector(odx, ody)
@@ -265,8 +256,8 @@ func (c *Coordinates) moveStarSystem(dx, dy int) {
 func (c *Coordinates) moveSubSector(dx, dy int) {
 	var odx, ody int
 
-	c.xSubSector, odx = util.ModularClamp(c.xSubSector+dx, 0, coord_SUBSECTOR_MAX-1)
-	c.ySubSector, ody = util.ModularClamp(c.ySubSector+dy, 0, coord_SUBSECTOR_MAX-1)
+	c.subSector.X, odx = util.ModularClamp(c.subSector.X+dx, 0, coord_SUBSECTOR_MAX-1)
+	c.subSector.Y, ody = util.ModularClamp(c.subSector.Y+dy, 0, coord_SUBSECTOR_MAX-1)
 
 	if odx != 0 || ody != 0 {
 		c.moveSector(odx, ody)
@@ -274,8 +265,8 @@ func (c *Coordinates) moveSubSector(dx, dy int) {
 }
 
 func (c *Coordinates) moveSector(dx, dy int) {
-	c.xSector = util.Clamp(c.xSector+dx, 0, coord_SECTOR_MAX-1)
-	c.ySector = util.Clamp(c.ySector+dy, 0, coord_SECTOR_MAX-1)
+	c.sector.X = util.Clamp(c.sector.X+dx, 0, coord_SECTOR_MAX-1)
+	c.sector.Y = util.Clamp(c.sector.Y+dy, 0, coord_SECTOR_MAX-1)
 }
 
 //Galactic Vector. represents the vector between two points in the galaxy
@@ -289,26 +280,13 @@ func (c1 Coordinates) CalcVector(c2 Coordinates) (g GalVec) {
 	g.c1 = c1
 	g.c2 = c2
 
-	g.xSector = c2.xSector - c1.xSector
-	xDistance := float64(g.xSector) * float64(LY_PER_SECTOR)
-	g.ySector = c2.ySector - c1.ySector
-	yDistance := float64(g.ySector) * float64(LY_PER_SECTOR)
+	g.sector = c2.sector.Sub(c1.sector)
+	g.subSector = c2.subSector.Sub(c1.subSector)
+	g.starCoord = c2.starCoord.Sub(c1.starCoord)
+	g.local = c2.local.Sub(c1.local)
 
-	g.xSubSector = c2.xSubSector - c1.xSubSector
-	g.ySubSector = c2.ySubSector - c1.ySubSector
-	xDistance += float64(g.xSubSector) * float64(LY_PER_SECTOR) / float64(coord_SUBSECTOR_MAX)
-	yDistance += float64(g.ySubSector) * float64(LY_PER_SECTOR) / float64(coord_SUBSECTOR_MAX)
-
-	g.xStarCoord = c2.xStarCoord - c1.xStarCoord
-	g.yStarCoord = c2.yStarCoord - c1.yStarCoord
-	xDistance += float64(g.xStarCoord) * float64(LY_PER_SECTOR) / float64(coord_SUBSECTOR_MAX) / float64(coord_STARSYSTEM_MAX)
-	yDistance += float64(g.yStarCoord) * float64(LY_PER_SECTOR) / float64(coord_SUBSECTOR_MAX) / float64(coord_STARSYSTEM_MAX)
-
-	g.xLocal = c2.xLocal - c1.xLocal
-	g.yLocal = c2.yLocal - c1.yLocal
-	xDistance += float64(g.xLocal) / float64(METERS_PER_LY)
-	yDistance += float64(g.yLocal) / float64(METERS_PER_LY)
-
+	xDistance := float64(g.local.X)/float64(METERS_PER_LY) + float64(LY_PER_SECTOR)*(float64(g.sector.X)+(float64(g.subSector.X)+float64(g.starCoord.X)/float64(coord_STARSYSTEM_MAX))/float64(coord_SUBSECTOR_MAX))
+	yDistance := float64(g.local.Y)/float64(METERS_PER_LY) + float64(LY_PER_SECTOR)*(float64(g.sector.Y)+(float64(g.subSector.Y)+float64(g.starCoord.Y)/float64(coord_STARSYSTEM_MAX))/float64(coord_SUBSECTOR_MAX))
 	g.Distance = math.Sqrt(xDistance*xDistance + yDistance*yDistance)
 
 	return

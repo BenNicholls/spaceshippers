@@ -46,7 +46,7 @@ func (s StarSystem) GetLocations() []Locatable {
 
 type Star struct {
 	Location
-	radius int
+	radius     int
 	orbitRange int
 }
 
@@ -55,8 +55,7 @@ func NewStar(c Coordinates, name string, radius int) (s Star) {
 	s.name = name
 	s.coords = c
 	s.coords.resolution = coord_LOCAL
-	s.coords.xLocal = coord_LOCAL_MAX / 2
-	s.coords.yLocal = coord_LOCAL_MAX / 2
+	s.coords.local.Set(coord_LOCAL_MAX/2, coord_LOCAL_MAX/2)
 	s.radius = radius
 	s.orbitRange = radius + 15000e3 //nice "safe" 15000km sub orbit radius.
 
@@ -84,8 +83,8 @@ func NewPlanet(c Coordinates, orbit, radius int, name string) (p Planet) {
 	p.oDistance = orbit
 	p.oPosition = rand.Float64() * 2 * math.Pi
 	p.orbitRange = radius + 1000e3 //right now: radius + 1000km
-	p.coords.xLocal = (coord_LOCAL_MAX / 2) + int(float64(p.oDistance)*math.Cos(p.oPosition))
-	p.coords.yLocal = (coord_LOCAL_MAX / 2) + int(float64(p.oDistance)*math.Sin(p.oPosition))
+	p.coords.local.X = (coord_LOCAL_MAX / 2) + int(float64(p.oDistance)*math.Cos(p.oPosition))
+	p.coords.local.Y = (coord_LOCAL_MAX / 2) + int(float64(p.oDistance)*math.Sin(p.oPosition))
 
 	return
 }
