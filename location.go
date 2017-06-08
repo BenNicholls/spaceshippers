@@ -27,7 +27,9 @@ const (
 	loc_SECTOR
 	loc_STARSYSTEM
 	loc_PLANET
+	loc_MOON
 	loc_ANOMALY
+	loc_SHIP
 )
 
 type Location struct {
@@ -52,6 +54,10 @@ func (l Location) IsExplored() bool {
 
 func (l *Location) SetExplored() {
 	l.explored = true
+}
+
+func (l *Location) SetKnown() {
+	l.known = true
 }
 
 func (l Location) IsKnown() bool {
@@ -147,6 +153,54 @@ func (c Coordinates) GetCoordStrings() (xString string, yString string) {
 	yString += ":" + strconv.FormatInt(int64(c.yLocal), 36)
 
 	return
+}
+
+//Reports whether coordinate c1 is "inside" a location l.
+//NOTES: if c1 and l are the same, this reports true. if c1 and l are both Local
+//objects, it tests instead to see if c1 is in orbit/docking range.
+func (c1 Coordinates) IsIn(l Locatable) bool {
+	if l == nil {
+		return false
+	}
+	c2 := l.GetCoords()
+	if c2.resolution > c1.resolution {
+		return false
+	}
+
+	if c1.xSector != c2.xSector || c1.ySector != c2.ySector {
+		return false
+	} else if c1.resolution == coord_SECTOR {
+		return true
+	}
+
+	if c1.xSubSector != c2.xSubSector || c1.ySubSector != c2.ySubSector {
+		return false
+	} else if c1.resolution == coord_SUBSECTOR {
+		return true
+	}
+
+	if c1.xStarCoord != c2.xStarCoord || c1.yStarCoord != c2.yStarCoord {
+		return false
+	} else if c1.resolution == coord_STARSYSTEM {
+		return true
+	}
+
+	//if this point is reached, then we know c1 and c2 are both local points in the same starsystem,
+	//so we want to see if c1 is orbitting/docking with l
+	dist := int(c1.CalcVector(c2).Distance * float64(METERS_PER_LY))
+
+	switch loc := l.(type) {
+	case Planet:
+		if dist < loc.orbitRange {
+			return true
+		}
+	case Star:
+		if dist < loc.orbitRange {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (c Coordinates) Sector() (int, int) {

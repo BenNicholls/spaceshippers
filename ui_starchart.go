@@ -46,7 +46,7 @@ func NewStarchartMenu(gal *Galaxy, ship *Ship) (sm *StarchartMenu) {
 	sm = new(StarchartMenu)
 	sm.galaxy = gal
 	sm.playerShip = ship
-	sm.xCursor, sm.yCursor = ship.ShipCoords.Sector() //start sector picker on player ship
+	sm.xCursor, sm.yCursor = ship.coords.Sector() //start sector picker on player ship
 	sm.mapMode = coord_SECTOR
 
 	//ui setup
@@ -105,23 +105,25 @@ func (sm *StarchartMenu) UpdateSectorInfo() {
 		sm.sectorExploredText.ChangeText("SECTOR UNEXPLORED")
 	}
 
-	if x, y := sm.playerShip.ShipCoords.Sector(); sm.xCursor == x && sm.yCursor == y {
+	if x, y := sm.playerShip.coords.Sector(); sm.xCursor == x && sm.yCursor == y {
 		sm.sectorLocationText.ChangeText("We're currently here!")
 	} else if sm.playerShip.Destination != nil {
 		if x, y := sm.playerShip.Destination.GetCoords().Sector(); sm.xCursor == x && sm.yCursor == y {
 			sm.sectorLocationText.ChangeText("We're currently going here!")
 		}
 	} else {
-		d := sm.playerShip.ShipCoords.CalcVector(sector.GetCoords()).Distance
+		d := sm.playerShip.coords.CalcVector(sector.GetCoords()).Distance
 		sm.sectorLocationText.ChangeText("Distance to sector center: " + strconv.FormatFloat(d, 'f', 2, 64) + "Ly.")
 	}
 }
 
 //Loads the location list for the system being viewed.
 func (sm *StarchartMenu) LoadLocalInfo() {
-	c := sm.playerShip.ShipCoords
+	c := sm.playerShip.coords
 	system := sm.galaxy.GetSector(c.xSector, c.ySector).GetSubSector(c.xSubSector, c.ySubSector).star
-	sm.systemLocations = system.GetLocations()
+	sm.systemLocations = make([]Locatable, 1)
+	sm.systemLocations[0] = sm.playerShip
+	sm.systemLocations = append(sm.systemLocations, system.GetLocations()...)
 	for _, l := range sm.systemLocations {
 		sm.systemLocationsList.Append(l.GetName())
 	}
@@ -129,7 +131,7 @@ func (sm *StarchartMenu) LoadLocalInfo() {
 }
 
 func (sm *StarchartMenu) UpdateLocalInfo() {
-	c := sm.playerShip.ShipCoords
+	c := sm.playerShip.coords
 	system := sm.galaxy.GetSector(c.xSector, c.ySector).GetSubSector(c.xSubSector, c.ySubSector).star
 	sm.mapTitleText.ChangeText(system.GetName())
 
@@ -141,12 +143,19 @@ func (sm *StarchartMenu) UpdateLocalInfo() {
 		sm.systemLocDescText.ChangeText("This is a star. Stars are big hot balls of lava that float in space like magic.")
 	case Planet:
 		sm.systemLocDescText.ChangeText("This is a planet. Planets are rocks that are big enough to be important. Some planets have life on them, but most of them are super boring.")
+	case *Ship:
+		sm.systemLocDescText.ChangeText("This is your ship! Look at it's heroic hull valiantly floating amongst the stars. One could almost weep.")	
 	default:
 		sm.systemLocDescText.ChangeText("What is this? How did you select this?")
 	}
 
 	d := int(c.CalcVector(loc.GetCoords()).Distance * float64(METERS_PER_LY) / 1000)
 	sm.systemLocDistText.ChangeText("Distance:" + strconv.Itoa(d) + "km.")
+	if sm.playerShip.coords.IsIn(loc) {
+		sm.systemSetCourseButton.ChangeText("We are currently here!")
+	} else {
+		sm.systemSetCourseButton.ChangeText("Lets go here!")
+	}
 }
 
 //draws the required map. galaxy map, sector map, star system map
@@ -172,7 +181,7 @@ func (sm *StarchartMenu) DrawGalaxy() {
 		sm.mapView.Draw(x, y, g, console.MakeColour(bright, bright, bright), 0xFF000000)
 	}
 
-	x, y := sm.playerShip.ShipCoords.Sector()
+	x, y := sm.playerShip.coords.Sector()
 	sm.mapView.Draw(x, y, 0x02, 0xFFFFFFFF, 0xFF000000)
 }
 
@@ -201,7 +210,7 @@ func (sm *StarchartMenu) DrawSystem() {
 	}
 
 	//draw player ship last to ensure nothing overwrites it
-	x, y = sm.playerShip.ShipCoords.LocalCoord()
+	x, y = sm.playerShip.coords.LocalCoord()
 	if util.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
 		sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, 0x02, 0xFFFFFFFF, 0xFF000000)
 	}
@@ -239,7 +248,7 @@ func (sm *StarchartMenu) ZoomIn() {
 		sm.mapHighlight.Toggle()
 		sm.DrawMap()
 	} else {
-		sm.localZoom = util.Clamp(sm.localZoom+1, 0, 6)
+		sm.localZoom = util.Clamp(sm.localZoom+1, 0, 8)
 		sm.mapView.Clear()
 		sm.DrawMap()
 	}
@@ -262,7 +271,7 @@ func (sm *StarchartMenu) ZoomOut() {
 }
 
 func (sm *StarchartMenu) OnActivate() {
-	sm.xCursor, sm.yCursor = sm.playerShip.ShipCoords.Sector()
+	sm.xCursor, sm.yCursor = sm.playerShip.coords.Sector()
 	sm.mapHighlight.MoveTo(sm.xCursor, sm.yCursor)
 	sm.Update()
 	sm.DrawMap()

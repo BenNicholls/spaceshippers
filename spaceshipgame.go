@@ -138,8 +138,8 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	locString := "Location: "
 	dstString := "Destination: "
-	if sg.playerShip.Location != nil {
-		locString += sg.playerShip.Location.GetName()
+	if sg.playerShip.CurrentLocation != nil {
+		locString += sg.playerShip.CurrentLocation.GetName()
 	} else {
 		locString += "NO LOCATION. HOW'D YOU DO THIS."
 	}
@@ -172,12 +172,24 @@ func (sg *SpaceshipGame) SetupUI() {
 
 func (sg *SpaceshipGame) Update() {
 
-	startCoords := sg.playerShip.ShipCoords
+	startCoords := sg.playerShip.coords
 
 	//simulation!
 	for i := 0; i < sg.GetIncrement(); i++ {
 		sg.spaceTime++
 		sg.playerShip.Update(sg.spaceTime)
+
+		//change location if we move away,
+		if !sg.playerShip.coords.IsIn(sg.playerShip.CurrentLocation) {
+			c := sg.playerShip.coords
+			sg.playerShip.CurrentLocation = sg.galaxy.GetSector(c.xSector, c.ySector).GetSubSector(c.xSubSector, c.ySubSector).star
+		}
+
+		//change destination/location when we arrive!
+		if sg.playerShip.coords.IsIn(sg.playerShip.Destination) {
+			sg.playerShip.CurrentLocation = sg.playerShip.Destination
+			sg.playerShip.Destination = nil			
+		}
 
 		for i := range sg.playerShip.Crew {
 			sg.playerShip.Crew[i].Update()
@@ -192,7 +204,7 @@ func (sg *SpaceshipGame) Update() {
 	//update starchart if ship has moved sectors
 	if sg.activeMenu == sg.starchartMenu {
 		sg.starchartMenu.Update()
-		delta := startCoords.CalcVector(sg.playerShip.ShipCoords)
+		delta := startCoords.CalcVector(sg.playerShip.coords)
 		if x, y := delta.Sector(); sg.starchartMenu.mapMode == coord_SECTOR && (x != 0 || y != 0) {
 			sg.starchartMenu.DrawMap()
 		} else if sg.starchartMenu.mapMode == coord_LOCAL {
@@ -203,7 +215,7 @@ func (sg *SpaceshipGame) Update() {
 	if sg.activeMenu == sg.crewMenu && sg.crewDetails.IsVisible() {
 		sg.UpdateCrewDetails()
 	}
-	xStr, yStr := sg.playerShip.ShipCoords.GetCoordStrings()
+	xStr, yStr := sg.playerShip.coords.GetCoordStrings()
 	sg.coordsText.ChangeText(xStr + " by " + yStr)
 	sg.missiontime.ChangeText(fmt.Sprintf("%.4d", sg.spaceTime/100000) + "d:" + fmt.Sprintf("%.1d", (sg.spaceTime/10000)%10) + "h:" + fmt.Sprintf("%.2d", (sg.spaceTime/100)%100) + "m:" + fmt.Sprintf("%.2d", sg.spaceTime%100) + "s")
 }

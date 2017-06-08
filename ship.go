@@ -5,7 +5,7 @@ import "github.com/bennicholls/burl/util"
 import "math/rand"
 
 type Ship struct {
-	name string
+	Location //ship is technically a location, but you can't go there... you *are* there!
 
 	Crew  []*Crewman
 	Rooms []*Room
@@ -19,9 +19,8 @@ type Ship struct {
 	X, Y, Width, Height int //bounding box of the ship on the shipMap
 	Volume              int //total floorspace volume of the ship
 
-	ShipCoords  Coordinates //actual coordinates on the galactic map
-	Location    Locatable   //Current location (planet, star system, sector, whatever)
-	Destination Locatable   //where we're going
+	CurrentLocation Locatable //where we at
+	Destination     Locatable //where we're going
 }
 
 //Inits a new Ship. For now, starts with a bridge and 6 crew.
@@ -30,7 +29,12 @@ func NewShip(n string) *Ship {
 	s.ShipMap = core.NewMap(100, 100)
 	s.Crew = make([]*Crewman, 6)
 	s.Rooms = make([]*Room, 0, 10)
+
+	s.locationType = loc_SHIP
 	s.name = n
+	s.coords = NewCoordinate(coord_LOCAL)
+	s.SetExplored()
+	s.SetKnown()
 
 	s.AddRoom(NewRoom("Bridge", 20, 6, 6, 12, 500, 1000))
 
@@ -38,17 +42,15 @@ func NewShip(n string) *Ship {
 		s.Crew[i] = NewCrewman()
 	}
 
-	s.ShipCoords = NewCoordinate(coord_LOCAL)
-
 	s.PlaceCrew()
 
 	return s
 }
 
 func (s *Ship) SetLocation(l Locatable) {
-	s.Location = l
-	s.ShipCoords = l.GetCoords()
-	s.ShipCoords.resolution = coord_LOCAL
+	s.CurrentLocation = l
+	s.coords = l.GetCoords()
+	s.coords.resolution = coord_LOCAL
 }
 
 //Adds a room to the ship and connects it.
@@ -111,7 +113,7 @@ func (s *Ship) PlaceCrew() {
 
 func (s *Ship) Update(spaceTime int) {
 
-	s.ShipCoords.Move(-10000, 10000, coord_LOCAL)
+	s.coords.Move(-10000, 10000, coord_LOCAL)
 
 	for i, _ := range s.Rooms {
 		s.Rooms[i].Update(spaceTime)
