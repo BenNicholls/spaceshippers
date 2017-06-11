@@ -29,6 +29,23 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			sg.starchartMenu.OnActivate()
 			sg.ActivateMenu(sg.starchartMenu)
 		}
+	case sdl.K_KP_PLUS:
+		if sg.simSpeed < 4 {
+			sg.simSpeed++
+			sg.UpdateSpeedUI()
+		}
+	case sdl.K_KP_MINUS:
+		if sg.simSpeed > 0 {
+			sg.simSpeed--
+			sg.UpdateSpeedUI()
+		}
+	case sdl.K_SPACE:
+		sg.paused = !sg.paused
+		if sg.paused {
+			sg.AddMessage("Game Paused")
+		} else {
+			sg.AddMessage("Game Unpaused")
+		}
 	default:
 		//Check for active menus. If nothing, apply to base game.
 		switch sg.activeMenu {
@@ -46,16 +63,6 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 				sg.output.ScrollDown()
 			case sdl.K_HOME:
 				sg.CenterShip()
-			case sdl.K_KP_PLUS:
-				if sg.simSpeed < 4 {
-					sg.simSpeed++
-					sg.UpdateSpeedUI()
-				}
-			case sdl.K_KP_MINUS:
-				if sg.simSpeed > 0 {
-					sg.simSpeed--
-					sg.UpdateSpeedUI()
-				}
 			case sdl.K_UP:
 				sg.MoveShipCamera(0, -1)
 			case sdl.K_DOWN:
@@ -64,13 +71,6 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 				sg.MoveShipCamera(-1, 0)
 			case sdl.K_RIGHT:
 				sg.MoveShipCamera(1, 0)
-			case sdl.K_SPACE:
-				sg.paused = !sg.paused
-				if sg.paused {
-					sg.AddMessage("Game Paused")
-				} else {
-					sg.AddMessage("Game Unpaused")
-				}
 			case sdl.K_ESCAPE:
 				sg.ActivateMenu(sg.input)
 			}

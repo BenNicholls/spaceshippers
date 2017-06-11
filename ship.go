@@ -4,7 +4,6 @@ import "github.com/bennicholls/burl/core"
 import "github.com/bennicholls/burl/util"
 import "math/rand"
 import "math"
-import "fmt"
 
 type Ship struct {
 	Location //ship is technically a location, but you can't go there... you *are* there!
@@ -19,7 +18,7 @@ type Ship struct {
 	Fuel core.Stat
 
 	Speed   int
-	Heading util.Vec2
+	Heading util.Vec2Polar
 
 	ShipMap *core.TileMap
 
@@ -128,7 +127,8 @@ func (s *Ship) SetCourse(l Locatable) {
 
 	if l.GetCoords().resolution == coord_LOCAL {
 		g := s.coords.CalcVector(l.GetCoords())
-		s.Heading = g.local
+		s.Heading = g.local.ToPolar()
+		s.Engine.Firing = true
 	}
 }
 
@@ -136,9 +136,8 @@ func (s *Ship) Update(spaceTime int) {
 
 	s.Engine.Update()
 
-	angle := math.Atan2(float64(s.Heading.Y), float64(s.Heading.X))
-	x := int(float64(s.Speed) * math.Cos(angle))
-	y := int(float64(s.Speed) * math.Sin(angle))
+	x := int(float64(s.Speed) * math.Cos(s.Heading.Phi))
+	y := int(float64(s.Speed) * math.Sin(s.Heading.Phi))
 
 	s.coords.Move(x, y, coord_LOCAL)
 

@@ -4,7 +4,6 @@ import "github.com/bennicholls/burl/ui"
 import "github.com/bennicholls/burl/util"
 import "github.com/bennicholls/burl/core"
 import "fmt"
-import "strconv"
 
 //time values in DIGITAL SECONDS. One digital day = 100000 seconds, which is 14% longer than a regular day.
 const (
@@ -24,13 +23,10 @@ type SpaceshipGame struct {
 	window       *ui.Container
 	input        *ui.Inputbox
 	output       *ui.List
-	shipstatus   *ui.Container
+	shipstatus   *ShipStatsWindow
 	missiontime  *ui.Textbox
 	speeddisplay *ui.TileView
 	shipdisplay  *ui.TileView
-
-	//FIX
-	coordsText *ui.Textbox
 
 	//top menu. contains buttons for submenus
 	menubar             *ui.Container
@@ -134,26 +130,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	w, h := sg.shipdisplay.Dims()
 	sg.Stars = NewStarField(w, h, 20, sg.shipdisplay)
 
-	sg.shipstatus = ui.NewContainer(26, 12, 1, 32, 1, true)
-	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 0, 0, false, true, "The USS Prototype"))
-
-	locString := "Location: "
-	dstString := "Destination: "
-	if sg.playerShip.CurrentLocation != nil {
-		locString += sg.playerShip.CurrentLocation.GetName()
-	} else {
-		locString += "NO LOCATION. HOW'D YOU DO THIS."
-	}
-	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 10, 0, false, false, locString))
-	if sg.playerShip.Destination != nil {
-		dstString += sg.playerShip.Destination.GetName()
-	} else {
-		dstString += "NO DESTINATION. Let's go somewhere!!"
-	}
-	sg.shipstatus.Add(ui.NewTextbox(26, 1, 0, 11, 0, false, false, dstString))
-
-	sg.coordsText = ui.NewTextbox(26, 1, 0, 9, 0, false, false, "")
-	sg.shipstatus.Add(sg.coordsText)
+	sg.shipstatus = NewShipStatsWindow(sg.playerShip)
 
 	sg.input = ui.NewInputbox(50, 1, 15, 27, 2, true)
 	sg.input.ToggleFocus()
@@ -190,14 +167,16 @@ func (sg *SpaceshipGame) Update() {
 		if sg.playerShip.coords.IsIn(sg.playerShip.Destination) {
 			sg.playerShip.CurrentLocation = sg.playerShip.Destination
 			sg.playerShip.Destination = nil
+			sg.playerShip.Speed = 0
+			sg.playerShip.Engine.Firing = false
 		}
 
 		for i := range sg.playerShip.Crew {
 			sg.playerShip.Crew[i].Update()
 		}
 
-		//need starfield shift speed controlled here (currently hardcoded to shift every 100 seconds)
-		if sg.spaceTime%100 == 0 {
+		//need starfield shift speed controlled here (currently hardcoded to shift every 100 seconds as long as the ship is moving)
+		if sg.playerShip.Speed != 0 && sg.spaceTime%100 == 0 {
 			sg.Stars.Shift()
 		}
 	}
@@ -216,8 +195,7 @@ func (sg *SpaceshipGame) Update() {
 	if sg.activeMenu == sg.crewMenu && sg.crewDetails.IsVisible() {
 		sg.UpdateCrewDetails()
 	}
-	xStr, yStr := sg.playerShip.coords.GetCoordStrings()
-	sg.coordsText.ChangeText(xStr + " by " + yStr + " - " + strconv.Itoa(sg.playerShip.Speed))
+	sg.shipstatus.Update()
 	sg.missiontime.ChangeText(fmt.Sprintf("%.4d", sg.spaceTime/100000) + "d:" + fmt.Sprintf("%.1d", (sg.spaceTime/10000)%10) + "h:" + fmt.Sprintf("%.2d", (sg.spaceTime/100)%100) + "m:" + fmt.Sprintf("%.2d", sg.spaceTime%100) + "s")
 }
 
