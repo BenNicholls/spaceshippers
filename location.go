@@ -17,6 +17,8 @@ type Locatable interface {
 	IsKnown() bool //it is known
 	GetCoords() Coordinates
 	GetLocations() []Locatable
+	GetVisitDistance() int
+	GetVisitSpeed() int
 }
 
 type LocationType int
@@ -33,11 +35,13 @@ const (
 )
 
 type Location struct {
-	name         string
-	locationType LocationType //see location type defs above
-	explored     bool         //have we been there
-	known        bool         //do we know about this place
-	coords       Coordinates  //where it at
+	name          string
+	locationType  LocationType //see location type defs above
+	explored      bool         //have we been there
+	known         bool         //do we know about this place
+	coords        Coordinates  //where it at
+	visitDistance int          //how close do you have to be to visit? ie orbit distance.
+	visitSpeed    int          //how fast should we be going when we get there? ie orbital velocity or relative docking speed
 }
 
 func (l Location) GetName() string {
@@ -66,6 +70,16 @@ func (l Location) IsKnown() bool {
 
 func (l Location) GetCoords() Coordinates {
 	return l.coords
+}
+
+//Returns orbital distance or docking distance. Only works for local locations, returns 0 otherwise.
+func (l Location) GetVisitDistance() int {
+	return l.visitDistance
+}
+
+//Returns orbital speed or docking speed. Only works for local locations, returns 0 otherwise.
+func (l Location) GetVisitSpeed() int {
+	return l.visitSpeed
 }
 
 //This default method actually doesn't work, we don't want the Location object. Hmm.
@@ -179,16 +193,8 @@ func (c1 Coordinates) IsIn(l Locatable) bool {
 	//if this point is reached, then we know c1 and c2 are both local points in the same starsystem,
 	//so we want to see if c1 is orbitting/docking with l
 	dist := int(c1.CalcVector(c2).Distance * float64(METERS_PER_LY))
-
-	switch loc := l.(type) {
-	case Planet:
-		if dist < loc.orbitRange {
-			return true
-		}
-	case Star:
-		if dist < loc.orbitRange {
-			return true
-		}
+	if dist < l.GetVisitDistance() {
+		return true
 	}
 
 	return false

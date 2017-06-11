@@ -33,8 +33,18 @@ func NewShipStatsWindow(ship *Ship) *ShipStatsWindow {
 
 func (ss *ShipStatsWindow) Update() {
 	ss.name.ChangeText(ss.playerShip.name)
-	ss.speed.ChangeText("Speed: " + strconv.Itoa(ss.playerShip.GetSpeed()))
-	ss.fuel.ChangeText("Fuel: " + ss.playerShip.Fuel.String())
+
+	speed := float64(ss.playerShip.GetSpeed())
+	switch {
+	case speed < 1000:
+		ss.speed.ChangeText("Speed: " + strconv.FormatFloat(speed, 'f', 0, 64) + " m/s")
+	case speed < 100000000:
+		ss.speed.ChangeText("Speed: " + strconv.FormatFloat(speed/1000, 'f', 2, 64) + " km/s")
+	default:
+		ss.speed.ChangeText("Speed: " + strconv.FormatFloat(speed/float64(METERS_PER_LY), 'f', 4, 64) + "c")
+	}
+
+	ss.fuel.ChangeText("Fuel: " + ss.playerShip.Fuel.String() + " Litres")
 	ss.fuel.SetProgress(ss.playerShip.Fuel.GetPct())
 
 	locString := "Location: "

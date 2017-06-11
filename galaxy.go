@@ -78,7 +78,7 @@ func NewSector(x, y, density int) (s *Sector) {
 	} else {
 		name = "Galactic Core Space"
 	}
-	s.Location = Location{name, loc_SECTOR, false, true, NewSectorCoordinate(x, y)}
+	s.Location = Location{name, loc_SECTOR, false, true, NewSectorCoordinate(x, y), 0, 0}
 	s.Density = util.Max(density, 0) //ensures density is at least 0
 
 	s.subSectors = make(map[int]*SubSector)
