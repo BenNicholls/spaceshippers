@@ -21,7 +21,7 @@ func NewShipStatsWindow(ship *Ship) *ShipStatsWindow {
 
 	ss.Container = *ui.NewContainer(26, 12, 1, 32, 1, true)
 	ss.name = ui.NewTextbox(26, 1, 0, 0, 0, false, true, ss.playerShip.name)
-	ss.speed = ui.NewTextbox(26, 1, 0, 2, 0, false, false, "Speed: "+strconv.Itoa(ss.playerShip.Speed))
+	ss.speed = ui.NewTextbox(26, 1, 0, 2, 0, false, false, "Speed: "+strconv.Itoa(ss.playerShip.GetSpeed()))
 	ss.fuel = ui.NewProgressBar(26, 1, 0, 3, 0, false, false, "", 0xFF008800)
 	ss.location = ui.NewTextbox(26, 1, 0, 10, 0, false, false, "")
 	ss.destination = ui.NewTextbox(26, 1, 0, 11, 0, false, false, "")
@@ -33,7 +33,7 @@ func NewShipStatsWindow(ship *Ship) *ShipStatsWindow {
 
 func (ss *ShipStatsWindow) Update() {
 	ss.name.ChangeText(ss.playerShip.name)
-	ss.speed.ChangeText("Speed: " + strconv.Itoa(ss.playerShip.Speed))
+	ss.speed.ChangeText("Speed: " + strconv.Itoa(ss.playerShip.GetSpeed()))
 	ss.fuel.ChangeText("Fuel: " + ss.playerShip.Fuel.String())
 	ss.fuel.SetProgress(ss.playerShip.Fuel.GetPct())
 

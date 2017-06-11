@@ -55,7 +55,7 @@ func NewStar(c Coordinates, name string, radius int) (s Star) {
 	s.name = name
 	s.coords = c
 	s.coords.resolution = coord_LOCAL
-	s.coords.local.Set(coord_LOCAL_MAX/2, coord_LOCAL_MAX/2)
+	s.coords.local.MoveTo(coord_LOCAL_MAX/2, coord_LOCAL_MAX/2)
 	s.radius = radius
 	s.orbitRange = radius + 15000e3 //nice "safe" 15000km sub orbit radius.
 

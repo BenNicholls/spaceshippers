@@ -167,7 +167,7 @@ func (sg *SpaceshipGame) Update() {
 		if sg.playerShip.coords.IsIn(sg.playerShip.Destination) {
 			sg.playerShip.CurrentLocation = sg.playerShip.Destination
 			sg.playerShip.Destination = nil
-			sg.playerShip.Speed = 0
+			sg.playerShip.Heading.R = 0
 			sg.playerShip.Engine.Firing = false
 		}
 
@@ -176,7 +176,7 @@ func (sg *SpaceshipGame) Update() {
 		}
 
 		//need starfield shift speed controlled here (currently hardcoded to shift every 100 seconds as long as the ship is moving)
-		if sg.playerShip.Speed != 0 && sg.spaceTime%100 == 0 {
+		if sg.playerShip.GetSpeed() != 0 && sg.spaceTime%100 == 0 {
 			sg.Stars.Shift()
 		}
 	}

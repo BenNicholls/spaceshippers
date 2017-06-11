@@ -3,7 +3,6 @@ package main
 import "github.com/bennicholls/burl/core"
 import "github.com/bennicholls/burl/util"
 import "math/rand"
-import "math"
 
 type Ship struct {
 	Location //ship is technically a location, but you can't go there... you *are* there!
@@ -17,8 +16,8 @@ type Ship struct {
 	Hull core.Stat
 	Fuel core.Stat
 
-	Speed   int
 	Heading util.Vec2Polar
+	Course  util.Vec2Polar
 
 	ShipMap *core.TileMap
 
@@ -38,8 +37,6 @@ func NewShip(n string) *Ship {
 	s.Engine = NewPropulsionSystem(s)
 
 	s.Fuel = core.NewStat(1000000)
-
-	s.Speed = 0
 
 	s.locationType = loc_SHIP
 	s.name = n
@@ -127,17 +124,25 @@ func (s *Ship) SetCourse(l Locatable) {
 
 	if l.GetCoords().resolution == coord_LOCAL {
 		g := s.coords.CalcVector(l.GetCoords())
-		s.Heading = g.local.ToPolar()
+		s.Course = g.local.ToVector().ToPolar()
 		s.Engine.Firing = true
 	}
 }
 
+func (s Ship) GetSpeed() int {
+	return int(s.Heading.R)
+}
+
 func (s *Ship) Update(spaceTime int) {
+
+	//update course since we don't calculate it properly from the start since caluclus is hard
+	if s.Engine.Firing && spaceTime%1000 == 0 {
+		s.Course = s.coords.CalcVector(s.Destination.GetCoords()).local.ToVector().ToPolar()
+	}
 
 	s.Engine.Update()
 
-	x := int(float64(s.Speed) * math.Cos(s.Heading.Phi))
-	y := int(float64(s.Speed) * math.Sin(s.Heading.Phi))
+	x, y := s.Heading.ToRect().GetInt()
 
 	s.coords.Move(x, y, coord_LOCAL)
 

@@ -5,7 +5,6 @@ import "math/rand"
 import "time"
 import "github.com/bennicholls/burl"
 import "github.com/bennicholls/burl/console"
-
 //import "github.com/pkg/profile"
 
 func main() {

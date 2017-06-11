@@ -1,6 +1,7 @@
 package main
 
 import "github.com/bennicholls/burl/core"
+import "github.com/bennicholls/burl/util"
 
 type PropulsionSystem struct {
 	ship        *Ship
@@ -26,7 +27,8 @@ func (ps *PropulsionSystem) Update() {
 		if ps.ship.Fuel.Get()-ps.FuelUse < 0 {
 			ps.Firing = false
 		} else {
-			ps.ship.Speed += ps.Thrust
+			impulse := util.Vec2Polar{R: float64(ps.Thrust), Phi: ps.ship.Course.Phi}
+			ps.ship.Heading = ps.ship.Heading.Add(impulse)
 			ps.ship.Fuel.Mod(-ps.FuelUse)
 		}
 	}

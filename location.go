@@ -93,10 +93,10 @@ const (
 )
 
 type Coordinates struct {
-	sector    util.Vec2
-	subSector util.Vec2
-	starCoord util.Vec2
-	local     util.Vec2
+	sector    util.Coord
+	subSector util.Coord
+	starCoord util.Coord
+	local     util.Coord
 
 	resolution CoordResolution //how deep into the rabbit hole this coordinate goes. see above
 }
@@ -104,10 +104,10 @@ type Coordinates struct {
 //NewCoordinate makes a new Coordinate object, defaulted to the center of the galaxy.
 func NewCoordinate(res CoordResolution) (c Coordinates) {
 	c.resolution = res
-	c.sector.Set(coord_SECTOR_MAX/2, coord_SECTOR_MAX/2)
-	c.subSector.Set(coord_SUBSECTOR_MAX/2, coord_SUBSECTOR_MAX/2)
-	c.starCoord.Set(coord_STARSYSTEM_MAX/2, coord_STARSYSTEM_MAX/2)
-	c.local.Set(coord_LOCAL_MAX/2, coord_LOCAL_MAX/2)
+	c.sector.MoveTo(coord_SECTOR_MAX/2, coord_SECTOR_MAX/2)
+	c.subSector.MoveTo(coord_SUBSECTOR_MAX/2, coord_SUBSECTOR_MAX/2)
+	c.starCoord.MoveTo(coord_STARSYSTEM_MAX/2, coord_STARSYSTEM_MAX/2)
+	c.local.MoveTo(coord_LOCAL_MAX/2, coord_LOCAL_MAX/2)
 
 	return
 }
@@ -115,7 +115,7 @@ func NewCoordinate(res CoordResolution) (c Coordinates) {
 //NewCoordinate makes a new Coordinate object, defaulted to the center of a sector.
 func NewSectorCoordinate(x, y int) (c Coordinates) {
 	c = NewCoordinate(coord_SECTOR)
-	c.sector.Set(x, y)
+	c.sector.MoveTo(x, y)
 
 	return
 }
@@ -194,22 +194,22 @@ func (c1 Coordinates) IsIn(l Locatable) bool {
 	return false
 }
 
-func (c Coordinates) Sector() util.Vec2 {
+func (c Coordinates) Sector() util.Coord {
 	return c.sector
 }
 
 //returns the subsector portion of the coord. REMEMBER: not all coords handle these!
-func (c Coordinates) SubSector() util.Vec2 {
+func (c Coordinates) SubSector() util.Coord {
 	return c.subSector
 }
 
 //returns the starcoord portion of the coord. REMEMBER: not all coords handle these!
-func (c Coordinates) StarCoord() util.Vec2 {
+func (c Coordinates) StarCoord() util.Coord {
 	return c.starCoord
 }
 
 //returns the local portion of the coord. REMEMBER: not all coords handle these!
-func (c Coordinates) LocalCoord() util.Vec2 {
+func (c Coordinates) LocalCoord() util.Coord {
 	return c.local
 }
 

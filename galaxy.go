@@ -109,7 +109,7 @@ func (s *Sector) GenerateSubSector(x, y int) *SubSector {
 
 	ss := new(SubSector)
 	ss.coords = s.coords
-	ss.coords.subSector.Set(x, y)
+	ss.coords.subSector.MoveTo(x, y)
 
 	//PUT STAR GENERATION CODE HERE WHY DON'T YOU.
 
