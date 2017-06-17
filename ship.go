@@ -11,13 +11,13 @@ type Ship struct {
 	Rooms []*Room
 
 	Engine *PropulsionSystem
+	Navigation *NavigationSystem
 
 	//status numbers.
 	Hull core.Stat
 	Fuel core.Stat
 
-	Heading util.Vec2Polar
-	Course  util.Vec2Polar
+	Velocity util.Vec2Polar
 
 	ShipMap *core.TileMap
 
@@ -35,6 +35,7 @@ func NewShip(n string) *Ship {
 	s.Crew = make([]*Crewman, 6)
 	s.Rooms = make([]*Room, 0, 10)
 	s.Engine = NewPropulsionSystem(s)
+	s.Navigation = NewNavigationSystem(s)
 
 	s.Fuel = core.NewStat(1000000)
 
@@ -124,20 +125,24 @@ func (s *Ship) SetCourse(l Locatable) {
 
 	if l.GetCoords().resolution == coord_LOCAL {
 		g := s.coords.CalcVector(l.GetCoords())
-		s.Course = g.local.ToVector().ToPolar()
+		s.Navigation.Course = g.local.ToVector().ToPolar()
 		s.Engine.Firing = true
 	}
 }
 
 func (s Ship) GetSpeed() int {
-	return int(s.Heading.R)
+	return int(s.Velocity.R)
 }
 
 func (s *Ship) Update(spaceTime int) {
 
 	s.Engine.Update()
 
-	x, y := s.Heading.ToRect().GetInt()
+	if spaceTime%s.Navigation.navRate == 0 {
+		s.Navigation.Update()
+	}
+
+	x, y := s.Velocity.ToRect().GetInt()
 
 	s.coords.Move(x, y, coord_LOCAL)
 

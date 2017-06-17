@@ -167,7 +167,7 @@ func (sg *SpaceshipGame) Update() {
 		if sg.playerShip.coords.IsIn(sg.playerShip.Destination) && sg.playerShip.GetSpeed() < sg.playerShip.Destination.GetVisitSpeed() {
 			sg.playerShip.CurrentLocation = sg.playerShip.Destination
 			sg.playerShip.Destination = nil
-			sg.playerShip.Heading.R = 0
+			sg.playerShip.Velocity.R = 0
 			sg.playerShip.Engine.Firing = false
 		}
 
