@@ -189,28 +189,28 @@ func (sm *StarchartMenu) DrawSystem() {
 	sm.mapView.Clear()
 	c := sm.systemLocations[sm.systemLocationsList.GetSelection()].GetCoords()
 	w, h := sm.mapView.Dims()
-	gFactor := coord_LOCAL_MAX / w / util.Pow(2, sm.localZoom)
+	gFactor := int(coord_LOCAL_MAX) / w / util.Pow(2, sm.localZoom)
 
-	xCamera := c.local.X - (gFactor * w / 2)
-	yCamera := c.local.Y - (gFactor * h / 2)
+	xCamera := int(c.local.X) - (gFactor * w / 2)
+	yCamera := int(c.local.Y) - (gFactor * h / 2)
 
 	system := sm.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).star
 
 	//draw system things!
 	for _, p := range system.Planets {
-		x, y := p.GetCoords().LocalCoord().Get()
+		x, y := p.GetCoords().local.GetInt()
 		if util.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
 			sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, int(rune(p.name[0])), 0xFF825814, 0xFF000000)
 		}
 	}
 
-	x, y := system.Star.GetCoords().LocalCoord().Get()
+	x, y := system.Star.GetCoords().local.GetInt()
 	if util.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
 		sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, 0x0F, 0xFFFFFF00, 0xFF000000)
 	}
 
 	//draw player ship last to ensure nothing overwrites it
-	x, y = sm.playerShip.coords.LocalCoord().Get()
+	x, y = sm.playerShip.coords.local.GetInt()
 	if util.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
 		sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, 0x02, 0xFFFFFFFF, 0xFF000000)
 	}

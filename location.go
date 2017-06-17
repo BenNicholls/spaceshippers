@@ -5,8 +5,8 @@ import "github.com/bennicholls/burl/util"
 import "math"
 
 const (
-	METERS_PER_LY int = 9.461e15
-	LY_PER_SECTOR int = 1000
+	METERS_PER_LY float64 = 9.461e15
+	LY_PER_SECTOR int     = 1000
 )
 
 //defines any place where your ship can travel to
@@ -110,7 +110,7 @@ type Coordinates struct {
 	sector    util.Coord
 	subSector util.Coord
 	starCoord util.Coord
-	local     util.Coord
+	local     util.Vec2
 
 	resolution CoordResolution //how deep into the rabbit hole this coordinate goes. see above
 }
@@ -121,7 +121,7 @@ func NewCoordinate(res CoordResolution) (c Coordinates) {
 	c.sector.MoveTo(coord_SECTOR_MAX/2, coord_SECTOR_MAX/2)
 	c.subSector.MoveTo(coord_SUBSECTOR_MAX/2, coord_SUBSECTOR_MAX/2)
 	c.starCoord.MoveTo(coord_STARSYSTEM_MAX/2, coord_STARSYSTEM_MAX/2)
-	c.local.MoveTo(coord_LOCAL_MAX/2, coord_LOCAL_MAX/2)
+	c.local.Set(coord_LOCAL_MAX/2, coord_LOCAL_MAX/2)
 
 	return
 }
@@ -192,7 +192,7 @@ func (c1 Coordinates) IsIn(l Locatable) bool {
 
 	//if this point is reached, then we know c1 and c2 are both local points in the same starsystem,
 	//so we want to see if c1 is orbitting/docking with l
-	dist := int(c1.CalcVector(c2).Distance * float64(METERS_PER_LY))
+	dist := int(c1.CalcVector(c2).Distance * METERS_PER_LY)
 	if dist < l.GetVisitDistance() {
 		return true
 	}
@@ -215,7 +215,7 @@ func (c Coordinates) StarCoord() util.Coord {
 }
 
 //returns the local portion of the coord. REMEMBER: not all coords handle these!
-func (c Coordinates) LocalCoord() util.Coord {
+func (c Coordinates) LocalCoord() util.Vec2 {
 	return c.local
 }
 
@@ -227,7 +227,7 @@ func (c *Coordinates) Move(dx, dy int, res CoordResolution) {
 
 	switch res {
 	case coord_LOCAL:
-		c.moveLocal(dx, dy)
+		c.moveLocal(float64(dx), float64(dy))
 	case coord_STARSYSTEM:
 		c.moveStarSystem(dx, dy)
 	case coord_SUBSECTOR:
@@ -237,11 +237,15 @@ func (c *Coordinates) Move(dx, dy int, res CoordResolution) {
 	}
 }
 
-func (c *Coordinates) moveLocal(dx, dy int) {
-	var odx, ody int
+func (c *Coordinates) moveLocal(dx, dy float64) {
+	xDecimals := (c.local.X - math.Trunc(c.local.X)) + (dx - math.Trunc(dx))
+	yDecimals := (c.local.Y - math.Trunc(c.local.Y)) + (dy - math.Trunc(dy))
 
-	c.local.X, odx = util.ModularClamp(c.local.X+dx, 0, coord_LOCAL_MAX-1)
-	c.local.Y, ody = util.ModularClamp(c.local.Y+dy, 0, coord_LOCAL_MAX-1)
+	x, odx := util.ModularClamp(int(c.local.X)+int(dx), 0, int(coord_LOCAL_MAX)-1)
+	y, ody := util.ModularClamp(int(c.local.Y)+int(dy), 0, int(coord_LOCAL_MAX)-1)
+
+	c.local.X = float64(x) + xDecimals
+	c.local.Y = float64(y) + yDecimals
 
 	if odx != 0 || ody != 0 {
 		c.moveStarSystem(odx, ody)
@@ -291,8 +295,8 @@ func (c1 Coordinates) CalcVector(c2 Coordinates) (g GalVec) {
 	g.starCoord = c2.starCoord.Sub(c1.starCoord)
 	g.local = c2.local.Sub(c1.local)
 
-	xDistance := float64(g.local.X)/float64(METERS_PER_LY) + float64(LY_PER_SECTOR)*(float64(g.sector.X)+(float64(g.subSector.X)+float64(g.starCoord.X)/float64(coord_STARSYSTEM_MAX))/float64(coord_SUBSECTOR_MAX))
-	yDistance := float64(g.local.Y)/float64(METERS_PER_LY) + float64(LY_PER_SECTOR)*(float64(g.sector.Y)+(float64(g.subSector.Y)+float64(g.starCoord.Y)/float64(coord_STARSYSTEM_MAX))/float64(coord_SUBSECTOR_MAX))
+	xDistance := g.local.X/METERS_PER_LY + float64(LY_PER_SECTOR)*(float64(g.sector.X)+(float64(g.subSector.X)+float64(g.starCoord.X)/float64(coord_STARSYSTEM_MAX))/float64(coord_SUBSECTOR_MAX))
+	yDistance := g.local.Y/METERS_PER_LY + float64(LY_PER_SECTOR)*(float64(g.sector.Y)+(float64(g.subSector.Y)+float64(g.starCoord.Y)/float64(coord_STARSYSTEM_MAX))/float64(coord_SUBSECTOR_MAX))
 	g.Distance = math.Sqrt(xDistance*xDistance + yDistance*yDistance)
 
 	return

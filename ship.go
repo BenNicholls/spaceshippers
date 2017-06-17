@@ -10,7 +10,7 @@ type Ship struct {
 	Crew  []*Crewman
 	Rooms []*Room
 
-	Engine *PropulsionSystem
+	Engine     *PropulsionSystem
 	Navigation *NavigationSystem
 
 	//status numbers.
@@ -125,8 +125,10 @@ func (s *Ship) SetCourse(l Locatable) {
 
 	if l.GetCoords().resolution == coord_LOCAL {
 		g := s.coords.CalcVector(l.GetCoords())
-		s.Navigation.Course = g.local.ToVector().ToPolar()
+		s.Navigation.Course = g.local.ToPolar()
 		s.Engine.Firing = true
+		s.Engine.Coasting = false
+		s.Engine.Braking = false
 	}
 }
 
@@ -142,9 +144,8 @@ func (s *Ship) Update(spaceTime int) {
 		s.Navigation.Update()
 	}
 
-	x, y := s.Velocity.ToRect().GetInt()
-
-	s.coords.Move(x, y, coord_LOCAL)
+	x, y := s.Velocity.ToRect().Get()
+	s.coords.moveLocal(x, y)
 
 	for i, _ := range s.Rooms {
 		s.Rooms[i].Update(spaceTime)
