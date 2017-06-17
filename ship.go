@@ -126,7 +126,6 @@ func (s *Ship) SetCourse(l Locatable) {
 		g := s.coords.CalcVector(l.GetCoords())
 		s.Course = g.local.ToVector().ToPolar()
 		s.Engine.Firing = true
-		s.Engine.Braking = false
 	}
 }
 
@@ -135,21 +134,6 @@ func (s Ship) GetSpeed() int {
 }
 
 func (s *Ship) Update(spaceTime int) {
-
-	//update course since we don't calculate it properly from the start since calculus is hard
-	if s.Engine.Firing && spaceTime%1 == 0 {
-		g := s.coords.CalcVector(s.Destination.GetCoords())
-		s.Course = g.local.ToVector().ToPolar()
-
-		//calculate decel curve, start decelerating if we're close enough
-		if !s.Engine.Braking {
-			t := (s.Heading.R - float64(s.Destination.GetVisitSpeed())) / float64(s.Engine.Thrust)
-			decelDistance := s.Heading.R*t - float64(s.Engine.Thrust)*t*t/2
-			if g.local.Mag()-s.Destination.GetVisitDistance() < int(decelDistance) {
-				s.Engine.Braking = true
-			}
-		}
-	}
 
 	s.Engine.Update()
 

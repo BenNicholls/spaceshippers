@@ -10,7 +10,6 @@ type PropulsionSystem struct {
 	Thrust      int       //acceleration provided by the ship in m/s^2
 	FuelUse     int       //fuel used in 1 second while on
 	Firing      bool
-	Braking     bool
 }
 
 func NewPropulsionSystem(s *Ship) *PropulsionSystem {
@@ -20,7 +19,6 @@ func NewPropulsionSystem(s *Ship) *PropulsionSystem {
 	ps.Thrust = 10
 	ps.FuelUse = 2
 	ps.Firing = false
-	ps.Braking = false
 
 	return ps
 }
@@ -30,12 +28,36 @@ func (ps *PropulsionSystem) Update() {
 		if ps.ship.Fuel.Get()-ps.FuelUse < 0 {
 			ps.Firing = false
 		} else {
-			impulse := util.Vec2Polar{R: float64(ps.Thrust), Phi: ps.ship.Course.Phi}
-			if ps.Braking {
-				impulse.Phi += math.Pi
-			}
+			g := ps.ship.coords.CalcVector(ps.ship.Destination.GetCoords())
+			dx, dy := g.local.ToVector().Get()
+			vx, vy := ps.ship.Heading.ToRect().Get()
+			ax, ay := 0.0, 0.0
+
+			//check if we are currently heading in the wrong direction
+			if dx * vx < 0 {
+				ax = -vx
+			} 
+
+			if dy * vy < 0 {
+				ay = -vy
+			} 
+
+			//if heading in the (vaguely) right direction, steam towards object and brake if close
+			if dy * vy >= 0 && dx * vx >= 0 {
+				ax, ay = dx, dy
+
+				//braking code
+				t := (ps.ship.Heading.R - float64(ps.ship.Destination.GetVisitSpeed())) / float64(ps.ship.Engine.Thrust)
+				decelDistance := ps.ship.Heading.R*t - float64(ps.ship.Engine.Thrust)*t*t/2
+				if g.local.Mag()-ps.ship.Destination.GetVisitDistance() < int(decelDistance) {
+					ax = -ax
+					ay = -ay
+				}
+			}		
+			impulse := util.Vec2Polar{R: float64(ps.Thrust), Phi: math.Atan2(ay, ax)}
+
 			ps.ship.Heading = ps.ship.Heading.Add(impulse)
-			ps.ship.Fuel.Mod(-ps.FuelUse)
+			//ps.ship.Fuel.Mod(-ps.FuelUse)
 		}
 	}
 }

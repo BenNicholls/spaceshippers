@@ -165,7 +165,6 @@ func (sg *SpaceshipGame) Update() {
 
 		//change destination/location when we arrive!
 		if sg.playerShip.coords.IsIn(sg.playerShip.Destination) && sg.playerShip.GetSpeed() < sg.playerShip.Destination.GetVisitSpeed() {
-			fmt.Println("Stopping! Speed was ", sg.playerShip.GetSpeed(), " target speed was ", sg.playerShip.Destination.GetVisitSpeed())
 			sg.playerShip.CurrentLocation = sg.playerShip.Destination
 			sg.playerShip.Destination = nil
 			sg.playerShip.Heading.R = 0
