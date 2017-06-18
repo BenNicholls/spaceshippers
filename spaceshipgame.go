@@ -98,15 +98,17 @@ func (sg *SpaceshipGame) CenterShip() {
 		w, _ := sg.activeMenu.Dims()
 		sg.viewX -= w / 2
 	}
+
+	sg.ResetShipView()
 }
 
 func (sg *SpaceshipGame) UpdateSpeedUI() {
-	sg.speeddisplay.Clear()
+	sg.speeddisplay.Reset()
 	for i := 0; i < 4; i++ {
 		if i < sg.simSpeed {
-			sg.speeddisplay.Draw(i, 0, 0x10, 0xFFFFFFFF, 0x00000000)
+			sg.speeddisplay.Draw(i, 0, 0x10, 0xFFFFFFFF, 0xFF000000)
 		} else {
-			sg.speeddisplay.Draw(i, 0, 0x5F, 0xFFFFFFFF, 0x00000000)
+			sg.speeddisplay.Draw(i, 0, 0x5F, 0xFFFFFFFF, 0xFF000000)
 		}
 	}
 }
@@ -114,8 +116,8 @@ func (sg *SpaceshipGame) UpdateSpeedUI() {
 func (sg *SpaceshipGame) SetupUI() {
 	sg.window = ui.NewContainer(80, 45, 0, 0, 0, false)
 
-	sg.missiontime = ui.NewTextbox(8, 1, 1, 1, 1, true, true, "")
-	sg.speeddisplay = ui.NewTileView(8, 1, 1, 3, 1, true)
+	sg.missiontime = ui.NewTextbox(8, 1, 1, 1, 2, true, true, "")
+	sg.speeddisplay = ui.NewTileView(8, 1, 1, 3, 3, true)
 
 	sg.menubar = ui.NewContainer(69, 1, 12, 1, 1, false)
 	sg.crewMenuButton = ui.NewButton(9, 1, 1, 0, 1, true, true, "Crew")
@@ -126,7 +128,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.mainMenuButton = ui.NewButton(9, 1, 56, 0, 1, true, true, "Main  Menu")
 	sg.menubar.Add(sg.crewMenuButton, sg.shipMenuButton, sg.roomMenuButton, sg.roomMenuButton, sg.starchartMenuButton, sg.scippieMenuButton, sg.mainMenuButton)
 
-	sg.shipdisplay = ui.NewTileView(80, 28, 0, 3, 0, false)
+	sg.shipdisplay = ui.NewTileView(80, 28, 0, 3, 1, false)
 	w, h := sg.shipdisplay.Dims()
 	sg.Stars = NewStarField(w, h, 20, sg.shipdisplay)
 
@@ -248,10 +250,15 @@ func (sg *SpaceshipGame) ActivateMenu(m ui.UIElem) {
 }
 
 func (sg *SpaceshipGame) MoveShipCamera(dx, dy int) {
-	sg.Stars.dirty = true //clears the tileview
+	sg.ResetShipView()
 
 	sg.viewX += dx
 	sg.viewY += dy
+}
+
+func (sg *SpaceshipGame) ResetShipView() {
+	sg.shipdisplay.Reset()
+	sg.Stars.dirty = true
 }
 
 //deactivates the open menu (if there is one)

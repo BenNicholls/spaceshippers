@@ -9,7 +9,7 @@ import "github.com/bennicholls/burl/console"
 //import "github.com/pkg/profile"
 
 func main() {
-	//defer profile.Start(profile.ProfilePath(".")).Stop()
+	//defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	err := console.Setup(80, 45, "res/curses24x24.bmp", "res/DelveFont12x24.bmp", "Spaceshippers")

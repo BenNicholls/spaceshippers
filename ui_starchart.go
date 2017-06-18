@@ -50,7 +50,7 @@ func NewStarchartMenu(gal *Galaxy, ship *Ship) (sm *StarchartMenu) {
 	sm.mapMode = coord_SECTOR
 
 	//ui setup
-	sm.Container = *ui.NewContainer(40, 26, 39, 4, 1, true)
+	sm.Container = *ui.NewContainer(40, 26, 39, 4, 5, true)
 	sm.SetTitle("Star Charts")
 	sm.SetVisibility(false)
 
@@ -68,13 +68,13 @@ func NewStarchartMenu(gal *Galaxy, ship *Ship) (sm *StarchartMenu) {
 
 	sm.systemDetails = ui.NewContainer(15, 26, 25, 0, 1, false)
 	sm.systemDetails.SetVisibility(false)
-	sm.systemLocTitleText = ui.NewTextbox(15, 1, 0, 0, 0, false, true, "Currently viewing:")
-	sm.systemLocNameText = ui.NewTextbox(15, 1, 0, 1, 0, false, true, "")
-	sm.systemLocDescText = ui.NewTextbox(15, 5, 0, 3, 0, false, true, "")
-	sm.systemLocDistText = ui.NewTextbox(15, 1, 0, 10, 0, false, false, "")
-	sm.systemSetCourseButton = ui.NewButton(13, 1, 1, 15, 0, true, true, "Press Enter to Go There!")
+	sm.systemLocTitleText = ui.NewTextbox(15, 1, 0, 0, 1, false, true, "Currently viewing:")
+	sm.systemLocNameText = ui.NewTextbox(15, 1, 0, 1, 1, false, true, "")
+	sm.systemLocDescText = ui.NewTextbox(15, 5, 0, 3, 1, false, true, "")
+	sm.systemLocDistText = ui.NewTextbox(15, 1, 0, 10, 1, false, false, "")
+	sm.systemSetCourseButton = ui.NewButton(13, 1, 1, 15, 1, true, true, "Press Enter to Go There!")
 
-	sm.systemLocationsList = ui.NewList(13, 5, 1, 20, 0, true, "NO LOCATIONS")
+	sm.systemLocationsList = ui.NewList(13, 5, 1, 20, 1, true, "NO LOCATIONS")
 	sm.systemDetails.Add(sm.systemLocTitleText, sm.systemLocNameText, sm.systemLocDescText, sm.systemLocDistText, sm.systemSetCourseButton, sm.systemLocationsList)
 
 	sm.mapHighlight = ui.NewPulseAnimation(sm.xCursor, sm.yCursor, 1, 1, 50, 10, true)
@@ -186,7 +186,7 @@ func (sm *StarchartMenu) DrawGalaxy() {
 }
 
 func (sm *StarchartMenu) DrawSystem() {
-	sm.mapView.Clear()
+	sm.mapView.Reset()
 	c := sm.systemLocations[sm.systemLocationsList.GetSelection()].GetCoords()
 	w, h := sm.mapView.Dims()
 	gFactor := int(coord_LOCAL_MAX) / w / util.Pow(2, sm.localZoom)
@@ -244,12 +244,11 @@ func (sm *StarchartMenu) ZoomIn() {
 		sm.sectorDetails.ToggleVisible()
 		sm.systemDetails.ToggleVisible()
 		sm.UpdateLocalInfo()
-		sm.mapView.Clear()
 		sm.mapHighlight.Toggle()
 		sm.DrawMap()
 	} else {
 		sm.localZoom = util.Clamp(sm.localZoom+1, 0, 8)
-		sm.mapView.Clear()
+		sm.mapView.Reset()
 		sm.DrawMap()
 	}
 }

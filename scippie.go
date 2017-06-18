@@ -1,6 +1,7 @@
 package main
 
 import "strings"
+import "github.com/bennicholls/burl"
 
 func (sg *SpaceshipGame) Execute() {
 	sg.output.Append("")
@@ -15,6 +16,15 @@ func (sg *SpaceshipGame) Execute() {
 		sg.output.Append("S.C.I.P.P.I.E. is your AI helper. Give him one of the following commands, and he'll get 'r done!")
 		sg.output.Append("   status     prints ship room status")
 		sg.output.Append("   help       prints a mysterious menu")
+	case "debug.fps":
+		burl.DebugToggleRenderFPS()
+	case "debug.changes":
+		burl.DebugToggleRenderChangeView()
+	case "debug.list":
+		sg.output.Append("Valid debug commands are as follows. Invoke with debug.command")
+		sg.output.Append("   fps       toggle fps counter")
+		sg.output.Append("   changes   toggle renderer change tracking")
+		sg.output.Append("   list      lists commands")
 	default:
 		sg.output.Append("I do not understand that command, you dummo. Try \"help\"")
 	}

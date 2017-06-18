@@ -36,12 +36,13 @@ func (sf *StarField) Shift() {
 //Draws the starfield, offset by the current starShift value.
 func (sf *StarField) Draw() {
 	if sf.dirty {
-		sf.view.Clear()
+		sf.view.Reset()
 		w, h := sf.view.Dims()
 		for i := 0; i < w*h; i++ {
 			if sf.field[(i/w)*w*2+(i%w+sf.starShift)%(w*2)] != 0 {
 				sf.view.Draw(i%w, i/w, 0x2a, 0xFF444444, 0xFF000000)
 			}
 		}
+		sf.dirty = false
 	}
 }
