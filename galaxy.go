@@ -56,6 +56,28 @@ func (g Galaxy) GetSector(x, y int) *Sector {
 	return g.sectors[y*g.width+x]
 }
 
+func (g Galaxy) GetLocation(c Coordinates) Locatable {
+	sector := g.GetSector(c.Sector().Get())
+	if c.resolution == coord_SECTOR {
+		return sector
+	}
+
+	subsector := sector.GetSubSector(c.SubSector().Get())
+	if c.resolution == coord_SUBSECTOR {
+		return subsector
+	}
+
+	if !subsector.HasStar() {
+		return subsector
+	} else {
+		if star := subsector.starSystem; star.coords.StarCoord() == c.StarCoord() {
+			return star
+		} else {
+			return subsector
+		}
+	}
+}
+
 type Sector struct {
 	Location
 	Explored bool
@@ -109,6 +131,7 @@ func (s *Sector) GenerateSubSector(x, y int) *SubSector {
 
 	ss := new(SubSector)
 	ss.coords = s.coords
+	ss.coords.resolution = coord_SUBSECTOR
 	ss.coords.subSector.MoveTo(x, y)
 
 	//PUT STAR GENERATION CODE HERE WHY DON'T YOU.
@@ -119,11 +142,11 @@ func (s *Sector) GenerateSubSector(x, y int) *SubSector {
 
 type SubSector struct {
 	Location
-	star *StarSystem
+	starSystem *StarSystem
 }
 
 func (s SubSector) HasStar() bool {
-	if s.star != nil {
+	if s.starSystem != nil {
 		return true
 	}
 	return false

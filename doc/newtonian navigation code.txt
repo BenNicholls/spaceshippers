@@ -1,0 +1,99 @@
+Hi Ben! This is a letter from past you to present you. 
+
+This is the old navigation code. It's cool. Cool as hell. In most cases it finds the target. 
+But it figures everything out in real time and I need something I can compute beforehand so I can
+give options to the player. I found an analytical solution for straight courses, but courses where
+you have to turn turned out to be a nightmare. In the future I might be able to figure out a solution,
+but for now I need to move on. I tried just simulating the whole turn but that ended up being both
+inefficient and it gave the wrong answers anyways somehow. Still trying to puzzle that one out. 
+
+I just wanted to save this bit of code for later when I inevitably try to get this stuff working
+again. I --really-- want movement to be Newtonian-ish, at least for rocket engines, and it bugs me
+that for now ships can pivot and transfer all of their kinetic energy into whatever vector they want.
+But goddamn I've been stuck on this for like 3 weeks. I had fun doing math and stuff though, and burl
+now has a vector package, so not all that time was wasted.
+
+As a reminder, the gist is this:
+
+Courses had 2 extra phases - PRETURN for decelerating to decrease the turning radius, and TURN for the first
+major turn. Applying the thrust perpendicular to the ship's velocity served to turn the ship while keeping
+the ship's current speed. Once the turn brought the ship as close as possible to the target vector (see 
+angularAccuracy) it went into the STRAIGHT phase, which is the old 1-D code. Every tick it checked to see
+if an additional little perpendicular impulse might correct the ship's course. It also checked every tick
+to see if we needed to conserve fuel (coast) or if we were close enough to the target that we needed to 
+start braking.
+
+This is a nice method, but there are problems. Firstly, PRETURN, TURN, ACCEL, COAST, BRAKE is a lot of phases,
+a lot of variables to alter when trying to find an optimal solution for a given amount of burntime. With an
+analytical solution to the TURN phase you could just brute force a bunch of solutions and pick the best one though.
+Secondly, conveying this course information to the player is somewhat important, and with so many steps it's
+hard to imagine this being fun. Maybe Kerbal fans would like it (they'd probably hate it actually, since it's
+not perfect!) but in general people just want to hit Go and they go. Lastly, this method needed a lot of checks,
+there are corner cases everywhere. For example, sometimes if you were going too fast, it would be impossible
+to turn your ship to face the target, you'd just orbit the target or even spiral away! The PRETURN phase solves
+this, but having to check for it is a complex problem. Again, with an analytical solution to the turn phase
+you can problably come up with a simple formula that checks but I don't have that. When you finish turning,
+your ship is in a completely different place... from that location, do you even have enough fuel to stop? 
+
+All these considerations, and in the end you have to compute all this and present the player with options and
+ways to control what course is taken.... it's too much. Too much for now anyways. Maybe later I can take another
+crack at it. The backbone is all there... course phases, navigation system checks and processes it all, just have
+to add more phases and phase transition logic. ship.Engine needs code for thrust vectoring added back in, right
+now it just adds and subtract scalar speed while the navigation just magically handles the trajactory. Sigh.
+
+
+func (ns NavigationSystem) CorrectCourse(some parameters that i forget) {
+	targetVec := ns.ship.coords.CalcVector(ns.ship.Destination.GetCoords()).local.ToPolar()
+	v := ns.ship.Velocity.R
+	a := ns.ship.Engine.Thrust
+	angularAccuracy := math.Abs(math.Atan2(a, v))
+
+	//fix for near misses
+	if ns.ship.CurrentLocation == ns.ship.Destination {
+		ns.ship.Engine.ThrustVec.Phi = ns.ship.Velocity.Phi + math.Pi ///BRAKE
+		return
+	}
+
+	//check for course phase changes
+	switch ns.currentCourse.phase {
+	case phase_PRETURN:
+		if v < ns.currentCourse.preturnSpeed {
+			ns.currentCourse.phase = phase_TURN
+		}
+	case phase_TURN:
+		if math.Abs(ns.ship.Velocity.AngularDistance(targetVec)) < angularAccuracy {
+			ns.currentCourse.phase = phase_STRAIGHT
+			fmt.Println("turn complete", tick - ns.currentCourse.turnTime)
+			fmt.Println("dist", ns.ship.coords.local.Sub(ns.currentCourse.TurnPos).Mag())
+		}
+	case phase_STRAIGHT:
+		//realign ship if it goes astray
+		if math.Abs(ns.ship.Velocity.AngularDistance(targetVec)) > angularAccuracy {
+			ns.currentCourse.phase = phase_TURN
+			ns.currentCourse.turnDirection = ns.GetTurnDirection(ns.ship.Destination)
+		}
+	}
+
+	//perform plan!
+	switch ns.currentCourse.phase {
+	//preturn means we decelerate to make turning easier. currently not computed.
+	case phase_PRETURN:
+		ns.ship.Engine.ThrustVec.Phi = ns.ship.Velocity.Phi + math.Pi
+	//Turn until we're within an angle defined by our angular accuracy at this speed
+	case phase_TURN:
+		ns.ship.Engine.ThrustVec.Phi = ns.ship.Velocity.Phi + (math.Pi / 2.0 * ns.currentCourse.turnDirection)
+	//the old 1-D code, now that we're going the right way
+	case phase_STRAIGHT:
+		ns.ship.Engine.ThrustVec.Phi = targetVec.Phi
+
+		//braking code
+		t := (v - ns.ship.Destination.GetVisitSpeed()) / a
+		decelDistance := v*t - a*t*t/2
+		if targetVec.R-ns.ship.Destination.GetVisitDistance() < decelDistance {
+			ns.ship.Engine.ThrustVec.Phi = ns.ship.Velocity.Phi + math.Pi ///BRAKE
+		} else if ns.ship.Fuel.Get()*int(ns.ship.Engine.Thrust)/ns.ship.Engine.FuelUse < ns.ship.GetSpeed() {
+			//fuel management.
+			ns.ship.Engine.Coasting = true
+		}
+	}
+}

@@ -29,13 +29,13 @@ type Ship struct {
 }
 
 //Inits a new Ship. For now, starts with a bridge and 6 crew.
-func NewShip(n string) *Ship {
+func NewShip(n string, g *Galaxy) *Ship {
 	s := new(Ship)
 	s.ShipMap = core.NewMap(100, 100)
 	s.Crew = make([]*Crewman, 6)
 	s.Rooms = make([]*Room, 0, 10)
 	s.Engine = NewPropulsionSystem(s)
-	s.Navigation = NewNavigationSystem(s)
+	s.Navigation = NewNavigationSystem(s, g)
 
 	s.Fuel = core.NewStat(1000000)
 
@@ -120,15 +120,11 @@ func (s *Ship) PlaceCrew() {
 	}
 }
 
-func (s *Ship) SetCourse(l Locatable) {
+func (s *Ship) SetCourse(l Locatable, c Course) {
 	s.Destination = l
-
 	if l.GetCoords().resolution == coord_LOCAL {
-		g := s.coords.CalcVector(l.GetCoords())
-		s.Navigation.Course = g.local.ToPolar()
+		s.Navigation.currentCourse = c
 		s.Engine.Firing = true
-		s.Engine.Coasting = false
-		s.Engine.Braking = false
 	}
 }
 
@@ -137,12 +133,8 @@ func (s Ship) GetSpeed() int {
 }
 
 func (s *Ship) Update(spaceTime int) {
-
+	s.Navigation.Update(spaceTime)
 	s.Engine.Update()
-
-	if spaceTime%s.Navigation.navRate == 0 {
-		s.Navigation.Update()
-	}
 
 	x, y := s.Velocity.ToRect().Get()
 	s.coords.moveLocal(x, y)

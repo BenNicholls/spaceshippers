@@ -20,10 +20,13 @@ func (sg *SpaceshipGame) Execute() {
 		burl.DebugToggleRenderFPS()
 	case "debug.changes":
 		burl.DebugToggleRenderChangeView()
+	case "debug.fuel":
+		sg.playerShip.Fuel.Set(sg.playerShip.Fuel.Max())
 	case "debug.list":
 		sg.output.Append("Valid debug commands are as follows. Invoke with debug.command")
 		sg.output.Append("   fps       toggle fps counter")
 		sg.output.Append("   changes   toggle renderer change tracking")
+		sg.output.Append("   fuel      refills ship fuel")
 		sg.output.Append("   list      lists commands")
 	default:
 		sg.output.Append("I do not understand that command, you dummo. Try \"help\"")

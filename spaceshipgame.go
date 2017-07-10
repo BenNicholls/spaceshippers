@@ -69,7 +69,7 @@ func NewSpaceshipGame() *SpaceshipGame {
 
 	sg.galaxy = NewGalaxy()
 
-	sg.playerShip = NewShip("The Undestructable")
+	sg.playerShip = NewShip("The Undestructable", sg.galaxy)
 	sg.playerShip.AddRoom(NewRoom("Engineering", 5, 8, 5, 8, 700, 1000))
 	sg.playerShip.AddRoom(NewRoom("Messhall", 15, 5, 6, 6, 1000, 500))
 	sg.playerShip.AddRoom(NewRoom("Medbay", 9, 5, 6, 6, 1000, 700))
@@ -78,8 +78,8 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.playerShip.AddRoom(NewRoom("Hallway", 9, 10, 12, 4, 0, 500))
 
 	ss := sg.galaxy.GetSector(8, 8).GenerateSubSector(250, 171)
-	ss.star = NewStarSystem(ss.GetCoords())
-	sg.playerShip.SetLocation(ss.star.Planets[2]) //Earth!!
+	ss.starSystem = NewStarSystem(ss.GetCoords())
+	sg.playerShip.SetLocation(ss.starSystem.Planets[2]) //Earth!!
 
 	sg.SetupUI() //must be done after ship setup
 	sg.UpdateSpeedUI()
@@ -158,20 +158,6 @@ func (sg *SpaceshipGame) Update() {
 	for i := 0; i < sg.GetIncrement(); i++ {
 		sg.spaceTime++
 		sg.playerShip.Update(sg.spaceTime)
-
-		//change location if we move away,
-		if !sg.playerShip.coords.IsIn(sg.playerShip.CurrentLocation) {
-			c := sg.playerShip.coords
-			sg.playerShip.CurrentLocation = sg.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).star
-		}
-
-		//change destination/location when we arrive!
-		if sg.playerShip.coords.IsIn(sg.playerShip.Destination) && sg.playerShip.GetSpeed() < sg.playerShip.Destination.GetVisitSpeed() {
-			sg.playerShip.CurrentLocation = sg.playerShip.Destination
-			sg.playerShip.Destination = nil
-			sg.playerShip.Velocity.R = 0
-			sg.playerShip.Engine.Firing = false
-		}
 
 		for i := range sg.playerShip.Crew {
 			sg.playerShip.Crew[i].Update()

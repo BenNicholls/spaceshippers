@@ -120,7 +120,7 @@ func (sm *StarchartMenu) UpdateSectorInfo() {
 //Loads the location list for the system being viewed.
 func (sm *StarchartMenu) LoadLocalInfo() {
 	c := sm.playerShip.coords
-	system := sm.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).star
+	system := sm.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).starSystem
 	sm.systemLocations = make([]Locatable, 1)
 	sm.systemLocations[0] = sm.playerShip
 	sm.systemLocations = append(sm.systemLocations, system.GetLocations()...)
@@ -132,7 +132,7 @@ func (sm *StarchartMenu) LoadLocalInfo() {
 
 func (sm *StarchartMenu) UpdateLocalInfo() {
 	c := sm.playerShip.coords
-	system := sm.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).star
+	system := sm.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).starSystem
 	sm.mapTitleText.ChangeText(system.GetName())
 
 	loc := sm.systemLocations[sm.systemLocationsList.GetSelection()]
@@ -149,7 +149,7 @@ func (sm *StarchartMenu) UpdateLocalInfo() {
 		sm.systemLocDescText.ChangeText("What is this? How did you select this?")
 	}
 
-	d := int(c.CalcVector(loc.GetCoords()).Distance * float64(METERS_PER_LY) / 1000)
+	d := int(c.CalcVector(loc.GetCoords()).Distance * METERS_PER_LY / 1000)
 	sm.systemLocDistText.ChangeText("Distance:" + strconv.Itoa(d) + "km.")
 	if sm.playerShip.coords.IsIn(loc) {
 		sm.systemSetCourseButton.ChangeText("We are currently here!")
@@ -194,7 +194,7 @@ func (sm *StarchartMenu) DrawSystem() {
 	xCamera := int(c.local.X) - (gFactor * w / 2)
 	yCamera := int(c.local.Y) - (gFactor * h / 2)
 
-	system := sm.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).star
+	system := sm.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).starSystem
 
 	//draw system things!
 	for _, p := range system.Planets {

@@ -17,8 +17,8 @@ type Locatable interface {
 	IsKnown() bool //it is known
 	GetCoords() Coordinates
 	GetLocations() []Locatable
-	GetVisitDistance() int
-	GetVisitSpeed() int
+	GetVisitDistance() float64
+	GetVisitSpeed() float64
 }
 
 type LocationType int
@@ -40,8 +40,8 @@ type Location struct {
 	explored      bool         //have we been there
 	known         bool         //do we know about this place
 	coords        Coordinates  //where it at
-	visitDistance int          //how close do you have to be to visit? ie orbit distance.
-	visitSpeed    int          //how fast should we be going when we get there? ie orbital velocity or relative docking speed
+	visitDistance float64      //how close do you have to be to visit? ie orbit distance.
+	visitSpeed    float64      //how fast should we be going when we get there? ie orbital velocity or relative docking speed
 }
 
 func (l Location) GetName() string {
@@ -73,12 +73,12 @@ func (l Location) GetCoords() Coordinates {
 }
 
 //Returns orbital distance or docking distance. Only works for local locations, returns 0 otherwise.
-func (l Location) GetVisitDistance() int {
+func (l Location) GetVisitDistance() float64 {
 	return l.visitDistance
 }
 
 //Returns orbital speed or docking speed. Only works for local locations, returns 0 otherwise.
-func (l Location) GetVisitSpeed() int {
+func (l Location) GetVisitSpeed() float64 {
 	return l.visitSpeed
 }
 
@@ -174,26 +174,25 @@ func (c1 Coordinates) IsIn(l Locatable) bool {
 
 	if c1.sector != c2.sector {
 		return false
-	} else if c1.resolution == coord_SECTOR {
+	} else if c2.resolution == coord_SECTOR {
 		return true
 	}
 
 	if c1.subSector != c2.subSector {
 		return false
-	} else if c1.resolution == coord_SUBSECTOR {
+	} else if c2.resolution == coord_SUBSECTOR {
 		return true
 	}
 
 	if c1.starCoord != c2.starCoord {
 		return false
-	} else if c1.resolution == coord_STARSYSTEM {
+	} else if c2.resolution == coord_STARSYSTEM {
 		return true
 	}
 
 	//if this point is reached, then we know c1 and c2 are both local points in the same starsystem,
 	//so we want to see if c1 is orbitting/docking with l
-	dist := int(c1.CalcVector(c2).Distance * METERS_PER_LY)
-	if dist < l.GetVisitDistance() {
+	if dist := c1.CalcVector(c2).Distance * METERS_PER_LY; dist <= l.GetVisitDistance() {
 		return true
 	}
 

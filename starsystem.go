@@ -1,5 +1,6 @@
 package main
 
+import "github.com/bennicholls/burl/util"
 import "math/rand"
 import "math"
 
@@ -19,6 +20,7 @@ func NewStarSystem(c Coordinates) (s *StarSystem) {
 	s.locationType = loc_STARSYSTEM
 	s.coords = c
 	s.coords.resolution = coord_STARSYSTEM
+	s.coords.starCoord = util.Coord{X: 500, Y: 500}
 	s.Star = NewStar(s.coords, "The Sun", 695700e3, 1.988435e30)
 	s.Planets = make([]Planet, 0, 10)
 
@@ -60,8 +62,8 @@ func NewStar(c Coordinates, name string, radius, mass float64) (s Star) {
 	s.coords.local.Set(coord_LOCAL_MAX/2, coord_LOCAL_MAX/2)
 	s.radius = radius
 	s.mass = mass
-	s.visitDistance = int(radius * 1.2)
-	s.visitSpeed = int(math.Sqrt(GRAVCONST * float64(s.mass) / float64(s.visitDistance)))
+	s.visitDistance = radius * 1.2
+	s.visitSpeed = math.Sqrt(GRAVCONST * s.mass / s.visitDistance)
 
 	return
 }
@@ -85,8 +87,8 @@ func NewPlanet(c Coordinates, orbit, radius, mass float64, name string) (p Plane
 	p.oPosition = rand.Float64() * 2 * math.Pi
 	p.radius = radius
 	p.mass = mass
-	p.visitDistance = int(radius * 1.2)
-	p.visitSpeed = int(math.Sqrt(GRAVCONST * p.mass / float64(p.visitDistance)))
+	p.visitDistance = radius * 1.2
+	p.visitSpeed = math.Sqrt(GRAVCONST * p.mass / p.visitDistance)
 	p.coords.local.X = (coord_LOCAL_MAX / 2) + p.oDistance*math.Cos(p.oPosition)
 	p.coords.local.Y = (coord_LOCAL_MAX / 2) + p.oDistance*math.Sin(p.oPosition)
 
