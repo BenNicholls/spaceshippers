@@ -75,12 +75,15 @@ func NewStarchartMenu(gal *Galaxy, ship *Ship) (sm *StarchartMenu) {
 	sm.systemSetCourseButton = ui.NewButton(13, 1, 1, 15, 1, true, true, "Press Enter to Go There!")
 
 	sm.systemLocationsList = ui.NewList(13, 5, 1, 20, 1, true, "NO LOCATIONS")
+	sm.LoadLocalInfo()
 	sm.systemDetails.Add(sm.systemLocTitleText, sm.systemLocNameText, sm.systemLocDescText, sm.systemLocDistText, sm.systemSetCourseButton, sm.systemLocationsList)
 
 	sm.mapHighlight = ui.NewPulseAnimation(sm.xCursor, sm.yCursor, 1, 1, 50, 10, true)
 	sm.mapHighlight.Activate()
 	sm.mapView.AddAnimation(sm.mapHighlight)
 	sm.Add(sm.mapView, sm.mapTitleText, sm.sectorDetails, sm.systemDetails)
+
+	sm.ZoomIn() //start us off in local mode.
 
 	return
 }
@@ -229,11 +232,11 @@ func (sm *StarchartMenu) MoveMapCursor(dx, dy int) {
 	} else if sm.mapMode == coord_LOCAL {
 		if dy == 1 {
 			sm.systemLocationsList.Next()
-			sm.UpdateLocalInfo()
 		} else if dy == -1 {
 			sm.systemLocationsList.Prev()
-			sm.UpdateLocalInfo()
 		}
+
+		sm.UpdateLocalInfo()
 	}
 }
 
@@ -245,12 +248,12 @@ func (sm *StarchartMenu) ZoomIn() {
 		sm.systemDetails.ToggleVisible()
 		sm.UpdateLocalInfo()
 		sm.mapHighlight.Toggle()
-		sm.DrawMap()
 	} else {
 		sm.localZoom = util.Clamp(sm.localZoom+1, 0, 8)
 		sm.mapView.Reset()
-		sm.DrawMap()
 	}
+
+	sm.DrawMap()
 }
 
 func (sm *StarchartMenu) ZoomOut() {
@@ -261,12 +264,12 @@ func (sm *StarchartMenu) ZoomOut() {
 			sm.systemDetails.ToggleVisible()
 			sm.UpdateSectorInfo()
 			sm.mapHighlight.Toggle()
-			sm.DrawMap()
 		} else {
-			sm.localZoom -= 1
-			sm.DrawMap()
+			sm.localZoom -= 1			
 		}
 	}
+
+	sm.DrawMap()
 }
 
 func (sm *StarchartMenu) OnActivate() {

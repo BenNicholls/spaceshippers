@@ -97,3 +97,14 @@ func (ns NavigationSystem) CorrectCourse(some parameters that i forget) {
 		}
 	}
 }
+
+//returns 1 for counterclockwise, -1 for clockwise
+func (ns *NavigationSystem) GetTurnDirection(target Locatable) float64 {
+	targetVec := ns.ship.coords.CalcVector(ns.ship.Destination.GetCoords()).local.ToPolar()
+
+	if math.Signbit(ns.ship.Velocity.AngularDistance(targetVec)) {
+		return -1
+	} else {
+		return 1
+	}
+}

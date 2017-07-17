@@ -144,7 +144,6 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.SetupCrewMenu()
 	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)
-	sg.starchartMenu.LoadLocalInfo()
 	sg.shipMenu = NewShipMenu()
 
 	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar, sg.shipMenu, sg.starchartMenu)
@@ -218,9 +217,10 @@ func (sg *SpaceshipGame) Render() {
 	}
 }
 
-//Activates a menu (crew, rooms, systems, etc). Does nothing if menu already active.
+//Activates a menu (crew, rooms, systems, etc). Deactivates menu if menu already active.
 func (sg *SpaceshipGame) ActivateMenu(m ui.UIElem) {
 	if sg.activeMenu == m {
+		sg.DeactivateMenu()
 		return
 	}
 
@@ -235,6 +235,16 @@ func (sg *SpaceshipGame) ActivateMenu(m ui.UIElem) {
 	}
 }
 
+//deactivates the open menu (if there is one)
+func (sg *SpaceshipGame) DeactivateMenu() {
+	if sg.activeMenu == nil {
+		return
+	}
+	sg.activeMenu.SetVisibility(false)
+	sg.activeMenu = nil
+	sg.CenterShip()
+}
+
 func (sg *SpaceshipGame) MoveShipCamera(dx, dy int) {
 	sg.ResetShipView()
 
@@ -245,16 +255,6 @@ func (sg *SpaceshipGame) MoveShipCamera(dx, dy int) {
 func (sg *SpaceshipGame) ResetShipView() {
 	sg.shipdisplay.Reset()
 	sg.Stars.dirty = true
-}
-
-//deactivates the open menu (if there is one)
-func (sg *SpaceshipGame) DeactivateMenu() {
-	if sg.activeMenu == nil {
-		return
-	}
-	sg.activeMenu.SetVisibility(false)
-	sg.activeMenu = nil
-	sg.CenterShip()
 }
 
 func (sg SpaceshipGame) GetIncrement() int {

@@ -58,17 +58,6 @@ func (ns *NavigationSystem) Update(tick int) {
 	}
 }
 
-//returns 1 for counterclockwise, -1 for clockwise
-func (ns *NavigationSystem) GetTurnDirection(target Locatable) float64 {
-	targetVec := ns.ship.coords.CalcVector(ns.ship.Destination.GetCoords()).local.ToPolar()
-
-	if math.Signbit(ns.ship.Velocity.AngularDistance(targetVec)) {
-		return -1
-	} else {
-		return 1
-	}
-}
-
 type CoursePhase int
 
 const (
@@ -87,6 +76,7 @@ type Course struct {
 	startPos  util.Vec2
 	accelTime int //time to stop accelerating
 	brakeTime int //time to start braking
+	arrivaltime int //time of arrival
 
 	phase CoursePhase
 	done  bool
@@ -139,8 +129,8 @@ func (ns NavigationSystem) ComputeCourse(d Locatable, fuelToUse, tick int) (cour
 
 	course.accelTime = tick + t_a
 	course.brakeTime = course.accelTime + t_c
-	course.totalTime = course.brakeTime + t_d
-	course.fuelUse = course.totalTime * ns.ship.Engine.FuelUse
+	course.totalTime = t_a + t_c + t_d
+	course.fuelUse = (t_a + t_d) * ns.ship.Engine.FuelUse
 
 	return
 }

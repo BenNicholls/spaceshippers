@@ -9,26 +9,16 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 	switch key {
 	case sdl.K_F1:
 		sg.crewMenuButton.Press()
-		if sg.activeMenu == sg.crewMenu {
-			sg.DeactivateMenu()
-		} else {
-			sg.ActivateMenu(sg.crewMenu)
-		}
+		sg.ActivateMenu(sg.crewMenu)
 	case sdl.K_F2:
 		sg.shipMenuButton.Press()
-		if sg.activeMenu == sg.shipMenu {
-			sg.DeactivateMenu()
-		} else {
-			sg.ActivateMenu(sg.shipMenu)
-		}
+		sg.ActivateMenu(sg.shipMenu)
 	case sdl.K_F4:
 		sg.starchartMenuButton.Press()
-		if sg.activeMenu == sg.starchartMenu {
-			sg.DeactivateMenu()
-		} else {
+		if sg.activeMenu != sg.starchartMenu {
 			sg.starchartMenu.OnActivate()
-			sg.ActivateMenu(sg.starchartMenu)
 		}
+		sg.ActivateMenu(sg.starchartMenu)
 	case sdl.K_KP_PLUS:
 		if sg.simSpeed < 4 {
 			sg.simSpeed++
