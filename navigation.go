@@ -72,10 +72,10 @@ type Course struct {
 	fuelUse   int //amount of fuel the plan uses
 	totalTime int //time the course takes
 
-	startTime int
-	startPos  util.Vec2
-	accelTime int //time to stop accelerating
-	brakeTime int //time to start braking
+	startTime   int
+	startPos    util.Vec2
+	accelTime   int //time to stop accelerating
+	brakeTime   int //time to start braking
 	arrivaltime int //time of arrival
 
 	phase CoursePhase

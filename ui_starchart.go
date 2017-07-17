@@ -198,24 +198,28 @@ func (sm *StarchartMenu) DrawSystem() {
 	yCamera := int(c.local.Y) - (gFactor * h / 2)
 
 	system := sm.galaxy.GetSector(c.sector.Get()).GetSubSector(c.subSector.Get()).starSystem
+	sx, sy := system.Star.GetCoords().local.GetInt() // sun coords
+	px, py := sm.playerShip.coords.local.GetInt()    //player coords
 
 	//draw system things!
 	for _, p := range system.Planets {
 		x, y := p.GetCoords().local.GetInt()
+		//draw orbits
+		//TODO: some way of culling orbt drawing. currently drawing all of them
+		sm.mapView.DrawCircle((sx-xCamera)/gFactor, (sy-yCamera)/gFactor, util.RoundFloatToInt(p.oDistance/float64(gFactor)), 0x2E, 0xFF114411, 0)
 		if util.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
+			//draw planet on top of orbit (hopefully)
 			sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, int(rune(p.name[0])), 0xFF825814, 0xFF000000)
 		}
 	}
 
-	x, y := system.Star.GetCoords().local.GetInt()
-	if util.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
-		sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, 0x0F, 0xFFFFFF00, 0xFF000000)
+	if util.IsInside(sx, sy, xCamera, yCamera, gFactor*w, gFactor*h) {
+		sm.mapView.Draw((sx-xCamera)/gFactor, (sy-yCamera)/gFactor, 0x0F, 0xFFFFFF00, 0xFF000000)
 	}
 
 	//draw player ship last to ensure nothing overwrites it
-	x, y = sm.playerShip.coords.local.GetInt()
-	if util.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
-		sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, 0x02, 0xFFFFFFFF, 0xFF000000)
+	if util.IsInside(px, py, xCamera, yCamera, gFactor*w, gFactor*h) {
+		sm.mapView.Draw((px-xCamera)/gFactor, (py-yCamera)/gFactor, 0x02, 0xFFFFFFFF, 0xFF000000)
 	}
 }
 
@@ -265,7 +269,7 @@ func (sm *StarchartMenu) ZoomOut() {
 			sm.UpdateSectorInfo()
 			sm.mapHighlight.Toggle()
 		} else {
-			sm.localZoom -= 1			
+			sm.localZoom -= 1
 		}
 	}
 
