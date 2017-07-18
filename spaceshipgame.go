@@ -47,6 +47,7 @@ type SpaceshipGame struct {
 	starchartMenu *StarchartMenu //starchart (F4)
 
 	activeMenu ui.UIElem
+	dialog     Dialog //dialog presented to the player. higher priority than everything else!
 
 	//Time Globals.
 	spaceTime int //measured in Standard Galactic Seconds
@@ -70,6 +71,7 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.galaxy = NewGalaxy()
 
 	sg.playerShip = NewShip("The Undestructable", sg.galaxy)
+	sg.playerShip.description = "This is your ship! Look at it's heroic hull valiantly floating amongst the stars. One could almost weep."
 	sg.playerShip.AddRoom(NewRoom("Engineering", 5, 8, 5, 8, 700, 1000))
 	sg.playerShip.AddRoom(NewRoom("Messhall", 15, 5, 6, 6, 1000, 500))
 	sg.playerShip.AddRoom(NewRoom("Medbay", 9, 5, 6, 6, 1000, 700))
@@ -151,6 +153,16 @@ func (sg *SpaceshipGame) SetupUI() {
 
 func (sg *SpaceshipGame) Update() {
 
+	//check if we should be handling a dialog
+	if sg.dialog != nil {
+		if sg.dialog.Done() {
+			sg.dialog.ToggleVisible()
+			sg.dialog = nil
+		} else {
+			return
+		}
+	}
+
 	startCoords := sg.playerShip.coords
 
 	//simulation!
@@ -168,8 +180,8 @@ func (sg *SpaceshipGame) Update() {
 		}
 	}
 
-	//update starchart if ship has moved sectors
-	if sg.activeMenu == sg.starchartMenu {
+	//update starchart if ship has moved
+	if sg.activeMenu == sg.starchartMenu && sg.playerShip.GetSpeed() != 0 {
 		sg.starchartMenu.Update()
 		delta := startCoords.CalcVector(sg.playerShip.coords)
 		if sec := delta.Sector(); sg.starchartMenu.mapMode == coord_SECTOR && (sec.X != 0 || sec.Y != 0) {
@@ -183,7 +195,11 @@ func (sg *SpaceshipGame) Update() {
 		sg.UpdateCrewDetails()
 	}
 	sg.shipstatus.Update()
-	sg.missiontime.ChangeText(fmt.Sprintf("%.4d", sg.spaceTime/100000) + "d:" + fmt.Sprintf("%.1d", (sg.spaceTime/10000)%10) + "h:" + fmt.Sprintf("%.2d", (sg.spaceTime/100)%100) + "m:" + fmt.Sprintf("%.2d", sg.spaceTime%100) + "s")
+	sg.missiontime.ChangeText(GetTimeString(sg.spaceTime))
+}
+
+func GetTimeString(t int) string {
+	return fmt.Sprintf("%.4d", t/100000) + "d:" + fmt.Sprintf("%.1d", (t/10000)%10) + "h:" + fmt.Sprintf("%.2d", (t/100)%100) + "m:" + fmt.Sprintf("%.2d", t%100) + "s"
 }
 
 func (sg *SpaceshipGame) Render() {
@@ -214,6 +230,10 @@ func (sg *SpaceshipGame) Render() {
 	sg.window.Render()
 	if sg.activeMenu != nil {
 		sg.activeMenu.Render()
+	}
+
+	if sg.dialog != nil {
+		sg.dialog.Render()
 	}
 }
 

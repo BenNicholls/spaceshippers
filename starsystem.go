@@ -17,6 +17,7 @@ func NewStarSystem(c Coordinates) (s *StarSystem) {
 	s = new(StarSystem)
 
 	s.name = "The Sol System"
+	s.description = "The only star system in the game, cosmological principle be damned! Leave it at your peril."
 	s.locationType = loc_STARSYSTEM
 	s.coords = c
 	s.coords.resolution = coord_STARSYSTEM
@@ -57,6 +58,7 @@ type Star struct {
 //NewStar creates a star. c is the coordinates of the starsystem. Defaults to center of system.
 func NewStar(c Coordinates, name string, radius, mass float64) (s Star) {
 	s.name = name
+	s.description = "This is a star. Stars are big hot balls of lava that float in space like magic."
 	s.coords = c
 	s.coords.resolution = coord_LOCAL
 	s.coords.local.Set(coord_LOCAL_MAX/2, coord_LOCAL_MAX/2)
@@ -79,6 +81,7 @@ type Planet struct {
 //NewPlanet creates a planet. c is the coords of the starsystem. orbit is the distance in meters from the star
 func NewPlanet(c Coordinates, orbit, radius, mass float64, name string) (p Planet) {
 	p.name = name
+	p.description = "This is a planet. Planets are rocks that are big enough to be important. Some planets have life on them, but most of them are super boring."
 	p.locationType = loc_PLANET
 	p.coords = c
 	p.coords.resolution = coord_LOCAL

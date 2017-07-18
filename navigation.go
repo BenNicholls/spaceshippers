@@ -131,6 +131,7 @@ func (ns NavigationSystem) ComputeCourse(d Locatable, fuelToUse, tick int) (cour
 	course.brakeTime = course.accelTime + t_c
 	course.totalTime = t_a + t_c + t_d
 	course.fuelUse = (t_a + t_d) * ns.ship.Engine.FuelUse
+	course.arrivaltime = tick + course.totalTime
 
 	return
 }

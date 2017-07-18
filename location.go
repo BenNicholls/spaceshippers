@@ -12,6 +12,7 @@ const (
 //defines any place where your ship can travel to
 type Locatable interface {
 	GetName() string
+	GetDescription() string
 	GetLocationType() LocationType
 	IsExplored() bool
 	IsKnown() bool //it is known
@@ -36,6 +37,7 @@ const (
 
 type Location struct {
 	name          string
+	description   string
 	locationType  LocationType //see location type defs above
 	explored      bool         //have we been there
 	known         bool         //do we know about this place
@@ -46,6 +48,10 @@ type Location struct {
 
 func (l Location) GetName() string {
 	return l.name
+}
+
+func (l Location) GetDescription() string {
+	return l.description
 }
 
 func (l Location) GetLocationType() LocationType {

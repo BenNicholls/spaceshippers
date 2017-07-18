@@ -141,20 +141,17 @@ func (sm *StarchartMenu) UpdateLocalInfo() {
 	loc := sm.systemLocations[sm.systemLocationsList.GetSelection()]
 	sm.systemLocNameText.ChangeText(loc.GetName())
 
-	switch loc.(type) {
-	case Star:
-		sm.systemLocDescText.ChangeText("This is a star. Stars are big hot balls of lava that float in space like magic.")
-	case Planet:
-		sm.systemLocDescText.ChangeText("This is a planet. Planets are rocks that are big enough to be important. Some planets have life on them, but most of them are super boring.")
-	case *Ship:
-		sm.systemLocDescText.ChangeText("This is your ship! Look at it's heroic hull valiantly floating amongst the stars. One could almost weep.")
-	default:
+	if loc.GetDescription() == "" {
 		sm.systemLocDescText.ChangeText("What is this? How did you select this?")
+	} else {
+		sm.systemLocDescText.ChangeText(loc.GetDescription())
 	}
 
 	d := int(c.CalcVector(loc.GetCoords()).Distance * METERS_PER_LY / 1000)
 	sm.systemLocDistText.ChangeText("Distance:" + strconv.Itoa(d) + "km.")
-	if sm.playerShip.coords.IsIn(loc) {
+	if loc == sm.playerShip {
+		sm.systemSetCourseButton.ChangeText("This is us!")
+	} else if sm.playerShip.coords.IsIn(loc) {
 		sm.systemSetCourseButton.ChangeText("We are currently here!")
 	} else {
 		sm.systemSetCourseButton.ChangeText("Lets go here!")
@@ -242,6 +239,8 @@ func (sm *StarchartMenu) MoveMapCursor(dx, dy int) {
 
 		sm.UpdateLocalInfo()
 	}
+
+	sm.DrawMap()
 }
 
 func (sm *StarchartMenu) ZoomIn() {

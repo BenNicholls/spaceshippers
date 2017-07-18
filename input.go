@@ -5,6 +5,12 @@ import "github.com/bennicholls/burl/util"
 
 func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 
+	//dialogs have the highest priority and they handle their own input
+	if sg.dialog != nil {
+		sg.dialog.HandleInput(key)
+		return
+	}
+
 	//general keys -- works in all menus, modes, etc. Mainly menu switching stuff
 	switch key {
 	case sdl.K_F1:
@@ -116,8 +122,9 @@ func (sg *SpaceshipGame) HandleKeypressStarchartMenu(key sdl.Keycode) {
 	case sdl.K_RETURN:
 		if sg.starchartMenu.mapMode == coord_LOCAL {
 			l := sg.starchartMenu.systemLocations[sg.starchartMenu.systemLocationsList.GetSelection()]
-			c := sg.playerShip.Navigation.ComputeCourse(l, sg.playerShip.Fuel.Get(), sg.spaceTime)
-			sg.playerShip.SetCourse(l, c)
+			if l != sg.playerShip && l != sg.playerShip.CurrentLocation {
+				sg.dialog = NewSetCourseDialog(sg.playerShip, l, sg.spaceTime)
+			}
 		}
 	}
 }
