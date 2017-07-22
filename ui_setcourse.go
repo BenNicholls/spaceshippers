@@ -70,7 +70,7 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 
 	sc.goButton = ui.NewButton(20, 1, 33, 18, 0, true, true, "This Looks Good, Let's Go!!")
 	sc.goButton.ToggleFocus()
-	sc.cancelButton = ui.NewButton(20, 1, 33, 21, 0, true, true, "On Second Thought, Let's Go Somewhere Else")
+	sc.cancelButton = ui.NewButton(20, 1, 33, 21, 0, true, true, "On Second Thought, nevermind.")
 
 	sc.Add(sc.goButton, sc.cancelButton)
 

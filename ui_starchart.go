@@ -72,7 +72,8 @@ func NewStarchartMenu(gal *Galaxy, ship *Ship) (sm *StarchartMenu) {
 	sm.systemLocNameText = ui.NewTextbox(15, 1, 0, 1, 1, false, true, "")
 	sm.systemLocDescText = ui.NewTextbox(15, 5, 0, 3, 1, false, true, "")
 	sm.systemLocDistText = ui.NewTextbox(15, 1, 0, 10, 1, false, false, "")
-	sm.systemSetCourseButton = ui.NewButton(13, 1, 1, 15, 1, true, true, "Press Enter to Go There!")
+	sm.systemSetCourseButton = ui.NewButton(13, 1, 1, 15, 1, true, true, "Press Enter to Set Course!")
+	sm.systemSetCourseButton.ToggleFocus()
 
 	sm.systemLocationsList = ui.NewList(13, 5, 1, 20, 1, true, "NO LOCATIONS")
 	sm.LoadLocalInfo()
@@ -154,7 +155,7 @@ func (sm *StarchartMenu) UpdateLocalInfo() {
 	} else if sm.playerShip.coords.IsIn(loc) {
 		sm.systemSetCourseButton.ChangeText("We are currently here!")
 	} else {
-		sm.systemSetCourseButton.ChangeText("Lets go here!")
+		sm.systemSetCourseButton.ChangeText("Press Enter to Set Course!")
 	}
 }
 

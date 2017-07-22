@@ -32,7 +32,7 @@ type SpaceshipGame struct {
 	menubar             *ui.Container
 	crewMenuButton      *ui.Button
 	shipMenuButton      *ui.Button
-	roomMenuButton      *ui.Button
+	missionMenuButton   *ui.Button
 	mainMenuButton      *ui.Button
 	starchartMenuButton *ui.Button
 	scippieMenuButton   *ui.Button
@@ -43,7 +43,8 @@ type SpaceshipGame struct {
 	crewList    *ui.List
 	crewDetails *ui.Container
 
-	shipMenu      *ShipMenu      //shipmenu (F3)
+	shipMenu      *ShipMenu      //shipmenu (F2)
+	missionMenu   *MissionMenu   //missionmenu (F3)
 	starchartMenu *StarchartMenu //starchart (F4)
 
 	activeMenu ui.UIElem
@@ -60,6 +61,8 @@ type SpaceshipGame struct {
 
 	galaxy     *Galaxy
 	playerShip *Ship
+
+	missionLog *MissionLog
 }
 
 func NewSpaceshipGame() *SpaceshipGame {
@@ -82,6 +85,9 @@ func NewSpaceshipGame() *SpaceshipGame {
 	ss := sg.galaxy.GetSector(8, 8).GenerateSubSector(250, 171)
 	ss.starSystem = NewStarSystem(ss.GetCoords())
 	sg.playerShip.SetLocation(ss.starSystem.Planets[2]) //Earth!!
+
+	sg.missionLog = make([]*Mission, 0)
+	sg.missionLog = append(sg.missionLog, NewM)
 
 	sg.SetupUI() //must be done after ship setup
 	sg.UpdateSpeedUI()
@@ -124,11 +130,11 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.menubar = ui.NewContainer(69, 1, 12, 1, 1, false)
 	sg.crewMenuButton = ui.NewButton(9, 1, 1, 0, 1, true, true, "Crew")
 	sg.shipMenuButton = ui.NewButton(9, 1, 12, 0, 1, true, true, "Ship")
-	sg.roomMenuButton = ui.NewButton(9, 1, 23, 0, 1, true, true, "Room")
+	sg.missionMenuButton = ui.NewButton(9, 1, 23, 0, 1, true, true, "Missions")
 	sg.starchartMenuButton = ui.NewButton(9, 1, 34, 0, 1, true, true, "Star Chart")
 	sg.scippieMenuButton = ui.NewButton(9, 1, 45, 0, 1, true, true, "S.C.I.P.P.I.E.")
 	sg.mainMenuButton = ui.NewButton(9, 1, 56, 0, 1, true, true, "Main  Menu")
-	sg.menubar.Add(sg.crewMenuButton, sg.shipMenuButton, sg.roomMenuButton, sg.roomMenuButton, sg.starchartMenuButton, sg.scippieMenuButton, sg.mainMenuButton)
+	sg.menubar.Add(sg.crewMenuButton, sg.shipMenuButton, sg.missionMenuButton, sg.starchartMenuButton, sg.scippieMenuButton, sg.mainMenuButton)
 
 	sg.shipdisplay = ui.NewTileView(80, 28, 0, 3, 1, false)
 	w, h := sg.shipdisplay.Dims()
@@ -147,6 +153,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.SetupCrewMenu()
 	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)
 	sg.shipMenu = NewShipMenu()
+	sg.missionMenu = NewMissionMenu()
 
 	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar, sg.shipMenu, sg.starchartMenu)
 }

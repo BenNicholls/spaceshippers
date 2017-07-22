@@ -19,6 +19,9 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 	case sdl.K_F2:
 		sg.shipMenuButton.Press()
 		sg.ActivateMenu(sg.shipMenu)
+	case sdl.K_F3:
+		sg.missionMenuButton.Press()
+		sg.ActivateMenu(sg.missionMenu)
 	case sdl.K_F4:
 		sg.starchartMenuButton.Press()
 		if sg.activeMenu != sg.starchartMenu {
@@ -121,6 +124,7 @@ func (sg *SpaceshipGame) HandleKeypressStarchartMenu(key sdl.Keycode) {
 		sg.starchartMenu.ZoomOut()
 	case sdl.K_RETURN:
 		if sg.starchartMenu.mapMode == coord_LOCAL {
+			sg.starchartMenu.systemSetCourseButton.Press()
 			l := sg.starchartMenu.systemLocations[sg.starchartMenu.systemLocationsList.GetSelection()]
 			if l != sg.playerShip && l != sg.playerShip.CurrentLocation {
 				sg.dialog = NewSetCourseDialog(sg.playerShip, l, sg.spaceTime)
