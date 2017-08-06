@@ -1,8 +1,8 @@
 package main
 
 import "strconv"
-import "github.com/bennicholls/burl/util"
 import "math"
+import "github.com/bennicholls/burl-E/burl"
 
 const (
 	METERS_PER_LY float64 = 9.461e15
@@ -113,10 +113,10 @@ const (
 )
 
 type Coordinates struct {
-	sector    util.Coord
-	subSector util.Coord
-	starCoord util.Coord
-	local     util.Vec2
+	sector    burl.Coord
+	subSector burl.Coord
+	starCoord burl.Coord
+	local     burl.Vec2
 
 	resolution CoordResolution //how deep into the rabbit hole this coordinate goes. see above
 }
@@ -205,22 +205,22 @@ func (c1 Coordinates) IsIn(l Locatable) bool {
 	return false
 }
 
-func (c Coordinates) Sector() util.Coord {
+func (c Coordinates) Sector() burl.Coord {
 	return c.sector
 }
 
 //returns the subsector portion of the coord. REMEMBER: not all coords handle these!
-func (c Coordinates) SubSector() util.Coord {
+func (c Coordinates) SubSector() burl.Coord {
 	return c.subSector
 }
 
 //returns the starcoord portion of the coord. REMEMBER: not all coords handle these!
-func (c Coordinates) StarCoord() util.Coord {
+func (c Coordinates) StarCoord() burl.Coord {
 	return c.starCoord
 }
 
 //returns the local portion of the coord. REMEMBER: not all coords handle these!
-func (c Coordinates) LocalCoord() util.Vec2 {
+func (c Coordinates) LocalCoord() burl.Vec2 {
 	return c.local
 }
 
@@ -246,8 +246,8 @@ func (c *Coordinates) moveLocal(dx, dy float64) {
 	xDecimals := (c.local.X - math.Trunc(c.local.X)) + (dx - math.Trunc(dx))
 	yDecimals := (c.local.Y - math.Trunc(c.local.Y)) + (dy - math.Trunc(dy))
 
-	x, odx := util.ModularClamp(int(c.local.X)+int(dx), 0, int(coord_LOCAL_MAX)-1)
-	y, ody := util.ModularClamp(int(c.local.Y)+int(dy), 0, int(coord_LOCAL_MAX)-1)
+	x, odx := burl.ModularClamp(int(c.local.X)+int(dx), 0, int(coord_LOCAL_MAX)-1)
+	y, ody := burl.ModularClamp(int(c.local.Y)+int(dy), 0, int(coord_LOCAL_MAX)-1)
 
 	c.local.X = float64(x) + xDecimals
 	c.local.Y = float64(y) + yDecimals
@@ -260,8 +260,8 @@ func (c *Coordinates) moveLocal(dx, dy float64) {
 func (c *Coordinates) moveStarSystem(dx, dy int) {
 	var odx, ody int
 
-	c.starCoord.X, odx = util.ModularClamp(c.starCoord.X+dx, 0, coord_STARSYSTEM_MAX-1)
-	c.starCoord.Y, ody = util.ModularClamp(c.starCoord.Y+dy, 0, coord_STARSYSTEM_MAX-1)
+	c.starCoord.X, odx = burl.ModularClamp(c.starCoord.X+dx, 0, coord_STARSYSTEM_MAX-1)
+	c.starCoord.Y, ody = burl.ModularClamp(c.starCoord.Y+dy, 0, coord_STARSYSTEM_MAX-1)
 
 	if odx != 0 || ody != 0 {
 		c.moveSubSector(odx, ody)
@@ -271,8 +271,8 @@ func (c *Coordinates) moveStarSystem(dx, dy int) {
 func (c *Coordinates) moveSubSector(dx, dy int) {
 	var odx, ody int
 
-	c.subSector.X, odx = util.ModularClamp(c.subSector.X+dx, 0, coord_SUBSECTOR_MAX-1)
-	c.subSector.Y, ody = util.ModularClamp(c.subSector.Y+dy, 0, coord_SUBSECTOR_MAX-1)
+	c.subSector.X, odx = burl.ModularClamp(c.subSector.X+dx, 0, coord_SUBSECTOR_MAX-1)
+	c.subSector.Y, ody = burl.ModularClamp(c.subSector.Y+dy, 0, coord_SUBSECTOR_MAX-1)
 
 	if odx != 0 || ody != 0 {
 		c.moveSector(odx, ody)
@@ -280,8 +280,8 @@ func (c *Coordinates) moveSubSector(dx, dy int) {
 }
 
 func (c *Coordinates) moveSector(dx, dy int) {
-	c.sector.X = util.Clamp(c.sector.X+dx, 0, coord_SECTOR_MAX-1)
-	c.sector.Y = util.Clamp(c.sector.Y+dy, 0, coord_SECTOR_MAX-1)
+	c.sector.X = burl.Clamp(c.sector.X+dx, 0, coord_SECTOR_MAX-1)
+	c.sector.Y = burl.Clamp(c.sector.Y+dy, 0, coord_SECTOR_MAX-1)
 }
 
 //Galactic Vector. represents the vector between two points in the galaxy

@@ -1,7 +1,7 @@
 package main
 
 import "math/rand"
-import "github.com/bennicholls/burl/core"
+import "github.com/bennicholls/burl-E/burl"
 
 var FIRSTNAMES []string
 var LASTNAMES []string
@@ -12,21 +12,21 @@ func init() {
 }
 
 type Crewman struct {
-	core.BurlEntity
+	burl.BurlEntity
 
 	//defining characteristics of various types
-	HP        core.Stat
-	Awakeness core.Stat
+	HP        burl.Stat
+	Awakeness burl.Stat
 
 	CurrentTask Job
 }
 
 func NewCrewman() *Crewman {
 	c := new(Crewman)
-	c.Vis.Glyph = 0x01
-	c.Vis.ForeColour = 0xFFFFFFFF
-	c.HP = core.NewStat(100)
-	c.Awakeness = core.NewStat((rand.Intn(4) + 7) * HOUR)
+	c.Vis.Glyph = burl.GLYPH_FACE1
+	c.Vis.ForeColour = burl.COL_WHITE
+	c.HP = burl.NewStat(100)
+	c.Awakeness = burl.NewStat((rand.Intn(4) + 7) * HOUR)
 	c.randomizeName()
 	return c
 }

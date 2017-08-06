@@ -1,7 +1,7 @@
 package main
 
 import "strings"
-import "github.com/bennicholls/burl"
+import "github.com/bennicholls/burl-E/burl"
 
 func (sg *SpaceshipGame) Execute() {
 	sg.output.Append("")

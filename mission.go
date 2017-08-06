@@ -1,4 +1,4 @@
-package main 
+package main
 
 type MissionStatus int
 
@@ -16,28 +16,40 @@ type Acheivable interface {
 	GetDescription() string
 }
 
-type MissionLog []*Mission 
+type MissionLog struct {
+	log []*Mission
+}
+
+func NewMissionLog() (ml *MissionLog) {
+	ml = new(MissionLog)
+	ml.log = make([]*Mission, 0)
+	return
+}
+
+func (ml *MissionLog) Add(m *Mission) {
+	ml.log = append(ml.log, m)
+}
 
 type Mission struct {
-	name string
+	name        string
 	description string
 
 	status MissionStatus
-	steps []*Mission
+	steps  []*Mission
 
 	success func() bool
 	failure func() bool
 }
 
-func NewMission(name, desc string) *Mission {
-	m := new(Mission)
+func NewMission(name, desc string) (m *Mission) {
+	m = new(Mission)
 	m.name = name
 	m.description = desc
 	m.status = mis_INPROGRESS
 	m.steps = make([]*Mission, 0, 0)
 
-	m.success = func() bool {return false}
-	m.failure = func() bool {return false}
+	m.success = func() bool { return false }
+	m.failure = func() bool { return false }
 
-	return m
+	return
 }

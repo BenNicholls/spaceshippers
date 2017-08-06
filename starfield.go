@@ -1,19 +1,18 @@
 package main
 
 import "math/rand"
-import "github.com/bennicholls/burl/util"
-import "github.com/bennicholls/burl/ui"
+import "github.com/bennicholls/burl-E/burl"
 
 type StarField struct {
 	field         []int
 	starFrequency int
 	starShift     int
-	view          *ui.TileView
+	view          *burl.TileView
 	dirty         bool
 }
 
 //initializes a starfield twice the width of the screen
-func NewStarField(w, h, starFrequency int, v *ui.TileView) (sf StarField) {
+func NewStarField(w, h, starFrequency int, v *burl.TileView) (sf StarField) {
 	sf.view = v
 	sf.field = make([]int, w*h*2)
 	sf.starFrequency = starFrequency
@@ -29,7 +28,7 @@ func NewStarField(w, h, starFrequency int, v *ui.TileView) (sf StarField) {
 //moves the "camera" on the stars.
 func (sf *StarField) Shift() {
 	w, _ := sf.view.Dims()
-	sf.starShift, _ = util.ModularClamp(sf.starShift+1, 0, (w*2)-1)
+	sf.starShift, _ = burl.ModularClamp(sf.starShift+1, 0, (w*2)-1)
 	sf.dirty = true
 }
 
@@ -40,7 +39,7 @@ func (sf *StarField) Draw() {
 		w, h := sf.view.Dims()
 		for i := 0; i < w*h; i++ {
 			if sf.field[(i/w)*w*2+(i%w+sf.starShift)%(w*2)] != 0 {
-				sf.view.Draw(i%w, i/w, 0x2a, 0xFF444444, 0xFF000000)
+				sf.view.Draw(i%w, i/w, burl.GLYPH_ASTERISK, burl.COL_DARKGREY, burl.COL_BLACK)
 			}
 		}
 		sf.dirty = false

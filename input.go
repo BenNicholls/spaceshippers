@@ -1,7 +1,7 @@
 package main
 
 import "github.com/veandco/go-sdl2/sdl"
-import "github.com/bennicholls/burl/util"
+import "github.com/bennicholls/burl-E/burl"
 
 func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 
@@ -78,7 +78,7 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 }
 
 func (sg *SpaceshipGame) HandleKeypressInput(key sdl.Keycode) {
-	if util.ValidText(rune(key)) {
+	if burl.ValidText(rune(key)) {
 		sg.input.InsertText(rune(key))
 	} else {
 		switch key {

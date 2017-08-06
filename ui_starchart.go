@@ -1,38 +1,36 @@
 package main
 
 import "strconv"
-import "github.com/bennicholls/burl/ui"
-import "github.com/bennicholls/burl/console"
-import "github.com/bennicholls/burl/util"
+import "github.com/bennicholls/burl-E/burl"
 
 //Menu for viewing star charts, getting location data, setting courses, etc.
 type StarchartMenu struct {
-	ui.Container
+	burl.Container
 
 	//general map stuff
-	mapTitleText *ui.Textbox
-	mapView      *ui.TileView
-	mapHighlight *ui.PulseAnimation
+	mapTitleText *burl.Textbox
+	mapView      *burl.TileView
+	mapHighlight *burl.PulseAnimation
 
 	xCursor, yCursor int //map cursor coordinates
 
 	//sector details for galaxy map mode
-	sectorDetails      *ui.Container
-	sectorCoordsText   *ui.Textbox
-	sectorNameText     *ui.Textbox
-	sectorDensityText  *ui.Textbox
-	sectorExploredText *ui.Textbox
-	sectorKnownText    *ui.Textbox
-	sectorLocationText *ui.Textbox
+	sectorDetails      *burl.Container
+	sectorCoordsText   *burl.Textbox
+	sectorNameText     *burl.Textbox
+	sectorDensityText  *burl.Textbox
+	sectorExploredText *burl.Textbox
+	sectorKnownText    *burl.Textbox
+	sectorLocationText *burl.Textbox
 
 	//StarSystem details for system mode
-	systemDetails         *ui.Container
-	systemLocTitleText    *ui.Textbox
-	systemLocNameText     *ui.Textbox
-	systemLocDescText     *ui.Textbox
-	systemLocDistText     *ui.Textbox
-	systemSetCourseButton *ui.Button
-	systemLocationsList   *ui.List
+	systemDetails         *burl.Container
+	systemLocTitleText    *burl.Textbox
+	systemLocNameText     *burl.Textbox
+	systemLocDescText     *burl.Textbox
+	systemLocDistText     *burl.Textbox
+	systemSetCourseButton *burl.Button
+	systemLocationsList   *burl.List
 
 	systemLocations []Locatable
 
@@ -50,36 +48,36 @@ func NewStarchartMenu(gal *Galaxy, ship *Ship) (sm *StarchartMenu) {
 	sm.mapMode = coord_SECTOR
 
 	//ui setup
-	sm.Container = *ui.NewContainer(40, 26, 39, 4, 5, true)
+	sm.Container = *burl.NewContainer(40, 26, 39, 4, 5, true)
 	sm.SetTitle("Star Charts")
 	sm.SetVisibility(false)
 
-	sm.mapTitleText = ui.NewTextbox(25, 1, 0, 25, 1, false, true, sm.galaxy.name)
-	sm.mapView = ui.NewTileView(25, 25, 0, 0, 1, false)
+	sm.mapTitleText = burl.NewTextbox(25, 1, 0, 25, 1, false, true, sm.galaxy.name)
+	sm.mapView = burl.NewTileView(25, 25, 0, 0, 1, false)
 
-	sm.sectorDetails = ui.NewContainer(15, 26, 25, 0, 1, false)
-	sm.sectorCoordsText = ui.NewTextbox(15, 1, 0, 0, 1, false, true, "")
-	sm.sectorNameText = ui.NewTextbox(15, 2, 0, 1, 1, false, true, "")
-	sm.sectorDensityText = ui.NewTextbox(15, 1, 0, 4, 1, false, false, "")
-	sm.sectorExploredText = ui.NewTextbox(15, 1, 0, 5, 1, false, false, "")
-	sm.sectorLocationText = ui.NewTextbox(15, 2, 0, 6, 1, false, false, "")
-	sm.sectorKnownText = ui.NewTextbox(15, 2, 0, 9, 1, false, true, "We know nothing about this sector.")
+	sm.sectorDetails = burl.NewContainer(15, 26, 25, 0, 1, false)
+	sm.sectorCoordsText = burl.NewTextbox(15, 1, 0, 0, 1, false, true, "")
+	sm.sectorNameText = burl.NewTextbox(15, 2, 0, 1, 1, false, true, "")
+	sm.sectorDensityText = burl.NewTextbox(15, 1, 0, 4, 1, false, false, "")
+	sm.sectorExploredText = burl.NewTextbox(15, 1, 0, 5, 1, false, false, "")
+	sm.sectorLocationText = burl.NewTextbox(15, 2, 0, 6, 1, false, false, "")
+	sm.sectorKnownText = burl.NewTextbox(15, 2, 0, 9, 1, false, true, "We know nothing about this sector.")
 	sm.sectorDetails.Add(sm.sectorCoordsText, sm.sectorNameText, sm.sectorDensityText, sm.sectorExploredText, sm.sectorLocationText, sm.sectorKnownText)
 
-	sm.systemDetails = ui.NewContainer(15, 26, 25, 0, 1, false)
+	sm.systemDetails = burl.NewContainer(15, 26, 25, 0, 1, false)
 	sm.systemDetails.SetVisibility(false)
-	sm.systemLocTitleText = ui.NewTextbox(15, 1, 0, 0, 1, false, true, "Currently viewing:")
-	sm.systemLocNameText = ui.NewTextbox(15, 1, 0, 1, 1, false, true, "")
-	sm.systemLocDescText = ui.NewTextbox(15, 5, 0, 3, 1, false, true, "")
-	sm.systemLocDistText = ui.NewTextbox(15, 1, 0, 10, 1, false, false, "")
-	sm.systemSetCourseButton = ui.NewButton(13, 1, 1, 15, 1, true, true, "Press Enter to Set Course!")
+	sm.systemLocTitleText = burl.NewTextbox(15, 1, 0, 0, 1, false, true, "Currently viewing:")
+	sm.systemLocNameText = burl.NewTextbox(15, 1, 0, 1, 1, false, true, "")
+	sm.systemLocDescText = burl.NewTextbox(15, 5, 0, 3, 1, false, true, "")
+	sm.systemLocDistText = burl.NewTextbox(15, 1, 0, 10, 1, false, false, "")
+	sm.systemSetCourseButton = burl.NewButton(13, 1, 1, 15, 1, true, true, "Press Enter to Set Course!")
 	sm.systemSetCourseButton.ToggleFocus()
 
-	sm.systemLocationsList = ui.NewList(13, 5, 1, 20, 1, true, "NO LOCATIONS")
+	sm.systemLocationsList = burl.NewList(13, 5, 1, 20, 1, true, "NO LOCATIONS")
 	sm.LoadLocalInfo()
 	sm.systemDetails.Add(sm.systemLocTitleText, sm.systemLocNameText, sm.systemLocDescText, sm.systemLocDistText, sm.systemSetCourseButton, sm.systemLocationsList)
 
-	sm.mapHighlight = ui.NewPulseAnimation(sm.xCursor, sm.yCursor, 1, 1, 50, 10, true)
+	sm.mapHighlight = burl.NewPulseAnimation(sm.xCursor, sm.yCursor, 1, 1, 50, 10, true)
 	sm.mapHighlight.Activate()
 	sm.mapView.AddAnimation(sm.mapHighlight)
 	sm.Add(sm.mapView, sm.mapTitleText, sm.sectorDetails, sm.systemDetails)
@@ -174,23 +172,23 @@ func (sm *StarchartMenu) DrawGalaxy() {
 	for i := 0; i < w*h; i++ {
 		x, y := i%w, i/w
 		s := sm.galaxy.GetSector(x, y)
-		bright := util.Lerp(0, 255, s.Density, 100)
-		g := 0xB0
+		bright := burl.Lerp(0, 255, s.Density, 100)
+		g := burl.GLYPH_FILL_SPARSE
 		if bright == 0 {
-			g = 0
+			g = burl.GLYPH_NONE
 		}
-		sm.mapView.Draw(x, y, g, console.MakeColour(bright, bright, bright), 0xFF000000)
+		sm.mapView.Draw(x, y, g, burl.MakeColour(bright, bright, bright), burl.COL_BLACK)
 	}
 
 	x, y := sm.playerShip.coords.Sector().Get()
-	sm.mapView.Draw(x, y, 0x02, 0xFFFFFFFF, 0xFF000000)
+	sm.mapView.Draw(x, y, burl.GLYPH_FACE2, burl.COL_WHITE, burl.COL_BLACK)
 }
 
 func (sm *StarchartMenu) DrawSystem() {
 	sm.mapView.Reset()
 	c := sm.systemLocations[sm.systemLocationsList.GetSelection()].GetCoords()
 	w, h := sm.mapView.Dims()
-	gFactor := int(coord_LOCAL_MAX) / w / util.Pow(2, sm.localZoom)
+	gFactor := int(coord_LOCAL_MAX) / w / burl.Pow(2, sm.localZoom)
 
 	xCamera := int(c.local.X) - (gFactor * w / 2)
 	yCamera := int(c.local.Y) - (gFactor * h / 2)
@@ -204,20 +202,20 @@ func (sm *StarchartMenu) DrawSystem() {
 		x, y := p.GetCoords().local.GetInt()
 		//draw orbits
 		//TODO: some way of culling orbt drawing. currently drawing all of them
-		sm.mapView.DrawCircle((sx-xCamera)/gFactor, (sy-yCamera)/gFactor, util.RoundFloatToInt(p.oDistance/float64(gFactor)), 0x2E, 0xFF114411, 0)
-		if util.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
+		sm.mapView.DrawCircle((sx-xCamera)/gFactor, (sy-yCamera)/gFactor, burl.RoundFloatToInt(p.oDistance/float64(gFactor)), burl.GLYPH_PERIOD, 0xFF114411, burl.COL_BLACK)
+		if burl.IsInside(x, y, xCamera, yCamera, gFactor*w, gFactor*h) {
 			//draw planet on top of orbit (hopefully)
-			sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, int(rune(p.name[0])), 0xFF825814, 0xFF000000)
+			sm.mapView.Draw((x-xCamera)/gFactor, (y-yCamera)/gFactor, int(rune(p.name[0])), 0xFF825814, burl.COL_BLACK)
 		}
 	}
 
-	if util.IsInside(sx, sy, xCamera, yCamera, gFactor*w, gFactor*h) {
-		sm.mapView.Draw((sx-xCamera)/gFactor, (sy-yCamera)/gFactor, 0x0F, 0xFFFFFF00, 0xFF000000)
+	if burl.IsInside(sx, sy, xCamera, yCamera, gFactor*w, gFactor*h) {
+		sm.mapView.Draw((sx-xCamera)/gFactor, (sy-yCamera)/gFactor, burl.GLYPH_STAR, burl.COL_YELLOW, burl.COL_BLACK)
 	}
 
 	//draw player ship last to ensure nothing overwrites it
-	if util.IsInside(px, py, xCamera, yCamera, gFactor*w, gFactor*h) {
-		sm.mapView.Draw((px-xCamera)/gFactor, (py-yCamera)/gFactor, 0x02, 0xFFFFFFFF, 0xFF000000)
+	if burl.IsInside(px, py, xCamera, yCamera, gFactor*w, gFactor*h) {
+		sm.mapView.Draw((px-xCamera)/gFactor, (py-yCamera)/gFactor, burl.GLYPH_FACE2, burl.COL_WHITE, burl.COL_BLACK)
 	}
 }
 
@@ -225,7 +223,7 @@ func (sm *StarchartMenu) DrawSystem() {
 func (sm *StarchartMenu) MoveMapCursor(dx, dy int) {
 	if sm.mapMode == coord_SECTOR {
 		w, h := sm.mapView.Dims()
-		if util.CheckBounds(sm.xCursor+dx, sm.yCursor+dy, w, h) {
+		if burl.CheckBounds(sm.xCursor+dx, sm.yCursor+dy, w, h) {
 			sm.xCursor += dx
 			sm.yCursor += dy
 			sm.mapHighlight.MoveTo(sm.xCursor, sm.yCursor)
@@ -253,7 +251,7 @@ func (sm *StarchartMenu) ZoomIn() {
 		sm.UpdateLocalInfo()
 		sm.mapHighlight.Toggle()
 	} else {
-		sm.localZoom = util.Clamp(sm.localZoom+1, 0, 8)
+		sm.localZoom = burl.Clamp(sm.localZoom+1, 0, 8)
 		sm.mapView.Reset()
 	}
 

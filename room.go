@@ -1,8 +1,7 @@
 package main
 
 import "strconv"
-import "github.com/bennicholls/burl/core"
-import "github.com/bennicholls/burl/util"
+import "github.com/bennicholls/burl-E/burl"
 
 type Room struct {
 	Name string
@@ -10,11 +9,11 @@ type Room struct {
 	X, Y          int
 	Width, Height int
 
-	RoomMap *core.TileMap
+	RoomMap *burl.TileMap
 
 	connected []*Room
 
-	state            core.Stat //state of repair.
+	state            burl.Stat //state of repair.
 	upkeep           int       //periodic decay of repair state.
 	repairDifficulty int       //default time to repair by 1 unit.
 }
@@ -24,7 +23,7 @@ func NewRoom(name string, x, y, w, h, upkeep, repair int) *Room {
 	r.X, r.Y, r.Width, r.Height = x, y, w, h
 	r.Name = name
 
-	r.RoomMap = core.NewMap(r.Width, r.Height)
+	r.RoomMap = burl.NewMap(r.Width, r.Height)
 	for i := 0; i < r.Width*r.Height; i++ {
 		if i < r.Width || i%r.Width == 0 || i%r.Width == r.Width-1 || i/r.Width == r.Height-1 {
 			r.RoomMap.ChangeTileType(i%r.Width, i/r.Width, TILE_WALL)
@@ -35,7 +34,7 @@ func NewRoom(name string, x, y, w, h, upkeep, repair int) *Room {
 
 	r.upkeep = upkeep
 	r.repairDifficulty = repair
-	r.state = core.NewStat(100)
+	r.state = burl.NewStat(100)
 	r.connected = make([]*Room, 0, 10)
 
 	return r
@@ -52,7 +51,7 @@ func (r *Room) AddConnection(c *Room) {
 	}
 
 	//check if rooms intersect properly
-	x, y, w, h := util.FindIntersectionRect(c, r)
+	x, y, w, h := burl.FindIntersectionRect(c, r)
 	if w != 1 && h != 1 {
 		return
 	}

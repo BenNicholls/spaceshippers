@@ -2,7 +2,7 @@ package main
 
 import "math"
 import "math/rand"
-import "github.com/bennicholls/burl/util"
+import "github.com/bennicholls/burl-E/burl"
 
 //galaxy creation parameters
 const (
@@ -30,8 +30,8 @@ func NewGalaxy() (g *Galaxy) {
 	nonEmpty := 0
 	for i := 0; i < cap(g.sectors); i++ {
 		x, y := i%g.width, i/g.width
-		dist := math.Sqrt(float64(util.Distance(12, 12, x, y))) + rand.Float64()*2
-		density := util.Clamp(100-int(100.0*dist/galaxy_RADIUS), 0, 100)
+		dist := math.Sqrt(float64(burl.Distance(12, 12, x, y))) + rand.Float64()*2
+		density := burl.Clamp(100-int(100.0*dist/galaxy_RADIUS), 0, 100)
 		g.sectors = append(g.sectors, NewSector(x, y, density))
 		cumDens += density
 		if density > 0 {
@@ -50,7 +50,7 @@ func (g Galaxy) Dims() (int, int) {
 
 //Retreives sector at (x, y). Returns nil if x,y out of bounds (bad).
 func (g Galaxy) GetSector(x, y int) *Sector {
-	if !util.CheckBounds(x, y, coord_SECTOR_MAX, coord_SECTOR_MAX) {
+	if !burl.CheckBounds(x, y, coord_SECTOR_MAX, coord_SECTOR_MAX) {
 		return nil
 	}
 	return g.sectors[y*g.width+x]
@@ -101,7 +101,7 @@ func NewSector(x, y, density int) (s *Sector) {
 		name = "Galactic Core Space"
 	}
 	s.Location = Location{name, "Sectors are 1000x1000 lightyears! Wow!", loc_SECTOR, false, true, NewSectorCoordinate(x, y), 0, 0}
-	s.Density = util.Max(density, 0) //ensures density is at least 0
+	s.Density = burl.Max(density, 0) //ensures density is at least 0
 
 	s.subSectors = make(map[int]*SubSector)
 

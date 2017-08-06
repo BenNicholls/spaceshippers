@@ -1,10 +1,10 @@
 package main
 
-import "github.com/bennicholls/burl/core"
+import "github.com/bennicholls/burl-E/burl"
 
 type PropulsionSystem struct {
 	ship        *Ship
-	RepairState core.Stat //0 = broken. NOTE: Do systems break, or do rooms break? Think on this.
+	RepairState burl.Stat //0 = broken. NOTE: Do systems break, or do rooms break? Think on this.
 	Thrust      float64   //acceleration provided by the ship in m/s^2
 	FuelUse     int       //fuel used in 1 second while on
 	Firing      bool
@@ -13,7 +13,7 @@ type PropulsionSystem struct {
 func NewPropulsionSystem(s *Ship) *PropulsionSystem {
 	ps := new(PropulsionSystem)
 	ps.ship = s
-	ps.RepairState = core.NewStat(100)
+	ps.RepairState = burl.NewStat(100)
 	ps.Thrust = 10
 	ps.FuelUse = 2
 	ps.Firing = false

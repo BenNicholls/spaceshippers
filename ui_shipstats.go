@@ -1,16 +1,16 @@
 package main
 
-import "github.com/bennicholls/burl/ui"
+import "github.com/bennicholls/burl-E/burl"
 import "strconv"
 
 type ShipStatsWindow struct {
-	ui.Container
+	burl.Container
 
-	name        *ui.Textbox
-	speed       *ui.Textbox
-	fuel        *ui.ProgressBar
-	location    *ui.Textbox
-	destination *ui.Textbox
+	name        *burl.Textbox
+	speed       *burl.Textbox
+	fuel        *burl.ProgressBar
+	location    *burl.Textbox
+	destination *burl.Textbox
 
 	playerShip *Ship
 }
@@ -19,12 +19,12 @@ func NewShipStatsWindow(ship *Ship) *ShipStatsWindow {
 	ss := new(ShipStatsWindow)
 	ss.playerShip = ship
 
-	ss.Container = *ui.NewContainer(26, 12, 1, 32, 2, true)
-	ss.name = ui.NewTextbox(26, 1, 0, 0, 1, false, true, ss.playerShip.name)
-	ss.speed = ui.NewTextbox(26, 1, 0, 2, 1, false, false, "Speed: "+strconv.Itoa(ss.playerShip.GetSpeed()))
-	ss.fuel = ui.NewProgressBar(26, 1, 0, 3, 1, false, false, "", 0xFF008800)
-	ss.location = ui.NewTextbox(26, 1, 0, 10, 1, false, false, "")
-	ss.destination = ui.NewTextbox(26, 1, 0, 11, 1, false, false, "")
+	ss.Container = *burl.NewContainer(26, 12, 1, 32, 2, true)
+	ss.name = burl.NewTextbox(26, 1, 0, 0, 1, false, true, ss.playerShip.name)
+	ss.speed = burl.NewTextbox(26, 1, 0, 2, 1, false, false, "Speed: "+strconv.Itoa(ss.playerShip.GetSpeed()))
+	ss.fuel = burl.NewProgressBar(26, 1, 0, 3, 1, false, false, "", burl.COL_GREEN)
+	ss.location = burl.NewTextbox(26, 1, 0, 10, 1, false, false, "")
+	ss.destination = burl.NewTextbox(26, 1, 0, 11, 1, false, false, "")
 
 	ss.Add(ss.name, ss.speed, ss.fuel, ss.location, ss.destination)
 

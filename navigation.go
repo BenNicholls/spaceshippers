@@ -1,7 +1,7 @@
 package main
 
 import "math"
-import "github.com/bennicholls/burl/util"
+import "github.com/bennicholls/burl-E/burl"
 
 type NavigationSystem struct {
 	ship          *Ship
@@ -73,7 +73,7 @@ type Course struct {
 	totalTime int //time the course takes
 
 	startTime   int
-	startPos    util.Vec2
+	startPos    burl.Vec2
 	accelTime   int //time to stop accelerating
 	brakeTime   int //time to start braking
 	arrivaltime int //time of arrival
@@ -96,9 +96,9 @@ func (ns NavigationSystem) ComputeStraightCourse(V_f, B, D float64) (t_a, t_c, t
 		c = (2*D + (V_f*V_f+V_i*V_i)/(2*T) - V_f*V_i/T - B*(V_f+V_i) - T*B*B/2) / (V_f + V_i + T*B)
 	}
 
-	t_d = util.RoundFloatToInt(math.Sqrt((V_f*V_f+V_i*V_i)/2+T*T*c*c/4+T*D)/T - V_f/T - c/2)
-	t_a = util.RoundFloatToInt(math.Sqrt((V_f*V_f+V_i*V_i)/2+T*T*c*c/4+T*D)/T - V_i/T - c/2)
-	t_c = util.RoundFloatToInt(c)
+	t_d = burl.RoundFloatToInt(math.Sqrt((V_f*V_f+V_i*V_i)/2+T*T*c*c/4+T*D)/T - V_f/T - c/2)
+	t_a = burl.RoundFloatToInt(math.Sqrt((V_f*V_f+V_i*V_i)/2+T*T*c*c/4+T*D)/T - V_i/T - c/2)
+	t_c = burl.RoundFloatToInt(c)
 
 	return
 }

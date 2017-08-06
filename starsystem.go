@@ -1,6 +1,6 @@
 package main
 
-import "github.com/bennicholls/burl/util"
+import "github.com/bennicholls/burl-E/burl"
 import "math/rand"
 import "math"
 
@@ -21,7 +21,7 @@ func NewStarSystem(c Coordinates) (s *StarSystem) {
 	s.locationType = loc_STARSYSTEM
 	s.coords = c
 	s.coords.resolution = coord_STARSYSTEM
-	s.coords.starCoord = util.Coord{X: 500, Y: 500}
+	s.coords.starCoord = burl.Coord{X: 500, Y: 500}
 	s.Star = NewStar(s.coords, "The Sun", 695700e3, 1.988435e30)
 	s.Planets = make([]Planet, 0, 10)
 

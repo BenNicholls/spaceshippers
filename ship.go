@@ -1,7 +1,6 @@
 package main
 
-import "github.com/bennicholls/burl/core"
-import "github.com/bennicholls/burl/util"
+import "github.com/bennicholls/burl-E/burl"
 import "math/rand"
 
 type Ship struct {
@@ -14,12 +13,12 @@ type Ship struct {
 	Navigation *NavigationSystem
 
 	//status numbers.
-	Hull core.Stat
-	Fuel core.Stat
+	Hull burl.Stat
+	Fuel burl.Stat
 
-	Velocity util.Vec2Polar
+	Velocity burl.Vec2Polar
 
-	ShipMap *core.TileMap
+	ShipMap *burl.TileMap
 
 	X, Y, Width, Height int //bounding box of the ship on the shipMap
 	Volume              int //total floorspace volume of the ship
@@ -31,13 +30,13 @@ type Ship struct {
 //Inits a new Ship. For now, starts with a bridge and 6 crew.
 func NewShip(n string, g *Galaxy) *Ship {
 	s := new(Ship)
-	s.ShipMap = core.NewMap(100, 100)
+	s.ShipMap = burl.NewMap(100, 100)
 	s.Crew = make([]*Crewman, 6)
 	s.Rooms = make([]*Room, 0, 10)
 	s.Engine = NewPropulsionSystem(s)
 	s.Navigation = NewNavigationSystem(s, g)
 
-	s.Fuel = core.NewStat(1000000)
+	s.Fuel = burl.NewStat(1000000)
 
 	s.locationType = loc_SHIP
 	s.name = n
@@ -94,10 +93,10 @@ func (s *Ship) CalcShipDims() {
 	x2, y2 := 0, 0
 
 	for _, r := range s.Rooms {
-		s.X = util.Min(s.X, r.X)
-		x2 = util.Max(x2, r.X+r.Width)
-		s.Y = util.Min(s.Y, r.Y)
-		y2 = util.Max(y2, r.Y+r.Height)
+		s.X = burl.Min(s.X, r.X)
+		x2 = burl.Max(x2, r.X+r.Width)
+		s.Y = burl.Min(s.Y, r.Y)
+		y2 = burl.Max(y2, r.Y+r.Height)
 		s.Volume += (r.Width - 2) * (r.Height - 2)
 	}
 
@@ -110,7 +109,7 @@ func (s *Ship) PlaceCrew() {
 	for i, _ := range s.Crew {
 		start := s.Rooms[rand.Intn(len(s.Rooms))]
 		for {
-			rx, ry := util.GenerateCoord(start.X, start.Y, start.Width, start.Height)
+			rx, ry := burl.GenerateCoord(start.X, start.Y, start.Width, start.Height)
 			if s.ShipMap.GetTile(rx, ry).Empty() {
 				s.ShipMap.AddEntity(rx, ry, s.Crew[i])
 				s.Crew[i].MoveTo(rx, ry)
@@ -146,7 +145,7 @@ func (s *Ship) Update(spaceTime int) {
 	for i, _ := range s.Crew {
 		s.Crew[i].Update()
 		if spaceTime%20 == 0 && s.Crew[i].IsAwake() {
-			dx, dy := util.RandomDirection()
+			dx, dy := burl.RandomDirection()
 			if s.ShipMap.GetTile(s.Crew[i].X+dx, s.Crew[i].Y+dy).Empty() {
 				s.ShipMap.MoveEntity(s.Crew[i].X, s.Crew[i].Y, dx, dy)
 				s.Crew[i].Move(dx, dy)
