@@ -60,7 +60,7 @@ type SpaceshipGame struct {
 	galaxy     *Galaxy
 	playerShip *Ship
 
-	missionLog *MissionLog
+	missionLog []Mission
 }
 
 func NewSpaceshipGame() *SpaceshipGame {
@@ -84,15 +84,20 @@ func NewSpaceshipGame() *SpaceshipGame {
 	ss.starSystem = NewStarSystem(ss.GetCoords())
 	sg.playerShip.SetLocation(ss.starSystem.Planets[2]) //Earth!!
 
-	sg.missionLog = NewMissionLog()
-	sg.missionLog.Add(NewMission("Delivery", "Deliver the thing"))
+	sg.missionLog = make([]Mission, 0)
 
 	sg.SetupUI() //must be done after ship setup
 	sg.UpdateSpeedUI()
 
 	sg.CenterShip()
+	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[4], ss.starSystem.Star))
 
 	return sg
+}
+
+func (sg *SpaceshipGame) AddMission(m *Mission) {
+	sg.missionLog = append(sg.missionLog, *m)
+	sg.missionMenu.UpdateMissionList()
 }
 
 //Centers the map of the ship in the main view.
@@ -151,7 +156,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.SetupCrewMenu()
 	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)
 	sg.shipMenu = NewShipMenu()
-	sg.missionMenu = NewMissionMenu()
+	sg.missionMenu = NewMissionMenu(&sg.missionLog)
 
 	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar, sg.shipMenu, sg.starchartMenu)
 }
@@ -183,6 +188,10 @@ func (sg *SpaceshipGame) Update() {
 		if sg.playerShip.GetSpeed() != 0 && sg.spaceTime%100 == 0 {
 			sg.Stars.Shift()
 		}
+
+		for i := range sg.missionLog {
+			sg.missionLog[i].Update()
+		}
 	}
 
 	//update starchart if ship has moved
@@ -199,6 +208,11 @@ func (sg *SpaceshipGame) Update() {
 	if sg.activeMenu == sg.crewMenu && sg.crewDetails.IsVisible() {
 		sg.UpdateCrewDetails()
 	}
+
+	if sg.activeMenu == sg.missionMenu {
+		sg.missionMenu.Update()
+	}
+
 	sg.shipstatus.Update()
 	sg.missiontime.ChangeText(GetTimeString(sg.spaceTime))
 }

@@ -54,6 +54,8 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			sg.HandleKeypressCrewMenu(key)
 		case sg.starchartMenu:
 			sg.HandleKeypressStarchartMenu(key)
+		case sg.missionMenu:
+			sg.HandleKeypressMissionMenu(key)
 		default:
 			switch key {
 			case sdl.K_PAGEUP:
@@ -130,5 +132,16 @@ func (sg *SpaceshipGame) HandleKeypressStarchartMenu(key sdl.Keycode) {
 				sg.dialog = NewSetCourseDialog(sg.playerShip, l, sg.spaceTime)
 			}
 		}
+	}
+}
+
+func (sg *SpaceshipGame) HandleKeypressMissionMenu(key sdl.Keycode) {
+	switch key {
+	case sdl.K_UP:
+		sg.missionMenu.missionList.Prev()
+		sg.missionMenu.Update()
+	case sdl.K_DOWN:
+		sg.missionMenu.missionList.Next()
+		sg.missionMenu.Update()
 	}
 }

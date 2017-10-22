@@ -10,7 +10,7 @@ type StarSystem struct {
 	Location
 
 	Star    Star
-	Planets []Planet //Starsystems have max 10 planets. Right? Yeah sounds right.
+	Planets []Planet
 }
 
 func NewStarSystem(c Coordinates) (s *StarSystem) {
@@ -23,7 +23,7 @@ func NewStarSystem(c Coordinates) (s *StarSystem) {
 	s.coords.resolution = coord_STARSYSTEM
 	s.coords.starCoord = burl.Coord{X: 500, Y: 500}
 	s.Star = NewStar(s.coords, "The Sun", 695700e3, 1.988435e30)
-	s.Planets = make([]Planet, 0, 10)
+	s.Planets = make([]Planet, 0, 10) //Starsystems have max 10 planets, right? Yeah sounds about right.
 
 	s.Planets = append(s.Planets, NewPlanet(s.coords, 57.3e9, 2493e3, 3.301e23, "Mercury"))
 	s.Planets = append(s.Planets, NewPlanet(s.coords, 108.2e9, 6051e3, 4.867e24, "Venus"))
