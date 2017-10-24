@@ -8,11 +8,8 @@ type MissionMenu struct {
 	missionList      *burl.List
 	descriptionText  *burl.Textbox
 	statusText       *burl.Textbox
-	// startTimeText    *burl.Textbox
-	// deadlineTimeText *burl.Textbox
-	// missionGiverText *burl.Textbox
-	// stepsList        *burl.List
-	// missionLogList   *burl.List
+	goalList         *burl.List
+	criteriaList     *burl.List
 
 	missions *[]Mission
 }
@@ -24,10 +21,19 @@ func NewMissionMenu(m *[]Mission) *MissionMenu {
 	mm.Container = *burl.NewContainer(40, 26, 39, 4, 5, true)
 	mm.SetTitle("Missions")
 	mm.SetVisibility(false)
-	mm.missionList = burl.NewList(15, 26, 0, 0, 0, true, "No Missions To Do!")
-	mm.descriptionText = burl.NewTextbox(24, 4, 16, 1, 0, true, true, "")
-	mm.statusText = burl.NewTextbox(10, 1, 27, 12, 0, true, true, "")
-	mm.Add(mm.missionList, mm.descriptionText, mm.statusText)
+	mm.missionList = burl.NewList(10, 26, 0, 0, 0, false, "No Missions To Do!")
+	mm.statusText = burl.NewTextbox(29, 1, 11, 1, 0, true, true, "")
+	mm.descriptionText = burl.NewTextbox(29, 4, 11, 3, 0, true, true, "")
+
+	mm.goalList = burl.NewList(29, 8, 11, 8, 0, true, "Nothing to do???")
+	mm.goalList.SetTitle("TO DO")
+	mm.goalList.ToggleHighlight()
+
+	mm.criteriaList = burl.NewList(29, 8, 11, 17, 0, true, "Nothing to do???")
+	mm.criteriaList.SetTitle("CRITERIA")
+	mm.criteriaList.ToggleHighlight()
+
+	mm.Add(mm.missionList, mm.descriptionText, mm.statusText, mm.goalList, mm.criteriaList)
 
 	mm.UpdateMissionList()
 
@@ -37,7 +43,7 @@ func NewMissionMenu(m *[]Mission) *MissionMenu {
 func (mm *MissionMenu) UpdateMissionList() {
 	mm.missionList.ClearElements()
 	for _, mis := range *mm.missions {
-		mm.missionList.Add(burl.NewTextbox(15, 2, 0, 0, 0, false, false, mis.name))
+		mm.missionList.Add(burl.NewTextbox(10, 2, 0, 0, 0, false, false, mis.name))
 	}
 	mm.missionList.Calibrate()
 	mm.Update()
@@ -46,7 +52,7 @@ func (mm *MissionMenu) UpdateMissionList() {
 func (mm *MissionMenu) Update() {
 	if len(*mm.missions) != 0 {
 		m := (*mm.missions)[mm.missionList.GetSelection()]
-		mm.descriptionText.ChangeText(m.description)
+
 		switch m.status {
 		case goal_COMPLETE:
 			mm.statusText.ChangeText("Mission Successful!")
@@ -55,7 +61,30 @@ func (mm *MissionMenu) Update() {
 		case goal_INPROGRESS:
 			mm.statusText.ChangeText("Mission in Progress.")
 		}
+
+		mm.descriptionText.ChangeText(m.description)
+
+		//TODO: should not be rebuilding these lists all the damn time
+		mm.goalList.ClearElements()
+		for _, g := range m.steps {
+			step := burl.NewContainer(29, 3, 0, 0, 0, false)
+			step.Add(burl.NewTextbox(29, 1, 0, 0, 0, false, false, g.GetName()))
+			step.Add(burl.NewTextbox(28, 2, 1, 1, 0, false, false, "- " + g.GetDescription()))
+			mm.goalList.Add(step)
+		}
+
+		mm.criteriaList.ClearElements()
+		for _, c := range m.criteria {
+			criteria := burl.NewContainer(29, 3, 0, 0, 0, false)
+			criteria.Add(burl.NewTextbox(29, 1, 0, 0, 0, false, false, c.GetName()))
+			criteria.Add(burl.NewTextbox(28, 2, 1, 1, 0, false, false, "- " + c.GetDescription()))
+			mm.criteriaList.Add(criteria)
+		}
+
+		
 	} else {
 		mm.descriptionText.ChangeText("")
+		mm.goalList.ClearElements()
+		mm.criteriaList.ClearElements()
 	}
 }

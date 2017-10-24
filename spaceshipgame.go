@@ -91,6 +91,7 @@ func NewSpaceshipGame() *SpaceshipGame {
 
 	sg.CenterShip()
 	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[4], ss.starSystem.Star))
+	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[5], ss.starSystem.Planets[2]))
 
 	return sg
 }

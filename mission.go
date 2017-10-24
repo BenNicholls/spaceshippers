@@ -65,6 +65,8 @@ func (g *Goal) Update() {
 	}
 }
 
+//TODO: Implement some sort of "Dirty" flag so we can tell when a 
+//mission parameter has changed.
 type Mission struct {
 	Goal
 
@@ -138,7 +140,7 @@ type GoToStep struct {
 
 func NewGoToStep(s *Ship, d Locatable) (gs *GoToStep) {
 	gs = new(GoToStep)
-	gs.name = "Go to" + d.GetName()
+	gs.name = "Go to " + d.GetName()
 	gs.description = "Navigate your ship to " + d.GetName() + " safely. Or dangerously! As long as you get there."
 
 	gs.ship = s
