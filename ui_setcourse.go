@@ -36,7 +36,8 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 	sc.startTime = time
 	sc.done = false
 
-	sc.Container = *burl.NewContainer(58, 33, 11, 6, 50, true)
+	sc.Container = *burl.NewContainer(58, 33, 1, 1, 50, true)
+	sc.CenterInConsole()
 	sc.SetTitle("OFF WE GO!")
 	sc.ToggleFocus()
 

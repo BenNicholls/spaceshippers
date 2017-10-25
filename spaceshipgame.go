@@ -93,6 +93,9 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[4], ss.starSystem.Star))
 	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[5], ss.starSystem.Planets[2]))
 
+	welcomeMessage := "Hi Captain! Welcome to " + sg.playerShip.GetName() + "! I am the Ship Computer Interactive Parameter-Parsing Intelligence Entity, but you can call me SCIPPIE! "
+	sg.dialog = NewCommDialog("SCIPPIE", "The Captain of "+sg.playerShip.GetName(), "res/art/scippie.csv", welcomeMessage)
+
 	return sg
 }
 
@@ -151,7 +154,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.input.SetVisibility(false)
 	sg.input.SetTitle("SCIPPIE V6.18")
 
-	sg.output = burl.NewList(51, 12, 28, 32, 1, true, "The Ship Computer Interactive Parameter Parser/Interface Entity, or SCIPPIE, is your computerized second in command. Ask questions, give commands and observe your ship through the high-tech text-tacular wonders of 38th century UI technology! Ask SCIPPIE a question, or give him a command!")
+	sg.output = burl.NewList(51, 12, 28, 32, 1, true, "Nothing to report, Captain!")
 	sg.output.ToggleHighlight()
 
 	sg.SetupCrewMenu()

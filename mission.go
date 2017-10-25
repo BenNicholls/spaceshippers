@@ -65,7 +65,7 @@ func (g *Goal) Update() {
 	}
 }
 
-//TODO: Implement some sort of "Dirty" flag so we can tell when a 
+//TODO: Implement some sort of "Dirty" flag so we can tell when a
 //mission parameter has changed.
 type Mission struct {
 	Goal

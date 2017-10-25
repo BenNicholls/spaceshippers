@@ -5,11 +5,11 @@ import "github.com/bennicholls/burl-E/burl"
 type MissionMenu struct {
 	burl.Container
 
-	missionList      *burl.List
-	descriptionText  *burl.Textbox
-	statusText       *burl.Textbox
-	goalList         *burl.List
-	criteriaList     *burl.List
+	missionList     *burl.List
+	descriptionText *burl.Textbox
+	statusText      *burl.Textbox
+	goalList        *burl.List
+	criteriaList    *burl.List
 
 	missions *[]Mission
 }
@@ -69,7 +69,7 @@ func (mm *MissionMenu) Update() {
 		for _, g := range m.steps {
 			step := burl.NewContainer(29, 3, 0, 0, 0, false)
 			step.Add(burl.NewTextbox(29, 1, 0, 0, 0, false, false, g.GetName()))
-			step.Add(burl.NewTextbox(28, 2, 1, 1, 0, false, false, "- " + g.GetDescription()))
+			step.Add(burl.NewTextbox(28, 2, 1, 1, 0, false, false, "- "+g.GetDescription()))
 			mm.goalList.Add(step)
 		}
 
@@ -77,11 +77,10 @@ func (mm *MissionMenu) Update() {
 		for _, c := range m.criteria {
 			criteria := burl.NewContainer(29, 3, 0, 0, 0, false)
 			criteria.Add(burl.NewTextbox(29, 1, 0, 0, 0, false, false, c.GetName()))
-			criteria.Add(burl.NewTextbox(28, 2, 1, 1, 0, false, false, "- " + c.GetDescription()))
+			criteria.Add(burl.NewTextbox(28, 2, 1, 1, 0, false, false, "- "+c.GetDescription()))
 			mm.criteriaList.Add(criteria)
 		}
 
-		
 	} else {
 		mm.descriptionText.ChangeText("")
 		mm.goalList.ClearElements()
