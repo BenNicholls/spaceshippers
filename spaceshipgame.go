@@ -35,12 +35,7 @@ type SpaceshipGame struct {
 	starchartMenuButton *burl.Button
 	scippieMenuButton   *burl.Button
 
-	//submenus. these are stored always for fast switching.
-	//crew menu (F1)
-	crewMenu    *burl.Container
-	crewList    *burl.List
-	crewDetails *burl.Container
-
+	crewMenu      *CrewMenu      //crew menu (F1)
 	shipMenu      *ShipMenu      //shipmenu (F2)
 	missionMenu   *MissionMenu   //missionmenu (F3)
 	starchartMenu *StarchartMenu //starchart (F4)
@@ -157,7 +152,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.output = burl.NewList(51, 12, 28, 32, 1, true, "Nothing to report, Captain!")
 	sg.output.ToggleHighlight()
 
-	sg.SetupCrewMenu()
+	sg.crewMenu = NewCrewMenu(sg.playerShip)
 	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)
 	sg.shipMenu = NewShipMenu()
 	sg.missionMenu = NewMissionMenu(&sg.missionLog)
@@ -209,8 +204,8 @@ func (sg *SpaceshipGame) Update() {
 		}
 	}
 
-	if sg.activeMenu == sg.crewMenu && sg.crewDetails.IsVisible() {
-		sg.UpdateCrewDetails()
+	if sg.activeMenu == sg.crewMenu && sg.crewMenu.crewDetails.IsVisible() {
+		sg.crewMenu.UpdateCrewDetails()
 	}
 
 	if sg.activeMenu == sg.missionMenu {

@@ -2,34 +2,48 @@ package main
 
 import "github.com/bennicholls/burl-E/burl"
 
-func (sg *SpaceshipGame) SetupCrewMenu() {
-	sg.crewMenu = burl.NewContainer(20, 27, 59, 4, 3, true)
-	sg.crewMenu.SetTitle("Crew Roster")
-	sg.crewMenu.SetVisibility(false)
-	sg.crewMenu.ToggleFocus()
-	w, h := sg.crewMenu.Dims()
-	sg.crewList = burl.NewList(w, h, 0, 0, 0, false, "")
-	for _, c := range sg.playerShip.Crew {
-		sg.crewList.Append(c.Name)
-	}
-	sg.crewDetails = burl.NewContainer(w, 3*h/4, 0, h/4+1, 0, true)
-	sg.crewDetails.SetTitle("Crew Detail")
-	sg.crewDetails.SetVisibility(false)
-	sg.crewMenu.Add(sg.crewList, sg.crewDetails)
+type CrewMenu struct {
+	burl.Container
+
+	crewList    *burl.List
+	crewDetails *burl.Container
+
+	ship *Ship
 }
 
-func (sg *SpaceshipGame) UpdateCrewList() {
-	i := sg.crewList.GetSelection()
-	sg.crewList.ClearElements()
-	for _, c := range sg.playerShip.Crew {
-		sg.crewList.Append(c.Name)
+func NewCrewMenu(s *Ship) (cm *CrewMenu) {
+	cm = new(CrewMenu)
+	cm.ship = s
+
+	cm.Container = *burl.NewContainer(20, 27, 59, 4, 3, true)
+	cm.SetTitle("Crew Roster")
+	cm.SetVisibility(false)
+	cm.ToggleFocus()
+	w, h := cm.Dims()
+	cm.crewList = burl.NewList(w, h, 0, 0, 0, false, "")
+	for _, c := range cm.ship.Crew {
+		cm.crewList.Append(c.Name)
 	}
-	sg.crewList.Select(i)
+	cm.crewDetails = burl.NewContainer(w, 3*h/4, 0, h/4+1, 0, true)
+	cm.crewDetails.SetTitle("Crew Detail")
+	cm.crewDetails.SetVisibility(false)
+	cm.Add(cm.crewList, cm.crewDetails)
+
+	return
 }
 
-func (sg *SpaceshipGame) UpdateCrewDetails() {
-	c := sg.playerShip.Crew[sg.crewList.GetSelection()]
-	w, _ := sg.crewDetails.Dims()
+func (cm *CrewMenu) UpdateCrewList() {
+	i := cm.crewList.GetSelection()
+	cm.crewList.ClearElements()
+	for _, c := range cm.ship.Crew {
+		cm.crewList.Append(c.Name)
+	}
+	cm.crewList.Select(i)
+}
+
+func (cm *CrewMenu) UpdateCrewDetails() {
+	c := cm.ship.Crew[cm.crewList.GetSelection()]
+	w, _ := cm.crewDetails.Dims()
 
 	name := burl.NewTextbox(w, 1, 0, 0, 0, false, true, c.Name)
 	hp := burl.NewProgressBar(w, 1, 0, 3, 0, false, true, "HP: Lots", burl.COL_RED)
@@ -45,17 +59,17 @@ func (sg *SpaceshipGame) UpdateCrewDetails() {
 	}
 	job := burl.NewTextbox(w, 1, 0, 7, 0, false, false, jobstring)
 
-	sg.crewDetails.Add(name, hp, awake, status, job)
+	cm.crewDetails.Add(name, hp, awake, status, job)
 }
 
 //Toggles the crew detail view
 //TODO: this needs to reshape the crewlist to be constrained above the detail
 //view, but we can't do that until we add the ability to reshape ui elements in burl.
-func (sg *SpaceshipGame) ToggleCrewDetails() {
-	if sg.crewMenu.IsVisible() {
-		sg.crewDetails.ToggleVisible()
-		if sg.crewDetails.IsVisible() {
-			sg.UpdateCrewDetails()
+func (cm *CrewMenu) ToggleCrewDetails() {
+	if cm.IsVisible() {
+		cm.crewDetails.ToggleVisible()
+		if cm.crewDetails.IsVisible() {
+			cm.UpdateCrewDetails()
 		}
 	}
 }

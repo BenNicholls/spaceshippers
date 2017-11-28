@@ -102,11 +102,11 @@ func (sg *SpaceshipGame) HandleKeypressInput(key sdl.Keycode) {
 func (sg *SpaceshipGame) HandleKeypressCrewMenu(key sdl.Keycode) {
 	switch key {
 	case sdl.K_UP:
-		sg.crewList.Prev()
+		sg.crewMenu.crewList.Prev()
 	case sdl.K_DOWN:
-		sg.crewList.Next()
+		sg.crewMenu.crewList.Next()
 	case sdl.K_RETURN:
-		sg.ToggleCrewDetails()
+		sg.crewMenu.ToggleCrewDetails()
 	}
 }
 
