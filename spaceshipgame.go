@@ -1,14 +1,6 @@
 package main
 
 import "github.com/bennicholls/burl-E/burl"
-import "fmt"
-
-//time values in DIGITAL SECONDS. One digital day = 100000 seconds, which is 14% longer than a regular day.
-const (
-	MINUTE int = 100
-	HOUR   int = 10000
-	DAY    int = 100000
-)
 
 //load some tile data
 var TILE_FLOOR = burl.LoadTileData("Floor", true, true, burl.GLYPH_FILL_SPARSE, burl.COL_DARKGREY)
@@ -22,7 +14,7 @@ type SpaceshipGame struct {
 	input        *burl.Inputbox
 	output       *burl.List
 	shipstatus   *ShipStatsWindow
-	missiontime  *burl.Textbox
+	timeDisplay  *TimeDisplay
 	speeddisplay *burl.TileView
 	shipdisplay  *burl.TileView
 
@@ -44,7 +36,7 @@ type SpaceshipGame struct {
 	dialog     Dialog //dialog presented to the player. higher priority than everything else!
 
 	//Time Globals.
-	spaceTime int //measured in Standard Galactic Seconds
+	startTime int //time since launch, measured in Standard Galactic Seconds
 	simSpeed  int //4 speeds, plus pause (0)
 	paused    bool
 
@@ -61,10 +53,10 @@ type SpaceshipGame struct {
 func NewSpaceshipGame() *SpaceshipGame {
 	sg := new(SpaceshipGame)
 
-	sg.spaceTime = 0
 	sg.simSpeed = 1
 
 	sg.galaxy = NewGalaxy()
+	sg.startTime = sg.galaxy.spaceTime
 
 	sg.playerShip = NewShip("The Undestructable", sg.galaxy)
 	sg.playerShip.description = "This is your ship! Look at it's heroic hull valiantly floating amongst the stars. One could almost weep."
@@ -126,8 +118,8 @@ func (sg *SpaceshipGame) UpdateSpeedUI() {
 func (sg *SpaceshipGame) SetupUI() {
 	sg.window = burl.NewContainer(80, 45, 0, 0, 0, false)
 
-	sg.missiontime = burl.NewTextbox(8, 1, 1, 1, 2, true, true, "")
-	sg.speeddisplay = burl.NewTileView(8, 1, 1, 3, 3, true)
+	sg.timeDisplay = NewTimeDisplay(sg.galaxy)
+	sg.speeddisplay = burl.NewTileView(4, 1, 1, 4, 3, true)
 
 	sg.menubar = burl.NewContainer(69, 1, 12, 1, 1, false)
 	sg.crewMenuButton = burl.NewButton(9, 1, 1, 0, 1, true, true, "Crew")
@@ -157,7 +149,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.shipMenu = NewShipMenu()
 	sg.missionMenu = NewMissionMenu(&sg.missionLog)
 
-	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.missiontime, sg.menubar, sg.shipMenu, sg.starchartMenu)
+	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.timeDisplay, sg.menubar, sg.shipMenu, sg.starchartMenu)
 }
 
 func (sg *SpaceshipGame) Update() {
@@ -176,15 +168,15 @@ func (sg *SpaceshipGame) Update() {
 
 	//simulation!
 	for i := 0; i < sg.GetIncrement(); i++ {
-		sg.spaceTime++
-		sg.playerShip.Update(sg.spaceTime)
+		sg.galaxy.spaceTime++
+		sg.playerShip.Update(sg.GetTime())
 
 		for i := range sg.playerShip.Crew {
 			sg.playerShip.Crew[i].Update()
 		}
 
 		//need starfield shift speed controlled here (currently hardcoded to shift every 100 seconds as long as the ship is moving)
-		if sg.playerShip.GetSpeed() != 0 && sg.spaceTime%100 == 0 {
+		if sg.playerShip.GetSpeed() != 0 && sg.GetTick()%100 == 0 {
 			sg.Stars.Shift()
 		}
 
@@ -213,11 +205,7 @@ func (sg *SpaceshipGame) Update() {
 	}
 
 	sg.shipstatus.Update()
-	sg.missiontime.ChangeText(GetTimeString(sg.spaceTime))
-}
-
-func GetTimeString(t int) string {
-	return fmt.Sprintf("%.4d", t/100000) + "d:" + fmt.Sprintf("%.1d", (t/10000)%10) + "h:" + fmt.Sprintf("%.2d", (t/100)%100) + "m:" + fmt.Sprintf("%.2d", t%100) + "s"
+	sg.timeDisplay.Update()
 }
 
 func (sg *SpaceshipGame) Render() {
@@ -314,6 +302,12 @@ func (sg SpaceshipGame) GetIncrement() int {
 	}
 }
 
+//returns the number of simulated seconds since launch
 func (sg SpaceshipGame) GetTick() int {
-	return sg.spaceTime
+	return sg.galaxy.spaceTime - sg.startTime
+}
+
+//gets the time from the Galaxy
+func (sg SpaceshipGame) GetTime() int {
+	return sg.galaxy.spaceTime
 }

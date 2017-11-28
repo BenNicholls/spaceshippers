@@ -14,9 +14,10 @@ const (
 type Galaxy struct {
 	name          string //all good galaxies have names
 	width, height int
-	sectors       []*Sector
+	spaceTime     int //time since beginning of the Digital Era
 
-	starFactor int //number of stars per density level for a sector
+	sectors    []*Sector //galactic map data goes in here! potential for crazy hugeness in here
+	starFactor int       //number of stars per density level for a sector
 }
 
 func NewGalaxy() (g *Galaxy) {
@@ -25,6 +26,7 @@ func NewGalaxy() (g *Galaxy) {
 	g.width, g.height = coord_SECTOR_MAX, coord_SECTOR_MAX
 
 	g.sectors = make([]*Sector, 0, g.width*g.height)
+	g.spaceTime = 50*CYCLE + 80*DAY + 8*HOUR //start time for the game. super arbitrary.
 
 	cumDens := 0
 	nonEmpty := 0
