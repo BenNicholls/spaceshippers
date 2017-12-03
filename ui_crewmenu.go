@@ -15,16 +15,15 @@ func NewCrewMenu(s *Ship) (cm *CrewMenu) {
 	cm = new(CrewMenu)
 	cm.ship = s
 
-	cm.Container = *burl.NewContainer(20, 27, 59, 4, 3, true)
+	cm.Container = *burl.NewContainer(20, 26, 59, 4, 15, true)
 	cm.SetTitle("Crew Roster")
 	cm.SetVisibility(false)
-	cm.ToggleFocus()
-	w, h := cm.Dims()
-	cm.crewList = burl.NewList(w, h, 0, 0, 0, false, "")
+	w, _ := cm.Dims()
+	cm.crewList = burl.NewList(w, 6, 0, 0, 0, false, "")
 	for _, c := range cm.ship.Crew {
 		cm.crewList.Append(c.Name)
 	}
-	cm.crewDetails = burl.NewContainer(w, 3*h/4, 0, h/4+1, 0, true)
+	cm.crewDetails = burl.NewContainer(w, 19, 0, 7, 0, true)
 	cm.crewDetails.SetTitle("Crew Detail")
 	cm.crewDetails.SetVisibility(false)
 	cm.Add(cm.crewList, cm.crewDetails)

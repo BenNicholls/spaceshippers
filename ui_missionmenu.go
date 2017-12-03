@@ -18,18 +18,18 @@ func NewMissionMenu(m *[]Mission) *MissionMenu {
 	mm := new(MissionMenu)
 	mm.missions = m
 
-	mm.Container = *burl.NewContainer(40, 26, 39, 4, 5, true)
+	mm.Container = *burl.NewContainer(40, 26, 39, 4, 15, true)
 	mm.SetTitle("Missions")
 	mm.SetVisibility(false)
 	mm.missionList = burl.NewList(10, 26, 0, 0, 0, false, "No Missions To Do!")
-	mm.statusText = burl.NewTextbox(29, 1, 11, 1, 0, true, true, "")
-	mm.descriptionText = burl.NewTextbox(29, 4, 11, 3, 0, true, true, "")
+	mm.statusText = burl.NewTextbox(28, 1, 11, 1, 1, true, true, "")
+	mm.descriptionText = burl.NewTextbox(28, 4, 11, 3, 1, true, true, "")
 
-	mm.goalList = burl.NewList(29, 8, 11, 8, 0, true, "Nothing to do???")
+	mm.goalList = burl.NewList(28, 8, 11, 8, 1, true, "Nothing to do???")
 	mm.goalList.SetTitle("TO DO")
 	mm.goalList.ToggleHighlight()
 
-	mm.criteriaList = burl.NewList(29, 8, 11, 17, 0, true, "Nothing to do???")
+	mm.criteriaList = burl.NewList(28, 8, 11, 17, 1, true, "Nothing to do???")
 	mm.criteriaList.SetTitle("CRITERIA")
 	mm.criteriaList.ToggleHighlight()
 

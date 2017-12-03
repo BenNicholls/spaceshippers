@@ -9,7 +9,7 @@ type ShipMenu struct {
 func NewShipMenu() (sm *ShipMenu) {
 	sm = new(ShipMenu)
 
-	sm.Container = *burl.NewContainer(20, 27, 59, 4, 3, true)
+	sm.Container = *burl.NewContainer(20, 26, 59, 4, 15, true)
 	sm.SetTitle("Ship")
 	sm.SetVisibility(false)
 	sm.ToggleFocus()

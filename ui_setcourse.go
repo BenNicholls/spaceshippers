@@ -43,9 +43,9 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 
 	//left column
 	courseLabel := burl.NewTextbox(26, 1, 1, 0, 0, false, true, "Setting Course For:")
-	destName := burl.NewTextbox(26, 1, 1, 2, 0, true, true, d.GetName())
-	destDescription := burl.NewTextbox(26, 12, 1, 4, 0, true, true, d.GetDescription())
-	sc.places = burl.NewList(26, 14, 1, 18, 0, true, "Nothing in orbit! :(")
+	destName := burl.NewTextbox(26, 1, 1, 2, 1, true, true, d.GetName())
+	destDescription := burl.NewTextbox(26, 13, 1, 4, 1, true, true, d.GetDescription())
+	sc.places = burl.NewList(26, 14, 1, 18, 1, true, "Nothing in orbit! :(")
 	sc.Add(courseLabel, destName, destDescription, sc.places)
 
 	sc.distance = s.coords.CalcVector(d.GetCoords()).Distance * METERS_PER_LY
@@ -60,16 +60,16 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 	sc.travelSpeedText = burl.NewTextbox(26, 1, 30, 8, 3, false, false, "")
 	sc.arrivalTimeText = burl.NewTextbox(26, 1, 30, 9, 3, false, false, "")
 
-	sc.fuelGauge = burl.NewProgressBar(26, 1, 30, 12, 0, true, true, "", burl.COL_GREEN)
+	sc.fuelGauge = burl.NewProgressBar(26, 1, 30, 12, 1, true, true, "", burl.COL_GREEN)
 	sc.fuelGauge.SetProgress(50)
 
 	sc.Add(sc.travelSpeedText, sc.travelTimeText, sc.arrivalTimeText, sc.fuelGauge)
 
 	sc.UpdateCourse()
 
-	sc.goButton = burl.NewButton(20, 1, 33, 18, 0, true, true, "This Looks Good, Let's Go!!")
+	sc.goButton = burl.NewButton(20, 1, 33, 18, 1, true, true, "This Looks Good, Let's Go!!")
 	sc.goButton.ToggleFocus()
-	sc.cancelButton = burl.NewButton(20, 1, 33, 21, 0, true, true, "On Second Thought, nevermind.")
+	sc.cancelButton = burl.NewButton(20, 1, 33, 21, 2, true, true, "On Second Thought, nevermind.")
 
 	sc.Add(sc.goButton, sc.cancelButton)
 

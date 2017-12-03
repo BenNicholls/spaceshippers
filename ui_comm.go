@@ -25,7 +25,7 @@ func NewCommDialog(from, to, picFile, message string) (cd *CommDialog) {
 
 	cd.senderText = burl.NewTextbox(35, 1, 13, 0, 0, false, false, "FROM: "+from)
 	cd.recipientText = burl.NewTextbox(35, 1, 13, 1, 0, false, false, "TO: "+to)
-	cd.okayButton = burl.NewButton(6, 1, 0, 10, 0, true, true, "Sounds Good!")
+	cd.okayButton = burl.NewButton(6, 1, 0, 10, 1, true, true, "Sounds Good!")
 	w, _ := cd.Dims()
 	cd.okayButton.CenterX(w, 12)
 	cd.okayButton.ToggleFocus()

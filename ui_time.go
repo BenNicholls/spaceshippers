@@ -16,7 +16,7 @@ type TimeDisplay struct {
 func NewTimeDisplay(g *Galaxy) (td *TimeDisplay) {
 	td = new(TimeDisplay)
 
-	td.Container = *burl.NewContainer(10, 2, 1, 1, 2, true)
+	td.Container = *burl.NewContainer(10, 2, 1, 1, 10, true)
 	td.timeText = burl.NewTextbox(10, 1, 0, 0, 0, false, true, "")
 	td.dateText = burl.NewTextbox(10, 1, 0, 1, 0, false, true, "")
 

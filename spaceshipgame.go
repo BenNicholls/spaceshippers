@@ -119,15 +119,15 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.window = burl.NewContainer(80, 45, 0, 0, 0, false)
 
 	sg.timeDisplay = NewTimeDisplay(sg.galaxy)
-	sg.speeddisplay = burl.NewTileView(4, 1, 1, 4, 3, true)
+	sg.speeddisplay = burl.NewTileView(4, 1, 1, 4, 10, true)
 
-	sg.menubar = burl.NewContainer(69, 1, 12, 1, 1, false)
+	sg.menubar = burl.NewContainer(69, 1, 12, 1, 10, false)
 	sg.crewMenuButton = burl.NewButton(9, 1, 1, 0, 1, true, true, "Crew")
-	sg.shipMenuButton = burl.NewButton(9, 1, 12, 0, 1, true, true, "Ship")
+	sg.shipMenuButton = burl.NewButton(9, 1, 12, 0, 2, true, true, "Ship")
 	sg.missionMenuButton = burl.NewButton(9, 1, 23, 0, 1, true, true, "Missions")
-	sg.starchartMenuButton = burl.NewButton(9, 1, 34, 0, 1, true, true, "Star Chart")
+	sg.starchartMenuButton = burl.NewButton(9, 1, 34, 0, 2, true, true, "Star Chart")
 	sg.scippieMenuButton = burl.NewButton(9, 1, 45, 0, 1, true, true, "S.C.I.P.P.I.E.")
-	sg.mainMenuButton = burl.NewButton(9, 1, 56, 0, 1, true, true, "Main  Menu")
+	sg.mainMenuButton = burl.NewButton(9, 1, 56, 0, 2, true, true, "Main  Menu")
 	sg.menubar.Add(sg.crewMenuButton, sg.shipMenuButton, sg.missionMenuButton, sg.starchartMenuButton, sg.scippieMenuButton, sg.mainMenuButton)
 
 	sg.shipdisplay = burl.NewTileView(80, 28, 0, 3, 1, false)
@@ -136,12 +136,12 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.shipstatus = NewShipStatsWindow(sg.playerShip)
 
-	sg.input = burl.NewInputbox(50, 1, 15, 27, 2, true)
+	sg.input = burl.NewInputbox(50, 1, 15, 27, 100, true)
 	sg.input.ToggleFocus()
 	sg.input.SetVisibility(false)
 	sg.input.SetTitle("SCIPPIE V6.18")
 
-	sg.output = burl.NewList(51, 12, 28, 32, 1, true, "Nothing to report, Captain!")
+	sg.output = burl.NewList(51, 12, 28, 32, 10, true, "Nothing to report, Captain!")
 	sg.output.ToggleHighlight()
 
 	sg.crewMenu = NewCrewMenu(sg.playerShip)
