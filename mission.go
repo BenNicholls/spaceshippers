@@ -189,7 +189,7 @@ func NewStayAwayCriteria(s *Ship, d Locatable, dist float64) (sac *StayAwayCrite
 	}
 
 	sac.failure = func() bool {
-		if sac.ship.GetCoords().CalcVector(sac.destination.GetCoords()).LocalCoord().Mag() < sac.distance {
+		if sac.ship.GetCoords().CalcVector(sac.destination.GetCoords()).Local.Mag() < sac.distance {
 			return true
 		}
 

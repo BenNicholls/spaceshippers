@@ -22,11 +22,11 @@ func NewPropulsionSystem(s *Ship) *PropulsionSystem {
 }
 
 func (ps *PropulsionSystem) Update() {
-	if ps.Firing && ps.ship.Destination != nil {
+	if ps.Firing && ps.ship.destination != nil {
 		if ps.ship.Fuel.Get()-ps.FuelUse < 0 {
 			ps.Firing = false
 		} else {
-			switch ps.ship.Navigation.currentCourse.phase {
+			switch ps.ship.Navigation.CurrentCourse.Phase {
 			case phase_ACCEL:
 				ps.ship.Velocity.R += ps.Thrust
 			case phase_BRAKE:

@@ -6,7 +6,7 @@ import "github.com/bennicholls/burl-E/burl"
 type NavigationSystem struct {
 	ship          *Ship
 	galaxy        *Galaxy
-	currentCourse Course //computed course for the ship to take
+	CurrentCourse Course //computed course for the ship to take
 }
 
 func NewNavigationSystem(s *Ship, g *Galaxy) *NavigationSystem {
@@ -20,40 +20,40 @@ func NewNavigationSystem(s *Ship, g *Galaxy) *NavigationSystem {
 func (ns *NavigationSystem) Update(tick int) {
 	if ns.ship.Engine.Firing {
 		//keep ship on course magically. Kepler, Newton, all the physicists, I am SO SORRY.
-		targetVec := ns.ship.coords.CalcVector(ns.ship.Destination.GetCoords()).local.ToPolar()
+		targetVec := ns.ship.Coords.CalcVector(ns.ship.destination.GetCoords()).Local.ToPolar()
 		ns.ship.Velocity.Phi = targetVec.Phi
 
 		//phase transitions
-		switch ns.currentCourse.phase {
+		switch ns.CurrentCourse.Phase {
 		case phase_ACCEL:
-			if tick > ns.currentCourse.accelTime {
-				if tick > ns.currentCourse.brakeTime {
-					ns.currentCourse.phase = phase_BRAKE
+			if tick > ns.CurrentCourse.AccelTime {
+				if tick > ns.CurrentCourse.BrakeTime {
+					ns.CurrentCourse.Phase = phase_BRAKE
 				} else {
-					ns.currentCourse.phase = phase_COAST
+					ns.CurrentCourse.Phase = phase_COAST
 				}
 			}
 		case phase_COAST:
-			if tick > ns.currentCourse.brakeTime {
-				ns.currentCourse.phase = phase_BRAKE
+			if tick > ns.CurrentCourse.BrakeTime {
+				ns.CurrentCourse.Phase = phase_BRAKE
 			}
 		}
 	}
 
 	//change location if we move away,
-	if !ns.ship.coords.IsIn(ns.ship.CurrentLocation) {
-		ns.ship.CurrentLocation = ns.galaxy.GetLocation(ns.ship.coords)
+	if !ns.ship.Coords.IsIn(ns.ship.currentLocation) {
+		ns.ship.currentLocation = ns.galaxy.GetLocation(ns.ship.Coords)
 	}
 
 	//change destination/location when we arrive!
-	if ns.ship.coords.IsIn(ns.ship.Destination) {
-		ns.ship.CurrentLocation = ns.ship.Destination
-		if ns.ship.Velocity.R < ns.ship.Destination.GetVisitSpeed() {
+	if ns.ship.Coords.IsIn(ns.ship.destination) {
+		ns.ship.currentLocation = ns.ship.destination
+		if ns.ship.Velocity.R < ns.ship.destination.GetVisitSpeed() {
 			//if going slow enough while in range, stop the boat. TODO: put parking orbit code here.
-			ns.ship.Destination = nil
+			ns.ship.destination = nil
 			ns.ship.Velocity.R = 0
 			ns.ship.Engine.Firing = false
-			ns.currentCourse.done = true
+			ns.CurrentCourse.Done = true
 		}
 	}
 }
@@ -69,17 +69,17 @@ const (
 //Plan of action for the nav system
 type Course struct {
 	//precomputed factors, we'll see if they turn out to be right
-	fuelUse   int //amount of fuel the plan uses
-	totalTime int //time the course takes
+	FuelUse   int //amount of fuel the plan uses
+	TotalTime int //time the course takes
 
-	startTime   int
-	startPos    burl.Vec2
-	accelTime   int //time to stop accelerating
-	brakeTime   int //time to start braking
-	arrivaltime int //time of arrival
+	StartTime   int
+	StartPos    burl.Vec2
+	AccelTime   int //time to stop accelerating
+	BrakeTime   int //time to start braking
+	Arrivaltime int //time of arrival
 
-	phase CoursePhase
-	done  bool
+	Phase CoursePhase
+	Done  bool
 }
 
 //Computes the course parameters subject to a fuel limit
@@ -120,18 +120,18 @@ func (ns NavigationSystem) CalcMinBurnTime(V_f float64) float64 {
 
 //Returns a Course based on the parameters.
 func (ns NavigationSystem) ComputeCourse(d Locatable, fuelToUse, tick int) (course Course) {
-	course.startTime = tick
+	course.StartTime = tick
 	V_f := d.GetVisitSpeed()
 	B := float64(fuelToUse) / float64(ns.ship.Engine.FuelUse) //burn time available
-	D := ns.ship.coords.CalcVector(d.GetCoords()).local.Mag() + d.GetVisitDistance()
+	D := ns.ship.Coords.CalcVector(d.GetCoords()).Local.Mag() + d.GetVisitDistance()
 
 	t_a, t_c, t_d := ns.ComputeStraightCourse(V_f, B, D)
 
-	course.accelTime = tick + t_a
-	course.brakeTime = course.accelTime + t_c
-	course.totalTime = t_a + t_c + t_d
-	course.fuelUse = (t_a + t_d) * ns.ship.Engine.FuelUse
-	course.arrivaltime = tick + course.totalTime
+	course.AccelTime = tick + t_a
+	course.BrakeTime = course.AccelTime + t_c
+	course.TotalTime = t_a + t_c + t_d
+	course.FuelUse = (t_a + t_d) * ns.ship.Engine.FuelUse
+	course.Arrivaltime = tick + course.TotalTime
 
 	return
 }

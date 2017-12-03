@@ -13,9 +13,9 @@ type Room struct {
 
 	connected []*Room
 
-	state            burl.Stat //state of repair.
-	upkeep           int       //periodic decay of repair state.
-	repairDifficulty int       //default time to repair by 1 unit.
+	RepairState      burl.Stat //state of repair.
+	Upkeep           int       //periodic decay of repair state.
+	RepairDifficulty int       //default time to repair by 1 unit.
 }
 
 func NewRoom(name string, x, y, w, h, upkeep, repair int) *Room {
@@ -32,9 +32,9 @@ func NewRoom(name string, x, y, w, h, upkeep, repair int) *Room {
 		}
 	}
 
-	r.upkeep = upkeep
-	r.repairDifficulty = repair
-	r.state = burl.NewStat(100)
+	r.Upkeep = upkeep
+	r.RepairDifficulty = repair
+	r.RepairState = burl.NewStat(100)
 	r.connected = make([]*Room, 0, 10)
 
 	return r
@@ -43,6 +43,11 @@ func NewRoom(name string, x, y, w, h, upkeep, repair int) *Room {
 //Tries to connect room to another. Finds the intersection of the two rooms and puts doors there!
 //If rooms not properly lined up, does nothing.
 func (r *Room) AddConnection(c *Room) {
+	//ensure room isn't trying to connect with itself
+	if r == c {
+		return
+	}
+
 	//check if room is already connected
 	for _, room := range r.connected {
 		if room == c {
@@ -85,28 +90,28 @@ func (r *Room) RemoveConnection(c *Room) {
 
 func (r Room) GetStatus() string {
 	roomstatus := r.Name + ": Status "
-	if r.state.Get() > 80 {
+	if r.RepairState.Get() > 80 {
 		roomstatus += "NOMINAL."
-	} else if r.state.Get() > 50 {
+	} else if r.RepairState.Get() > 50 {
 		roomstatus += "FINE."
-	} else if r.state.Get() > 20 {
+	} else if r.RepairState.Get() > 20 {
 		roomstatus += "NEEDS REPAIR."
-	} else if r.state.Get() > 0 {
+	} else if r.RepairState.Get() > 0 {
 		roomstatus += "CRITICAL."
 	} else {
 		roomstatus += "DESTROYED."
 	}
 
-	roomstatus += " (" + strconv.Itoa(r.state.Get()) + "/100)"
+	roomstatus += " (" + strconv.Itoa(r.RepairState.Get()) + "/100)"
 
 	return roomstatus
 }
 
 func (r *Room) ApplyUpkeep(spaceTime int) {
-	if r.upkeep == 0 {
+	if r.Upkeep == 0 {
 		return
-	} else if spaceTime%r.upkeep == 0 {
-		r.state.Mod(-1)
+	} else if spaceTime%r.Upkeep == 0 {
+		r.RepairState.Mod(-1)
 	}
 }
 

@@ -11,23 +11,23 @@ type Job interface {
 }
 
 type Task struct {
-	name         string
-	desc         string
-	duration     int
-	timeInvested int
+	Name         string
+	Desc         string
+	Duration     int
+	TimeInvested int
 	worker       *Crewman //person doing the job, nil if not being done.
 }
 
 func (t Task) GetDuration() int {
-	return t.duration
+	return t.Duration
 }
 
 func (t Task) GetName() string {
-	return t.name
+	return t.Name
 }
 
 func (t Task) GetDescription() string {
-	return t.desc
+	return t.Desc
 }
 
 //when job is finished, release the lowly slave who completed it.
@@ -36,7 +36,7 @@ func (t Task) OnEnd() {
 }
 
 func (t *Task) OnTick() {
-	t.timeInvested++
+	t.TimeInvested++
 }
 
 //TODO: this is a thing that should not be...
@@ -48,30 +48,30 @@ func (t *Task) SetWorker(w *Crewman) {
 	t.worker = w
 }
 
-type RepairRoomJob struct {
-	Task
-	location *Room
-}
+// type RepairRoomJob struct {
+// 	Task
+// 	location *Room
+// }
 
-func NewRepairRoomJob(r *Room) *RepairRoomJob {
-	return &RepairRoomJob{Task{"Repair", "Repairing " + r.Name, 0, 0, nil}, r}
-}
+// func NewRepairRoomJob(r *Room) *RepairRoomJob {
+// 	return &RepairRoomJob{Task{"Repair", "Repairing " + r.Name, 0, 0, nil}, r}
+// }
 
-func (rj *RepairRoomJob) OnTick() {
-	rj.Task.OnTick()
+// func (rj *RepairRoomJob) OnTick() {
+// 	rj.Task.OnTick()
 
-	if rj.timeInvested%rj.location.repairDifficulty == 0 {
-		rj.location.state.Mod(1)
-		if rj.location.state.IsMax() {
-			rj.OnEnd()
-		}
-	}
-}
+// 	if rj.TimeInvested%rj.location.repairDifficulty == 0 {
+// 		rj.location.state.Mod(1)
+// 		if rj.location.state.IsMax() {
+// 			rj.OnEnd()
+// 		}
+// 	}
+// }
 
-func (rj *RepairRoomJob) OnEnd() {
-	//AddMessage("Repair of " + rj.location.name + " by " + rj.worker.Name + " completed.")
-	rj.Task.OnEnd()
-}
+// func (rj *RepairRoomJob) OnEnd() {
+// 	//AddMessage("Repair of " + rj.location.name + " by " + rj.worker.Name + " completed.")
+// 	rj.Task.OnEnd()
+// }
 
 type SleepJob struct {
 	Task

@@ -18,13 +18,17 @@ func main() {
 	}
 	defer console.Cleanup()
 
-	//console.SetFullscreen()
+	console.SetFullscreen()
 
-	burl.InitState(NewSpaceshipGame())
+	ssg := NewSpaceshipGame()
+
+	burl.InitState(ssg)
 	err = burl.GameLoop()
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
+	ssg.SaveShip()
 }

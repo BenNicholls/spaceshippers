@@ -128,7 +128,7 @@ func (sg *SpaceshipGame) HandleKeypressStarchartMenu(key sdl.Keycode) {
 		if sg.starchartMenu.mapMode == coord_LOCAL {
 			sg.starchartMenu.systemSetCourseButton.Press()
 			l := sg.starchartMenu.systemLocations[sg.starchartMenu.systemLocationsList.GetSelection()]
-			if l != sg.playerShip && l != sg.playerShip.CurrentLocation {
+			if l != sg.playerShip && l != sg.playerShip.currentLocation {
 				sg.dialog = NewSetCourseDialog(sg.playerShip, l, sg.GetTime())
 			}
 		}

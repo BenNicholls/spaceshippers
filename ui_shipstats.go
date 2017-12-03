@@ -20,7 +20,7 @@ func NewShipStatsWindow(ship *Ship) *ShipStatsWindow {
 	ss.playerShip = ship
 
 	ss.Container = *burl.NewContainer(26, 12, 1, 32, 10, true)
-	ss.name = burl.NewTextbox(26, 1, 0, 0, 1, false, true, ss.playerShip.name)
+	ss.name = burl.NewTextbox(26, 1, 0, 0, 1, false, true, ss.playerShip.Name)
 	ss.speed = burl.NewTextbox(26, 1, 0, 2, 1, false, false, "Speed: "+strconv.Itoa(ss.playerShip.GetSpeed()))
 	ss.fuel = burl.NewProgressBar(26, 1, 0, 3, 1, false, false, "", burl.COL_GREEN)
 	ss.location = burl.NewTextbox(26, 1, 0, 10, 1, false, false, "")
@@ -32,7 +32,7 @@ func NewShipStatsWindow(ship *Ship) *ShipStatsWindow {
 }
 
 func (ss *ShipStatsWindow) Update() {
-	ss.name.ChangeText(ss.playerShip.name)
+	ss.name.ChangeText(ss.playerShip.Name)
 
 	speed := float64(ss.playerShip.GetSpeed())
 	switch {
@@ -49,13 +49,13 @@ func (ss *ShipStatsWindow) Update() {
 
 	locString := "Location: "
 	dstString := "Destination: "
-	if ss.playerShip.CurrentLocation != nil {
-		locString += ss.playerShip.CurrentLocation.GetName()
+	if ss.playerShip.currentLocation != nil {
+		locString += ss.playerShip.currentLocation.GetName()
 	} else {
 		locString += "NO LOCATION. HOW'D YOU DO THIS."
 	}
-	if ss.playerShip.Destination != nil {
-		dstString += ss.playerShip.Destination.GetName()
+	if ss.playerShip.destination != nil {
+		dstString += ss.playerShip.destination.GetName()
 	} else {
 		dstString += "NO DESTINATION. Let's go somewhere!!"
 	}

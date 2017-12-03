@@ -59,20 +59,20 @@ func (g Galaxy) GetSector(x, y int) *Sector {
 }
 
 func (g Galaxy) GetLocation(c Coordinates) Locatable {
-	sector := g.GetSector(c.Sector().Get())
-	if c.resolution == coord_SECTOR {
+	sector := g.GetSector(c.Sector.Get())
+	if c.Resolution == coord_SECTOR {
 		return sector
 	}
 
-	subsector := sector.GetSubSector(c.SubSector().Get())
-	if c.resolution == coord_SUBSECTOR {
+	subsector := sector.GetSubSector(c.SubSector.Get())
+	if c.Resolution == coord_SUBSECTOR {
 		return subsector
 	}
 
 	if !subsector.HasStar() {
 		return subsector
 	} else {
-		if star := subsector.starSystem; star.coords.StarCoord() == c.StarCoord() {
+		if star := subsector.starSystem; star.Coords.StarCoord == c.StarCoord {
 			return star
 		} else {
 			return subsector
@@ -112,7 +112,7 @@ func NewSector(x, y, density int) (s *Sector) {
 
 //generates the name of the sector based on its (x, y).
 func (s Sector) ProperName() string {
-	x, y := s.coords.GetCoordStrings()
+	x, y := s.Coords.GetCoordStrings()
 	return x + "-" + y
 }
 
@@ -132,9 +132,9 @@ func (s *Sector) GenerateSubSector(x, y int) *SubSector {
 	}
 
 	ss := new(SubSector)
-	ss.coords = s.coords
-	ss.coords.resolution = coord_SUBSECTOR
-	ss.coords.subSector.MoveTo(x, y)
+	ss.Coords = s.Coords
+	ss.Coords.Resolution = coord_SUBSECTOR
+	ss.Coords.SubSector.MoveTo(x, y)
 
 	//PUT STAR GENERATION CODE HERE WHY DON'T YOU.
 

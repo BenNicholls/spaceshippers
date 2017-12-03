@@ -1,14 +1,20 @@
 package main
 
 import "github.com/bennicholls/burl-E/burl"
+import "os"
+import "encoding/gob"
 
 //load some tile data
 var TILE_FLOOR = burl.LoadTileData("Floor", true, true, burl.GLYPH_FILL_SPARSE, burl.COL_DARKGREY)
 var TILE_WALL = burl.LoadTileData("Wall", false, false, burl.GLYPH_HASH, burl.COL_GREY)
 var TILE_DOOR = burl.LoadTileData("Door", true, false, burl.GLYPH_IDENTICAL, burl.COL_GREY)
 
-type SpaceshipGame struct {
+func init() {
+	//need to register types that might be hidden by an interface, in order for them to be serializable
+	gob.Register(&SleepJob{})
+}
 
+type SpaceshipGame struct {
 	//ui stuff
 	window       *burl.Container
 	input        *burl.Inputbox
@@ -59,13 +65,6 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.startTime = sg.galaxy.spaceTime
 
 	sg.playerShip = NewShip("The Undestructable", sg.galaxy)
-	sg.playerShip.description = "This is your ship! Look at it's heroic hull valiantly floating amongst the stars. One could almost weep."
-	sg.playerShip.AddRoom(NewRoom("Engineering", 5, 8, 5, 8, 700, 1000))
-	sg.playerShip.AddRoom(NewRoom("Messhall", 15, 5, 6, 6, 1000, 500))
-	sg.playerShip.AddRoom(NewRoom("Medbay", 9, 5, 6, 6, 1000, 700))
-	sg.playerShip.AddRoom(NewRoom("Quarters 1", 15, 13, 6, 6, 900, 500))
-	sg.playerShip.AddRoom(NewRoom("Quarters 2", 9, 13, 6, 6, 900, 500))
-	sg.playerShip.AddRoom(NewRoom("Hallway", 9, 10, 12, 4, 0, 500))
 
 	ss := sg.galaxy.GetSector(8, 8).GenerateSubSector(250, 171)
 	ss.starSystem = NewStarSystem(ss.GetCoords())
@@ -74,9 +73,8 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.missionLog = make([]Mission, 0)
 
 	sg.SetupUI() //must be done after ship setup
-	sg.UpdateSpeedUI()
-
 	sg.CenterShip()
+
 	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[4], ss.starSystem.Star))
 	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[5], ss.starSystem.Planets[2]))
 
@@ -94,8 +92,8 @@ func (sg *SpaceshipGame) AddMission(m *Mission) {
 //Centers the map of the ship in the main view.
 func (sg *SpaceshipGame) CenterShip() {
 	displayWidth, displayHeight := sg.shipdisplay.Dims()
-	sg.viewX = displayWidth/2 - sg.playerShip.Width/2 - sg.playerShip.X
-	sg.viewY = displayHeight/2 - sg.playerShip.Height/2 - sg.playerShip.Y
+	sg.viewX = displayWidth/2 - sg.playerShip.width/2 - sg.playerShip.x
+	sg.viewY = displayHeight/2 - sg.playerShip.height/2 - sg.playerShip.y
 	if sg.activeMenu != nil {
 		w, _ := sg.activeMenu.Dims()
 		sg.viewX -= w / 2
@@ -150,6 +148,8 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.missionMenu = NewMissionMenu(&sg.missionLog)
 
 	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.timeDisplay, sg.menubar, sg.shipMenu, sg.starchartMenu)
+
+	sg.UpdateSpeedUI()
 }
 
 func (sg *SpaceshipGame) Update() {
@@ -164,7 +164,7 @@ func (sg *SpaceshipGame) Update() {
 		}
 	}
 
-	startCoords := sg.playerShip.coords
+	startCoords := sg.playerShip.Coords
 
 	//simulation!
 	for i := 0; i < sg.GetIncrement(); i++ {
@@ -188,8 +188,8 @@ func (sg *SpaceshipGame) Update() {
 	//update starchart if ship has moved
 	if sg.activeMenu == sg.starchartMenu && sg.playerShip.GetSpeed() != 0 {
 		sg.starchartMenu.Update()
-		delta := startCoords.CalcVector(sg.playerShip.coords)
-		if sec := delta.Sector(); sg.starchartMenu.mapMode == coord_SECTOR && (sec.X != 0 || sec.Y != 0) {
+		delta := startCoords.CalcVector(sg.playerShip.Coords)
+		if sec := delta.Sector; sg.starchartMenu.mapMode == coord_SECTOR && (sec.X != 0 || sec.Y != 0) {
 			sg.starchartMenu.DrawMap()
 		} else if sg.starchartMenu.mapMode == coord_LOCAL {
 			sg.starchartMenu.DrawSystem() //should we really do this every update tick??? ugh.
@@ -211,7 +211,7 @@ func (sg *SpaceshipGame) Update() {
 func (sg *SpaceshipGame) Render() {
 	sg.Stars.Draw()
 
-	w, h := sg.playerShip.ShipMap.Dims()
+	w, h := sg.playerShip.shipMap.Dims()
 	x, y := 0, 0
 	displayWidth, displayHeight := sg.shipdisplay.Dims()
 
@@ -221,13 +221,13 @@ func (sg *SpaceshipGame) Render() {
 		y = i/w + sg.viewY
 
 		if burl.CheckBounds(x, y, displayWidth, displayHeight) {
-			t := sg.playerShip.ShipMap.GetTile(i%w, i/w)
-			if t.TileType() != 0 {
+			t := sg.playerShip.shipMap.GetTile(i%w, i/w)
+			if t.TileType != 0 {
 				tv := t.GetVisuals()
 				sg.shipdisplay.Draw(x, y, tv.Glyph, tv.ForeColour, burl.COL_BLACK)
 			}
 
-			if e := sg.playerShip.ShipMap.GetEntity(i%w, i/w); e != nil {
+			if e := sg.playerShip.shipMap.GetEntity(i%w, i/w); e != nil {
 				sg.shipdisplay.Draw(x, y, e.GetVisuals().Glyph, e.GetVisuals().ForeColour, burl.COL_BLACK)
 			}
 		}
@@ -310,4 +310,42 @@ func (sg SpaceshipGame) GetTick() int {
 //gets the time from the Galaxy
 func (sg SpaceshipGame) GetTime() int {
 	return sg.galaxy.spaceTime
+}
+
+func (sg *SpaceshipGame) SaveShip() {
+	f, err := os.Create("savefile")
+	if err != nil {
+		burl.LogError("Could not open file for saving: " + err.Error())
+	}
+	defer f.Close()
+
+	enc := gob.NewEncoder(f)
+	err = enc.Encode(sg.playerShip)
+	if err != nil {
+		burl.LogError("Could not save ship: " + err.Error())
+	}
+}
+
+func (sg *SpaceshipGame) LoadShip() {
+	f, err := os.Open("savefile")
+	if err != nil {
+		burl.LogError("Could not open file for loading: " + err.Error())
+	}
+	defer f.Close()
+
+	s := new(Ship)
+
+	dec := gob.NewDecoder(f)
+	err = dec.Decode(s)
+	if err != nil {
+		burl.LogError("Could not load ship: " + err.Error())
+	}
+
+	//data loaded, now to re-init everything
+	s.SetupShip(sg.galaxy)
+
+	//load complete, make the switch!!
+	sg.playerShip = s
+
+	sg.SetupUI()
 }

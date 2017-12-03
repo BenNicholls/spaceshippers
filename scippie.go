@@ -22,6 +22,8 @@ func (sg *SpaceshipGame) Execute() {
 		burl.DebugToggleRenderChangeView()
 	case "debug.fuel":
 		sg.playerShip.Fuel.Set(sg.playerShip.Fuel.Max())
+	case "debug.load":
+		sg.LoadShip()
 	case "debug.list":
 		sg.output.Append("Valid debug commands are as follows. Invoke with debug.command")
 		sg.output.Append("   fps       toggle fps counter")

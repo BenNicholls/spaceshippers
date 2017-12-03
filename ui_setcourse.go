@@ -48,7 +48,7 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 	sc.places = burl.NewList(26, 14, 1, 18, 1, true, "Nothing in orbit! :(")
 	sc.Add(courseLabel, destName, destDescription, sc.places)
 
-	sc.distance = s.coords.CalcVector(d.GetCoords()).Distance * METERS_PER_LY
+	sc.distance = s.Coords.CalcVector(d.GetCoords()).Distance * METERS_PER_LY
 	distanceText := burl.NewTextbox(26, 1, 30, 2, 0, false, false, "Distance: "+strconv.Itoa(int(sc.distance/1000))+" km")
 	orbitText := burl.NewTextbox(26, 1, 30, 3, 3, false, false, "Required Speed to Orbit: "+strconv.Itoa(int(d.GetVisitSpeed()/1000))+" km/s")
 	shipSpeedText := burl.NewTextbox(26, 1, 30, 4, 3, false, false, "Current Ship Speed: "+strconv.Itoa(s.GetSpeed())+" m/s")
@@ -108,11 +108,11 @@ func (sc *SetCourseDialog) UpdateCourse() {
 	c := sc.ship.Navigation.ComputeCourse(sc.destination, maxFuel*sc.fuelGauge.GetProgress()/100, sc.startTime)
 
 	sc.fuelGauge.ChangeText("Fuel to burn: " + strconv.Itoa(maxFuel*sc.fuelGauge.GetProgress()/100))
-	sc.travelTimeText.ChangeText("Travel Time: " + GetTimeString(c.totalTime))
+	sc.travelTimeText.ChangeText("Travel Time: " + GetTimeString(c.TotalTime))
 
-	speed := sc.ship.GetSpeed() + int(float64(c.accelTime-c.startTime)*sc.ship.Engine.Thrust)
+	speed := sc.ship.GetSpeed() + int(float64(c.AccelTime-c.StartTime)*sc.ship.Engine.Thrust)
 	sc.travelSpeedText.ChangeText("Max Travel Speed: " + strconv.Itoa(speed/1000) + " km/s")
-	sc.arrivalTimeText.ChangeText("Arrival Time: " + GetTimeString(c.arrivaltime))
+	sc.arrivalTimeText.ChangeText("Arrival Time: " + GetTimeString(c.Arrivaltime))
 
 	sc.course = c
 }
