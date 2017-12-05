@@ -51,9 +51,8 @@ type SpaceshipGame struct {
 	viewX, viewY int
 
 	galaxy     *Galaxy
-	playerShip *Ship
-
-	missionLog []Mission
+	player     *Player
+	playerShip *Ship //THINK: do we need this? it's just a pointer to player.Spaceship
 }
 
 func NewSpaceshipGame() *SpaceshipGame {
@@ -64,13 +63,13 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.galaxy = NewGalaxy()
 	sg.startTime = sg.galaxy.spaceTime
 
-	sg.playerShip = NewShip("The Undestructable", sg.galaxy)
+	sg.player = NewPlayer("Ol Cappy")
+	sg.player.SpaceShip = NewShip("The Undestructable", sg.galaxy)
+	sg.playerShip = sg.player.SpaceShip
 
 	ss := sg.galaxy.GetSector(8, 8).GenerateSubSector(250, 171)
 	ss.starSystem = NewStarSystem(ss.GetCoords())
 	sg.playerShip.SetLocation(ss.starSystem.Planets[2]) //Earth!!
-
-	sg.missionLog = make([]Mission, 0)
 
 	sg.SetupUI() //must be done after ship setup
 	sg.CenterShip()
@@ -79,13 +78,15 @@ func NewSpaceshipGame() *SpaceshipGame {
 	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[5], ss.starSystem.Planets[2]))
 
 	welcomeMessage := "Hi Captain! Welcome to " + sg.playerShip.GetName() + "! I am the Ship Computer Interactive Parameter-Parsing Intelligence Entity, but you can call me SCIPPIE! "
-	sg.dialog = NewCommDialog("SCIPPIE", "The Captain of "+sg.playerShip.GetName(), "res/art/scippie.csv", welcomeMessage)
+	sg.dialog = NewCommDialog("SCIPPIE", sg.player.Name + ", Captain of "+sg.playerShip.GetName(), "res/art/scippie.csv", welcomeMessage)
 
 	return sg
 }
 
+//Adds a mission to the player's list.
+//THINK ABOUT: this could be a method for the player object??? Then how does UI get updated? mm.
 func (sg *SpaceshipGame) AddMission(m *Mission) {
-	sg.missionLog = append(sg.missionLog, *m)
+	sg.player.MissionLog = append(sg.player.MissionLog, *m)
 	sg.missionMenu.UpdateMissionList()
 }
 
@@ -145,7 +146,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.crewMenu = NewCrewMenu(sg.playerShip)
 	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)
 	sg.shipMenu = NewShipMenu()
-	sg.missionMenu = NewMissionMenu(&sg.missionLog)
+	sg.missionMenu = NewMissionMenu(&sg.player.MissionLog)
 
 	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.timeDisplay, sg.menubar, sg.shipMenu, sg.starchartMenu)
 
@@ -180,8 +181,8 @@ func (sg *SpaceshipGame) Update() {
 			sg.Stars.Shift()
 		}
 
-		for i := range sg.missionLog {
-			sg.missionLog[i].Update()
+		for i := range sg.player.MissionLog {
+			sg.player.MissionLog[i].Update()
 		}
 	}
 
@@ -345,6 +346,7 @@ func (sg *SpaceshipGame) LoadShip() {
 	s.SetupShip(sg.galaxy)
 
 	//load complete, make the switch!!
+	sg.player.SpaceShip = s
 	sg.playerShip = s
 
 	sg.SetupUI()
