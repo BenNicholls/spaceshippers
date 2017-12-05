@@ -1,16 +1,18 @@
 package main
 
 type Player struct {
-	Name string //players name, also name of their save file
-	Credit int  //money to player's name. 
+	Person
+
+	Credit int //money to player's name.
 
 	MissionLog []Mission
-	SpaceShip *Ship
+	SpaceShip  *Ship
 }
 
 func NewPlayer(n string) (p *Player) {
 	p = new(Player)
 	p.Name = n
+	p.Ptype = PERSON_PLAYER
 
 	p.MissionLog = make([]Mission, 0, 20) //20 max missions? Should be fine.
 	return

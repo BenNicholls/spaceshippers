@@ -13,6 +13,7 @@ func init() {
 
 type Crewman struct {
 	burl.BurlEntity
+	Person
 
 	//defining characteristics of various types
 	HP        burl.Stat
@@ -28,6 +29,7 @@ func NewCrewman() *Crewman {
 	c.HP = burl.NewStat(100)
 	c.Awakeness = burl.NewStat((rand.Intn(4) + 7) * HOUR)
 	c.randomizeName()
+	c.Ptype = PERSON_CREWMAN
 	return c
 }
 
@@ -37,7 +39,6 @@ func (c *Crewman) randomizeName() {
 
 //general per-tick update function.
 func (c *Crewman) Update() {
-
 	//increase sleepy. if too sleepy, drop what your doing and go to sleep.
 	if c.IsAwake() {
 		c.Awakeness.Mod(-1)
