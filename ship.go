@@ -11,6 +11,7 @@ type Ship struct {
 
 	Engine     *PropulsionSystem
 	Navigation *NavigationSystem
+	Comms      *CommSystem
 
 	//status numbers.
 	Hull burl.Stat
@@ -40,6 +41,7 @@ func NewShip(n string, g *Galaxy) *Ship {
 	s.Rooms = make([]*Room, 0, 10)
 	s.Engine = NewPropulsionSystem(s)
 	s.Navigation = NewNavigationSystem(s, g)
+	s.Comms = NewCommSystem()
 	s.Fuel = burl.NewStat(1000000)
 
 	s.shipMap = burl.NewMap(100, 100)
@@ -166,6 +168,7 @@ func (s Ship) GetSpeed() int {
 func (s *Ship) Update(spaceTime int) {
 	s.Navigation.Update(spaceTime)
 	s.Engine.Update()
+	s.Comms.Update(spaceTime)
 
 	x, y := s.Velocity.ToRect().Get()
 	s.Coords.moveLocal(x, y)

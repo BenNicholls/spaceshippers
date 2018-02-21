@@ -158,4 +158,33 @@ func (sg *SpaceshipGame) HandleKeypressCommsMenu(key sdl.Keycode) {
 	case sdl.K_TAB:
 		sg.commsMenu.NextPage()
 	}
+
+	switch sg.commsMenu.CurrentIndex() {
+	case 0: //Inbox
+		switch key {
+		case sdl.K_UP:
+			sg.commsMenu.inboxList.Prev()
+		case sdl.K_DOWN:
+			sg.commsMenu.inboxList.Next()
+		case sdl.K_RETURN:
+			if len(sg.commsMenu.comms.Inbox) > 0 {
+				s := sg.commsMenu.inboxList.GetSelection()
+				msg := sg.commsMenu.comms.Inbox[s]
+				sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
+			}
+		}
+	case 2: //Transmissions
+		switch key {
+		case sdl.K_UP:
+			sg.commsMenu.transmissionsList.Prev()
+		case sdl.K_DOWN:
+			sg.commsMenu.transmissionsList.Next()
+		case sdl.K_RETURN:
+			if len(sg.commsMenu.comms.Transmissions) > 0 {
+				s := sg.commsMenu.transmissionsList.GetSelection()
+				msg := sg.commsMenu.comms.Transmissions[s]
+				sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
+			}
+		}
+	}
 }

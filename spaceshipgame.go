@@ -148,7 +148,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)
 	sg.shipMenu = NewShipMenu()
 	sg.missionMenu = NewMissionMenu(&sg.player.MissionLog)
-	sg.commsMenu = NewCommsMenu()
+	sg.commsMenu = NewCommsMenu(sg.playerShip.Comms)
 
 	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.timeDisplay, sg.menubar, sg.shipMenu, sg.starchartMenu, sg.commsMenu)
 
@@ -201,10 +201,10 @@ func (sg *SpaceshipGame) Update() {
 
 	if sg.activeMenu == sg.crewMenu && sg.crewMenu.crewDetails.IsVisible() {
 		sg.crewMenu.UpdateCrewDetails()
-	}
-
-	if sg.activeMenu == sg.missionMenu {
+	} else if sg.activeMenu == sg.missionMenu {
 		sg.missionMenu.Update()
+	} else if sg.activeMenu == sg.commsMenu {
+		sg.commsMenu.Update()
 	}
 
 	sg.shipstatus.Update()
