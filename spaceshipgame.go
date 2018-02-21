@@ -31,12 +31,13 @@ type SpaceshipGame struct {
 	missionMenuButton   *burl.Button
 	mainMenuButton      *burl.Button
 	starchartMenuButton *burl.Button
-	scippieMenuButton   *burl.Button
+	commsMenuButton     *burl.Button
 
 	crewMenu      *CrewMenu      //crew menu (F1)
 	shipMenu      *ShipMenu      //shipmenu (F2)
 	missionMenu   *MissionMenu   //missionmenu (F3)
 	starchartMenu *StarchartMenu //starchart (F4)
+	commsMenu     *CommsMenu     //communications menu (F5)
 
 	activeMenu burl.UIElem
 	dialog     Dialog //dialog presented to the player. higher priority than everything else!
@@ -125,9 +126,9 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.shipMenuButton = burl.NewButton(9, 1, 12, 0, 2, true, true, "Ship")
 	sg.missionMenuButton = burl.NewButton(9, 1, 23, 0, 1, true, true, "Missions")
 	sg.starchartMenuButton = burl.NewButton(9, 1, 34, 0, 2, true, true, "Star Chart")
-	sg.scippieMenuButton = burl.NewButton(9, 1, 45, 0, 1, true, true, "S.C.I.P.P.I.E.")
+	sg.commsMenuButton = burl.NewButton(9, 1, 45, 0, 1, true, true, "Comm Panel")
 	sg.mainMenuButton = burl.NewButton(9, 1, 56, 0, 2, true, true, "Main  Menu")
-	sg.menubar.Add(sg.crewMenuButton, sg.shipMenuButton, sg.missionMenuButton, sg.starchartMenuButton, sg.scippieMenuButton, sg.mainMenuButton)
+	sg.menubar.Add(sg.crewMenuButton, sg.shipMenuButton, sg.missionMenuButton, sg.starchartMenuButton, sg.commsMenuButton, sg.mainMenuButton)
 
 	sg.shipdisplay = burl.NewTileView(80, 28, 0, 3, 1, false)
 	w, h := sg.shipdisplay.Dims()
@@ -147,8 +148,9 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)
 	sg.shipMenu = NewShipMenu()
 	sg.missionMenu = NewMissionMenu(&sg.player.MissionLog)
+	sg.commsMenu = NewCommsMenu()
 
-	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.timeDisplay, sg.menubar, sg.shipMenu, sg.starchartMenu)
+	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.timeDisplay, sg.menubar, sg.shipMenu, sg.starchartMenu, sg.commsMenu)
 
 	sg.UpdateSpeedUI()
 }

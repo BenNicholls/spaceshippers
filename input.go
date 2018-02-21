@@ -1,7 +1,9 @@
 package main
 
-import "github.com/veandco/go-sdl2/sdl"
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"github.com/bennicholls/burl-E/burl"
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 
@@ -28,6 +30,9 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			sg.starchartMenu.OnActivate()
 		}
 		sg.ActivateMenu(sg.starchartMenu)
+	case sdl.K_F5:
+		sg.commsMenuButton.Press()
+		sg.ActivateMenu(sg.commsMenu)
 	case sdl.K_KP_PLUS:
 		if sg.simSpeed < 4 {
 			sg.simSpeed++
@@ -56,6 +61,8 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			sg.HandleKeypressStarchartMenu(key)
 		case sg.missionMenu:
 			sg.HandleKeypressMissionMenu(key)
+		case sg.commsMenu:
+			sg.HandleKeypressCommsMenu(key)
 		default:
 			switch key {
 			case sdl.K_PAGEUP:
@@ -143,5 +150,12 @@ func (sg *SpaceshipGame) HandleKeypressMissionMenu(key sdl.Keycode) {
 	case sdl.K_DOWN:
 		sg.missionMenu.missionList.Next()
 		sg.missionMenu.Update()
+	}
+}
+
+func (sg *SpaceshipGame) HandleKeypressCommsMenu(key sdl.Keycode) {
+	switch key {
+	case sdl.K_TAB:
+		sg.commsMenu.NextPage()
 	}
 }
