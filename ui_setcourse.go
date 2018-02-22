@@ -108,11 +108,11 @@ func (sc *SetCourseDialog) UpdateCourse() {
 	c := sc.ship.Navigation.ComputeCourse(sc.destination, maxFuel*sc.fuelGauge.GetProgress()/100, sc.startTime)
 
 	sc.fuelGauge.ChangeText("Fuel to burn: " + strconv.Itoa(maxFuel*sc.fuelGauge.GetProgress()/100))
-	sc.travelTimeText.ChangeText("Travel Time: " + GetTimeString(c.TotalTime))
+	sc.travelTimeText.ChangeText("Travel Time: " + GetDurationString(c.TotalTime))
 
 	speed := sc.ship.GetSpeed() + int(float64(c.AccelTime-c.StartTime)*sc.ship.Engine.Thrust)
 	sc.travelSpeedText.ChangeText("Max Travel Speed: " + strconv.Itoa(speed/1000) + " km/s")
-	sc.arrivalTimeText.ChangeText("Arrival Time: " + GetTimeString(c.Arrivaltime))
+	sc.arrivalTimeText.ChangeText("Arrival Time: " + GetTimeString(c.Arrivaltime) + ", " + GetDateString(c.Arrivaltime))
 
 	sc.course = c
 }
@@ -120,10 +120,12 @@ func (sc *SetCourseDialog) UpdateCourse() {
 func (sc SetCourseDialog) Done() bool {
 	if sc.goButton.IsFocused() {
 		if sc.goButton.PressPulse.IsFinished() {
+			burl.PushEvent(LOG_EVENT, "Setting course for "+sc.destination.GetName())
 			return true
 		}
 	} else {
 		if sc.cancelButton.PressPulse.IsFinished() {
+			burl.PushEvent(LOG_EVENT, "Course selection cancelled.")
 			return true
 		}
 	}

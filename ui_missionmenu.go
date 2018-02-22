@@ -35,21 +35,19 @@ func NewMissionMenu(m *[]Mission) *MissionMenu {
 
 	mm.Add(mm.missionList, mm.descriptionText, mm.statusText, mm.goalList, mm.criteriaList)
 
-	mm.UpdateMissionList()
+	mm.Update()
 
 	return mm
 }
 
-func (mm *MissionMenu) UpdateMissionList() {
+func (mm *MissionMenu) Update() {
+	//update mission list
 	mm.missionList.ClearElements()
 	for _, mis := range *mm.missions {
 		mm.missionList.Add(burl.NewTextbox(10, 2, 0, 0, 0, false, false, mis.name))
 	}
 	mm.missionList.Calibrate()
-	mm.Update()
-}
 
-func (mm *MissionMenu) Update() {
 	if len(*mm.missions) != 0 {
 		m := (*mm.missions)[mm.missionList.GetSelection()]
 

@@ -2,6 +2,8 @@ package main
 
 import (
 	"strconv"
+
+	"github.com/bennicholls/burl-E/burl"
 )
 
 type GoalStatus int
@@ -60,8 +62,10 @@ func (g *Goal) Update() {
 
 	if g.failure() {
 		g.status = goal_FAILED
+		burl.PushEvent(burl.UPDATE_UI_EVENT, "missions")
 	} else if g.success() {
 		g.status = goal_COMPLETE
+		burl.PushEvent(burl.UPDATE_UI_EVENT, "missions")
 	}
 }
 
@@ -89,7 +93,7 @@ func NewMission(name, desc string) (m *Mission) {
 				return false
 			}
 		}
-
+		burl.PushEvent(LOG_EVENT, "You have completed: "+m.name)
 		return true
 	}
 
@@ -97,10 +101,10 @@ func NewMission(name, desc string) (m *Mission) {
 		for _, c := range m.criteria {
 			c.Update()
 			if c.IsFailed() {
+				burl.PushEvent(LOG_EVENT, "You have failed: "+m.name)
 				return true
 			}
 		}
-
 		return false
 	}
 
@@ -128,7 +132,7 @@ func GenerateGoToMission(s *Ship, dest, avoid Locatable) (m *Mission) {
 
 ///////////////////////////
 //STEPS
-// - Compose missions out of these! Also see the CRITERIA secion below
+// - Compose missions out of these! Also see the CRITERIA section below
 //////////////////////////
 
 type GoToStep struct {

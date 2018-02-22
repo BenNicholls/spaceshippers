@@ -16,6 +16,10 @@ func GetTimeString(t int) string {
 	return fmt.Sprintf("%.1d", (t/HOUR)%10) + "h:" + fmt.Sprintf("%.2d", (t/MINUTE)%100) + "m:" + fmt.Sprintf("%.2d", t%100) + "s"
 }
 
+func GetDurationString(t int) string {
+	return fmt.Sprintf("%.1d", t/HOUR) + "h:" + fmt.Sprintf("%.2d", (t/MINUTE)%100) + "m:" + fmt.Sprintf("%.2d", t%100) + "s"
+}
+
 func GetDateString(t int) string {
 	return "Day " + fmt.Sprintf("%.d", (t/DAY)%1000) + ", " + "Cycle " + fmt.Sprintf("%.d", t/CYCLE) + "DE"
 }

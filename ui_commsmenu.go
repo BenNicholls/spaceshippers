@@ -28,7 +28,7 @@ func NewCommsMenu(comm *CommSystem) (cm *CommsMenu) {
 	cm.SetVisibility(false)
 
 	cm.inboxPage = cm.AddPage("Inbox")
-	cm.inboxList = burl.NewList(38, 23, 0, 0, 2, false, "NO INBOX MESSAGES")
+	cm.inboxList = burl.NewList(38, 21, 0, 0, 2, false, "NO INBOX MESSAGES")
 	cm.inboxPage.Add(cm.inboxList)
 	cm.UpdateInbox()
 
@@ -67,7 +67,7 @@ func (cm *CommsMenu) UpdateInbox() {
 		message.Add(burl.NewTextbox(w, 1, 0, 0, 0, false, false, m.title))
 		message.Add(burl.NewTextbox(w/2, 1, 0, 1, 0, false, false, "From: "+m.sender.Name))
 		message.Add(burl.NewTextbox(w/2, 1, w/2, 1, 0, false, false, "Date: "+GetDateString(m.date)))
-		message.Add(burl.NewTextbox(w, 1, 0, 2, 0, false, false, m.message[:20]+"..."))
+		message.Add(burl.NewTextbox(w, 1, 0, 2, 0, false, false, m.message[:40]+"..."))
 		cm.inboxList.Add(message)
 	}
 }
@@ -85,7 +85,7 @@ func (cm *CommsMenu) UpdateTransmissions() {
 		message.Add(burl.NewTextbox(w, 1, 0, 0, 0, false, false, m.title))
 		message.Add(burl.NewTextbox(w/2, 1, 0, 1, 0, false, false, "From: "+m.sender.Name))
 		message.Add(burl.NewTextbox(w/2, 1, w/2, 1, 0, false, false, "Date: "+GetDateString(m.date)))
-		message.Add(burl.NewTextbox(w, 1, 0, 2, 0, false, false, m.message[:20]+"..."))
+		message.Add(burl.NewTextbox(w, 1, 0, 2, 0, false, false, m.message[:40]+"..."))
 		cm.transmissionsList.Add(message)
 	}
 }

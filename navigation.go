@@ -38,22 +38,31 @@ func (ns *NavigationSystem) Update(tick int) {
 				ns.CurrentCourse.Phase = phase_BRAKE
 			}
 		}
+
+		burl.PushEvent(burl.UPDATE_UI_EVENT, "ship status")
 	}
 
-	//change location if we move away,
-	if !ns.ship.Coords.IsIn(ns.ship.currentLocation) {
-		ns.ship.currentLocation = ns.galaxy.GetLocation(ns.ship.Coords)
-	}
+	//If we're moving, we need to check our locations/destinations.
+	if ns.ship.GetSpeed() > 0 {
+		//change location if we move away,
+		if !ns.ship.Coords.IsIn(ns.ship.currentLocation) {
+			ns.ship.currentLocation = ns.galaxy.GetLocation(ns.ship.Coords)
+			burl.PushEvent(burl.UPDATE_UI_EVENT, "ship status")
+		}
 
-	//change destination/location when we arrive!
-	if ns.ship.Coords.IsIn(ns.ship.destination) {
-		ns.ship.currentLocation = ns.ship.destination
-		if ns.ship.Velocity.R < ns.ship.destination.GetVisitSpeed() {
-			//if going slow enough while in range, stop the boat. TODO: put parking orbit code here.
-			ns.ship.destination = nil
-			ns.ship.Velocity.R = 0
-			ns.ship.Engine.Firing = false
-			ns.CurrentCourse.Done = true
+		//change destination/location when we arrive!
+		if ns.ship.Coords.IsIn(ns.ship.destination) {
+			ns.ship.currentLocation = ns.ship.destination
+			burl.PushEvent(burl.UPDATE_UI_EVENT, "ship status")
+			if ns.ship.Velocity.R < ns.ship.destination.GetVisitSpeed() {
+				//if going slow enough while in range, stop the boat. TODO: put parking orbit code here.
+				ns.ship.destination = nil
+				ns.ship.Velocity.R = 0
+				ns.ship.Engine.Firing = false
+				ns.CurrentCourse.Done = true
+
+				burl.PushEvent(LOG_EVENT, "We have arrived at "+ns.ship.currentLocation.GetName())
+			}
 		}
 	}
 }

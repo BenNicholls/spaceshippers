@@ -1,8 +1,16 @@
 package main
 
-import "github.com/bennicholls/burl-E/burl"
-import "os"
-import "encoding/gob"
+import (
+	"encoding/gob"
+	"os"
+
+	"github.com/bennicholls/burl-E/burl"
+)
+
+//Event types for spaceshippers!
+const (
+	LOG_EVENT = burl.MAX_EVENTS + iota
+)
 
 //load some tile data
 var TILE_FLOOR = burl.LoadTileData("Floor", true, true, burl.GLYPH_FILL_SPARSE, burl.COL_DARKGREY)
@@ -88,7 +96,7 @@ func NewSpaceshipGame() *SpaceshipGame {
 //THINK ABOUT: this could be a method for the player object??? Then how does UI get updated? mm.
 func (sg *SpaceshipGame) AddMission(m *Mission) {
 	sg.player.MissionLog = append(sg.player.MissionLog, *m)
-	sg.missionMenu.UpdateMissionList()
+	burl.PushEvent(burl.UPDATE_UI_EVENT, "missions")
 }
 
 //Centers the map of the ship in the main view.
@@ -135,6 +143,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.Stars = NewStarField(w, h, 20, sg.shipdisplay)
 
 	sg.shipstatus = NewShipStatsWindow(sg.playerShip)
+	sg.shipstatus.Update()
 
 	sg.input = burl.NewInputbox(50, 1, 15, 27, 100, true)
 	sg.input.ToggleFocus()
@@ -199,15 +208,30 @@ func (sg *SpaceshipGame) Update() {
 		}
 	}
 
-	if sg.activeMenu == sg.crewMenu && sg.crewMenu.crewDetails.IsVisible() {
-		sg.crewMenu.UpdateCrewDetails()
-	} else if sg.activeMenu == sg.missionMenu {
-		sg.missionMenu.Update()
-	} else if sg.activeMenu == sg.commsMenu {
-		sg.commsMenu.Update()
+	for event := burl.PopEvent(); event != nil; event = burl.PopEvent() {
+		switch event.ID {
+		case burl.UPDATE_UI_EVENT:
+
+			switch event.Message {
+			case "inbox":
+				sg.commsMenu.UpdateInbox()
+			case "transmissions":
+				sg.commsMenu.UpdateTransmissions()
+			case "missions":
+				sg.missionMenu.Update()
+			case "crew":
+				if sg.activeMenu == sg.crewMenu {
+					sg.crewMenu.UpdateCrewDetails()
+				}
+			case "ship status":
+				sg.shipstatus.Update()
+			}
+
+		case LOG_EVENT:
+			sg.AddMessage(event.Message)
+		}
 	}
 
-	sg.shipstatus.Update()
 	sg.timeDisplay.Update()
 }
 

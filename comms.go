@@ -2,6 +2,8 @@ package main
 
 import (
 	"math/rand"
+
+	"github.com/bennicholls/burl-E/burl"
 )
 
 type CommSystem struct {
@@ -43,7 +45,6 @@ func (cs *CommSystem) Update(tick int) {
 
 func (cs *CommSystem) AddRandomTransmission(tick int) {
 	t := rand.Intn(100)
-
 	trans := CommMessage{}
 	trans.date = tick
 
@@ -56,7 +57,8 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 		if len(cs.Inbox) != cap(cs.Inbox) {
 			cs.Inbox = append(cs.Inbox, trans)
 		}
-		//burl event thing, dispatch Log Message and UI Update events
+		burl.PushEvent(burl.UPDATE_UI_EVENT, "inbox")
+		burl.PushEvent(LOG_EVENT, "A new message has been received! Check your inbox.")
 	case t < 10:
 		//9% chance to win a radio contest
 		trans.sender = &Person{"1781.2 NOVA-FM", PERSON_CONTACT, DEFAULT_PIC}
@@ -65,7 +67,8 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 		if len(cs.Transmissions) != cap(cs.Transmissions) {
 			cs.Transmissions = append(cs.Transmissions, trans)
 		}
-		//burl event thing, dispatch log message
+		burl.PushEvent(burl.UPDATE_UI_EVENT, "transmissions")
+		burl.PushEvent(LOG_EVENT, "A transmission has been decoded.")
 	default:
 		trans.sender = &Person{"Unknown", PERSON_CONTACT, DEFAULT_PIC}
 		trans.title = "--indecipherable--"
@@ -73,6 +76,7 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 		if len(cs.Transmissions) != cap(cs.Transmissions) {
 			cs.Transmissions = append(cs.Transmissions, trans)
 		}
-		//burl event thing, dispatch log message
+		burl.PushEvent(burl.UPDATE_UI_EVENT, "transmissions")
+		burl.PushEvent(LOG_EVENT, "A garbled transmission was intercepted.")
 	}
 }
