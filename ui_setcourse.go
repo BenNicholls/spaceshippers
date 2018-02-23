@@ -26,7 +26,6 @@ type SetCourseDialog struct {
 	distance    float64 //distance to destination in meters
 	startTime   int
 	course      Course
-	done        bool
 }
 
 func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
@@ -34,7 +33,6 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 	sc.ship = s
 	sc.destination = d
 	sc.startTime = time
-	sc.done = false
 
 	sc.Container = *burl.NewContainer(58, 33, 1, 1, 50, true)
 	sc.CenterInConsole()
@@ -77,7 +75,6 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 }
 
 func (sc *SetCourseDialog) HandleInput(key sdl.Keycode) {
-
 	switch key {
 	case sdl.K_LEFT:
 		if sc.fuelGauge.GetProgress() > 10 {
@@ -103,7 +100,6 @@ func (sc *SetCourseDialog) HandleInput(key sdl.Keycode) {
 }
 
 func (sc *SetCourseDialog) UpdateCourse() {
-
 	maxFuel := burl.Min(sc.ship.Fuel.Get(), sc.ship.Engine.FuelUse*int(sc.ship.Navigation.CalcMaxBurnTime(sc.destination.GetVisitSpeed(), sc.distance)))
 	c := sc.ship.Navigation.ComputeCourse(sc.destination, maxFuel*sc.fuelGauge.GetProgress()/100, sc.startTime)
 
@@ -120,12 +116,12 @@ func (sc *SetCourseDialog) UpdateCourse() {
 func (sc SetCourseDialog) Done() bool {
 	if sc.goButton.IsFocused() {
 		if sc.goButton.PressPulse.IsFinished() {
-			burl.PushEvent(LOG_EVENT, "Setting course for "+sc.destination.GetName())
+			burl.PushEvent(burl.NewEvent(LOG_EVENT, "Setting course for "+sc.destination.GetName()))
 			return true
 		}
 	} else {
 		if sc.cancelButton.PressPulse.IsFinished() {
-			burl.PushEvent(LOG_EVENT, "Course selection cancelled.")
+			burl.PushEvent(burl.NewEvent(LOG_EVENT, "Course selection cancelled."))
 			return true
 		}
 	}

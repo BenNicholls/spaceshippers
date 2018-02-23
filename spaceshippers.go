@@ -20,6 +20,7 @@ func main() {
 
 	console.SetFullscreen()
 
+	//ssg := NewMainMenu()
 	ssg := NewSpaceshipGame()
 
 	burl.InitState(ssg)
@@ -29,6 +30,4 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-
-	ssg.SaveShip()
 }

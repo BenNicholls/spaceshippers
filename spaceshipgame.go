@@ -8,8 +8,9 @@ import (
 )
 
 //Event types for spaceshippers!
+//NOTE: is this setup kind of goofy? we could handle this like we do for adding tile data (see below). 
 const (
-	LOG_EVENT = burl.MAX_EVENTS + iota
+	LOG_EVENT burl.EventType = burl.MAX_EVENTS + iota
 )
 
 //load some tile data
@@ -93,10 +94,10 @@ func NewSpaceshipGame() *SpaceshipGame {
 }
 
 //Adds a mission to the player's list.
-//THINK ABOUT: this could be a method for the player object??? Then how does UI get updated? mm.
+//THINK ABOUT: this could be a method for the player object???
 func (sg *SpaceshipGame) AddMission(m *Mission) {
 	sg.player.MissionLog = append(sg.player.MissionLog, *m)
-	burl.PushEvent(burl.UPDATE_UI_EVENT, "missions")
+	burl.PushEvent(burl.NewEvent(burl.UPDATE_UI_EVENT, "missions"))
 }
 
 //Centers the map of the ship in the main view.
@@ -165,7 +166,6 @@ func (sg *SpaceshipGame) SetupUI() {
 }
 
 func (sg *SpaceshipGame) Update() {
-
 	//check if we should be handling a dialog
 	if sg.dialog != nil {
 		if sg.dialog.Done() {
@@ -208,31 +208,30 @@ func (sg *SpaceshipGame) Update() {
 		}
 	}
 
-	for event := burl.PopEvent(); event != nil; event = burl.PopEvent() {
-		switch event.ID {
-		case burl.UPDATE_UI_EVENT:
-
-			switch event.Message {
-			case "inbox":
-				sg.commsMenu.UpdateInbox()
-			case "transmissions":
-				sg.commsMenu.UpdateTransmissions()
-			case "missions":
-				sg.missionMenu.Update()
-			case "crew":
-				if sg.activeMenu == sg.crewMenu {
-					sg.crewMenu.UpdateCrewDetails()
-				}
-			case "ship status":
-				sg.shipstatus.Update()
-			}
-
-		case LOG_EVENT:
-			sg.AddMessage(event.Message)
-		}
-	}
-
 	sg.timeDisplay.Update()
+}
+
+func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
+	switch event.ID {
+	case burl.UPDATE_UI_EVENT:
+		switch event.Message {
+		case "inbox":
+			sg.commsMenu.UpdateInbox()
+		case "transmissions":
+			sg.commsMenu.UpdateTransmissions()
+		case "missions":
+			sg.missionMenu.Update()
+		case "crew":
+			if sg.activeMenu == sg.crewMenu {
+				sg.crewMenu.UpdateCrewDetails()
+			}
+		case "ship status":
+			sg.shipstatus.Update()
+		}
+
+	case LOG_EVENT:
+		sg.AddMessage(event.Message)
+	}
 }
 
 func (sg *SpaceshipGame) Render() {
@@ -337,6 +336,10 @@ func (sg SpaceshipGame) GetTick() int {
 //gets the time from the Galaxy
 func (sg SpaceshipGame) GetTime() int {
 	return sg.galaxy.spaceTime
+}
+
+func (sg SpaceshipGame) Shutdown() {
+	sg.SaveShip()
 }
 
 func (sg *SpaceshipGame) SaveShip() {

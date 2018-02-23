@@ -39,7 +39,7 @@ func (ns *NavigationSystem) Update(tick int) {
 			}
 		}
 
-		burl.PushEvent(burl.UPDATE_UI_EVENT, "ship status")
+		burl.PushEvent(burl.NewEvent(burl.UPDATE_UI_EVENT, "ship status"))
 	}
 
 	//If we're moving, we need to check our locations/destinations.
@@ -47,13 +47,13 @@ func (ns *NavigationSystem) Update(tick int) {
 		//change location if we move away,
 		if !ns.ship.Coords.IsIn(ns.ship.currentLocation) {
 			ns.ship.currentLocation = ns.galaxy.GetLocation(ns.ship.Coords)
-			burl.PushEvent(burl.UPDATE_UI_EVENT, "ship status")
+			burl.PushEvent(burl.NewEvent(burl.UPDATE_UI_EVENT, "ship status"))
 		}
 
 		//change destination/location when we arrive!
 		if ns.ship.Coords.IsIn(ns.ship.destination) {
 			ns.ship.currentLocation = ns.ship.destination
-			burl.PushEvent(burl.UPDATE_UI_EVENT, "ship status")
+			burl.PushEvent(burl.NewEvent(burl.UPDATE_UI_EVENT, "ship status"))
 			if ns.ship.Velocity.R < ns.ship.destination.GetVisitSpeed() {
 				//if going slow enough while in range, stop the boat. TODO: put parking orbit code here.
 				ns.ship.destination = nil
@@ -61,7 +61,7 @@ func (ns *NavigationSystem) Update(tick int) {
 				ns.ship.Engine.Firing = false
 				ns.CurrentCourse.Done = true
 
-				burl.PushEvent(LOG_EVENT, "We have arrived at "+ns.ship.currentLocation.GetName())
+				burl.PushEvent(burl.NewEvent(LOG_EVENT, "We have arrived at "+ns.ship.currentLocation.GetName()))
 			}
 		}
 	}
