@@ -20,10 +20,8 @@ func main() {
 
 	console.SetFullscreen()
 
-	//ssg := NewMainMenu()
-	ssg := NewSpaceshipGame()
+	burl.InitState(NewMainMenu())
 
-	burl.InitState(ssg)
 	err = burl.GameLoop()
 
 	if err != nil {

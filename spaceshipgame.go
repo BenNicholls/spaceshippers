@@ -8,7 +8,7 @@ import (
 )
 
 //Event types for spaceshippers!
-//NOTE: is this setup kind of goofy? we could handle this like we do for adding tile data (see below). 
+//NOTE: is this setup kind of goofy? we could handle this like we do for adding tile data (see below).
 const (
 	LOG_EVENT burl.EventType = burl.MAX_EVENTS + iota
 )
