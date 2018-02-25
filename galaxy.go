@@ -4,10 +4,14 @@ import "math"
 import "math/rand"
 import "github.com/bennicholls/burl-E/burl"
 
-//galaxy creation parameters
 const (
-	galaxy_TOTALSTARS = 10000000 //ten million stars for now
-	galaxy_RADIUS     = 12       //in sectors
+	//density parameters
+	GAL_DENSE  int = 100
+	GAL_NORMAL int = 70
+	GAL_SPARSE int = 50
+
+	GAL_MIN_RADIUS int = 5
+	GAL_MAX_RADIUS int = 12
 )
 
 //oh the places you'll go...
@@ -15,33 +19,26 @@ type Galaxy struct {
 	name          string //all good galaxies have names
 	width, height int
 	spaceTime     int //time since beginning of the Digital Era
+	radius        int //radius in sectors
 
-	sectors    []*Sector //galactic map data goes in here! potential for crazy hugeness in here
-	starFactor int       //number of stars per density level for a sector
+	sectors []*Sector //galactic map data goes in here! potential for crazy hugeness in here
 }
 
-func NewGalaxy() (g *Galaxy) {
+func NewGalaxy(name string, radius, densityFactor int) (g *Galaxy) {
 	g = new(Galaxy)
-	g.name = "The Galaxy of Terror"
+	g.name = name
 	g.width, g.height = coord_SECTOR_MAX, coord_SECTOR_MAX
+	g.radius = radius
 
 	g.sectors = make([]*Sector, 0, g.width*g.height)
 	g.spaceTime = 50*CYCLE + 80*DAY + 8*HOUR //start time for the game. super arbitrary.
 
-	cumDens := 0
-	nonEmpty := 0
 	for i := 0; i < cap(g.sectors); i++ {
 		x, y := i%g.width, i/g.width
 		dist := math.Sqrt(float64(burl.Distance(12, 12, x, y))) + rand.Float64()*2
-		density := burl.Clamp(100-int(100.0*dist/galaxy_RADIUS), 0, 100)
+		density := burl.Clamp(densityFactor-int(float64(densityFactor)*dist/float64(g.radius)), 0, densityFactor)
 		g.sectors = append(g.sectors, NewSector(x, y, density))
-		cumDens += density
-		if density > 0 {
-			nonEmpty++
-		}
 	}
-
-	g.starFactor = galaxy_TOTALSTARS / cumDens
 
 	return
 }

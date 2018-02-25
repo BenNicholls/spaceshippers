@@ -3,6 +3,8 @@ package main
 import "strconv"
 import "github.com/bennicholls/burl-E/burl"
 
+//TODO: incorpoate GalaxyMapView object here, maybe once i put together a systemMapView
+
 //Menu for viewing star charts, getting location data, setting courses, etc.
 type StarchartMenu struct {
 	burl.Container
@@ -168,6 +170,9 @@ func (sm *StarchartMenu) DrawMap() {
 }
 
 func (sm *StarchartMenu) DrawGalaxy() {
+
+	/////NOTE: Replace this with GalaxyMapView.DrawGalaxy
+	//--------------------------
 	w, h := sm.galaxy.Dims()
 	for i := 0; i < w*h; i++ {
 		x, y := i%w, i/w
@@ -179,6 +184,7 @@ func (sm *StarchartMenu) DrawGalaxy() {
 		}
 		sm.mapView.Draw(x, y, g, burl.MakeColour(bright, bright, bright), burl.COL_BLACK)
 	}
+	//----------------------------
 
 	x, y := sm.playerShip.Coords.Sector.Get()
 	sm.mapView.Draw(x, y, burl.GLYPH_FACE2, burl.COL_WHITE, burl.COL_BLACK)

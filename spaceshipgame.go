@@ -65,12 +65,12 @@ type SpaceshipGame struct {
 	playerShip *Ship //THINK: do we need this? it's just a pointer to player.Spaceship
 }
 
-func NewSpaceshipGame() *SpaceshipGame {
+func NewSpaceshipGame(g *Galaxy) *SpaceshipGame {
 	sg := new(SpaceshipGame)
 
 	sg.simSpeed = 1
 
-	sg.galaxy = NewGalaxy()
+	sg.galaxy = g
 	sg.startTime = sg.galaxy.spaceTime
 
 	sg.player = NewPlayer("Ol Cappy")
@@ -140,8 +140,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.menubar.Add(sg.crewMenuButton, sg.shipMenuButton, sg.missionMenuButton, sg.starchartMenuButton, sg.commsMenuButton, sg.mainMenuButton)
 
 	sg.shipdisplay = burl.NewTileView(80, 28, 0, 3, 1, false)
-	w, h := sg.shipdisplay.Dims()
-	sg.Stars = NewStarField(w, h, 20, sg.shipdisplay)
+	sg.Stars = NewStarField(20, sg.shipdisplay)
 
 	sg.shipstatus = NewShipStatsWindow(sg.playerShip)
 	sg.shipstatus.Update()

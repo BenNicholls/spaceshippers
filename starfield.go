@@ -12,8 +12,9 @@ type StarField struct {
 }
 
 //initializes a starfield twice the width of the screen
-func NewStarField(w, h, starFrequency int, v *burl.TileView) (sf StarField) {
+func NewStarField(starFrequency int, v *burl.TileView) (sf StarField) {
 	sf.view = v
+	w, h := v.Dims()
 	sf.field = make([]int, w*h*2)
 	sf.starFrequency = starFrequency
 	sf.dirty = true
