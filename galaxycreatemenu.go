@@ -211,7 +211,7 @@ func (cgm *CreateGalaxyMenu) HandleEvent(e *burl.Event) {
 			if cgm.nameInput.GetText() == "" {
 				cgm.dialog = NewCommDialog("", "", "", "You must give your galaxy a name before you can continue!")
 			} else {
-				burl.ChangeState(NewSpaceshipGame(cgm.galaxy))
+				burl.ChangeState(NewShipCreateMenu(cgm.galaxy))
 			}
 		} else if e.Message == "cancel" {
 			burl.ChangeState(NewMainMenu())
