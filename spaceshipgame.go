@@ -235,28 +235,7 @@ func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 
 func (sg *SpaceshipGame) Render() {
 	sg.Stars.Draw()
-
-	w, h := sg.playerShip.shipMap.Dims()
-	x, y := 0, 0
-	displayWidth, displayHeight := sg.shipdisplay.Dims()
-
-	for i := 0; i < w*h; i++ {
-		//shipdisplay-space coords
-		x = i%w + sg.viewX
-		y = i/w + sg.viewY
-
-		if burl.CheckBounds(x, y, displayWidth, displayHeight) {
-			t := sg.playerShip.shipMap.GetTile(i%w, i/w)
-			if t.TileType != 0 {
-				tv := t.GetVisuals()
-				sg.shipdisplay.Draw(x, y, tv.Glyph, tv.ForeColour, burl.COL_BLACK)
-			}
-
-			if e := sg.playerShip.shipMap.GetEntity(i%w, i/w); e != nil {
-				sg.shipdisplay.Draw(x, y, e.GetVisuals().Glyph, e.GetVisuals().ForeColour, burl.COL_BLACK)
-			}
-		}
-	}
+	sg.playerShip.DrawToTileView(sg.shipdisplay, sg.viewX, sg.viewY)
 
 	sg.window.Render()
 	if sg.activeMenu != nil {

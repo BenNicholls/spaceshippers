@@ -4,7 +4,9 @@ import "strconv"
 import "github.com/bennicholls/burl-E/burl"
 
 type Room struct {
-	Name string
+	Name      string
+	Roomtype  RoomType
+	Roomclass RoomClass
 
 	X, Y          int
 	Width, Height int
@@ -18,9 +20,9 @@ type Room struct {
 	RepairDifficulty int       //default time to repair by 1 unit.
 }
 
-func NewRoom(name string, x, y, w, h, upkeep, repair int) *Room {
+func NewRoom(name string, t RoomType, c RoomClass, w, h, upkeep, repair int) *Room {
 	r := new(Room)
-	r.X, r.Y, r.Width, r.Height = x, y, w, h
+	r.Width, r.Height = w, h
 	r.Name = name
 
 	r.RoomMap = burl.NewMap(r.Width, r.Height)
@@ -65,13 +67,13 @@ func (r *Room) AddConnection(c *Room) {
 	x, y = x-r.X, y-r.Y
 
 	if w == 1 && h >= 3 {
-		if h > 3 {
+		if h%2 == 0 {
 			r.RoomMap.ChangeTileType(x, y+h/2-1, TILE_DOOR)
 		}
 		r.RoomMap.ChangeTileType(x, y+h/2, TILE_DOOR)
 	} else if h == 1 && w >= 3 {
 		//up-down rooms
-		if w > 3 {
+		if w%2 == 0 {
 			r.RoomMap.ChangeTileType(x+w/2-1, y, TILE_DOOR)
 		}
 		r.RoomMap.ChangeTileType(x+w/2, y, TILE_DOOR)

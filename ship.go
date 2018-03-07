@@ -5,6 +5,7 @@ import "math/rand"
 
 type Ship struct {
 	Location //ship is technically a location, but you can't go there... you *are* there!
+	ShipType ShipType
 
 	Crew  []*Crewman
 	Rooms []*Room
@@ -37,26 +38,17 @@ func NewShip(n string, g *Galaxy) *Ship {
 	s.Coords = NewCoordinate(coord_LOCAL)
 	s.Explored = true
 	s.Known = true
-	s.Crew = make([]*Crewman, 0, 10)
-	s.Rooms = make([]*Room, 0, 10)
+
+	s.Crew = make([]*Crewman, 0, 50)
+	s.Rooms = make([]*Room, 0, 50)
+
+	//systems
 	s.Engine = NewPropulsionSystem(s)
 	s.Navigation = NewNavigationSystem(s, g)
 	s.Comms = NewCommSystem()
 	s.Fuel = burl.NewStat(1000000)
 
 	s.shipMap = burl.NewMap(100, 100)
-
-	s.AddRoom(NewRoom("Bridge", 20, 6, 6, 12, 500, 1000))
-	s.AddRoom(NewRoom("Engineering", 5, 8, 5, 8, 700, 1000))
-	s.AddRoom(NewRoom("Messhall", 15, 5, 6, 6, 1000, 500))
-	s.AddRoom(NewRoom("Medbay", 9, 5, 6, 6, 1000, 700))
-	s.AddRoom(NewRoom("Quarters 1", 15, 13, 6, 6, 900, 500))
-	s.AddRoom(NewRoom("Quarters 2", 9, 13, 6, 6, 900, 500))
-	s.AddRoom(NewRoom("Hallway", 9, 10, 12, 4, 0, 500))
-
-	for i := 0; i < 6; i++ {
-		s.AddCrewman(NewCrewman())
-	}
 
 	return s
 }
@@ -97,7 +89,9 @@ func (s *Ship) SetLocation(l Locatable) {
 
 //Adds a room to the ship and connects it.
 //TODO: Check if room is a valid add.
-func (s *Ship) AddRoom(r *Room) {
+func (s *Ship) AddRoom(r *Room, x, y int) {
+	r.X = x
+	r.Y = y
 	s.Rooms = append(s.Rooms, r)
 
 	//attempt to connect to each current room
@@ -184,6 +178,31 @@ func (s *Ship) Update(spaceTime int) {
 			if s.shipMap.GetTile(s.Crew[i].X+dx, s.Crew[i].Y+dy).Empty() {
 				s.shipMap.MoveEntity(s.Crew[i].X, s.Crew[i].Y, dx, dy)
 				s.Crew[i].Move(dx, dy)
+			}
+		}
+	}
+}
+
+//draws the ship to the provided TileView UI object, offset by (offX, offY)
+func (s *Ship) DrawToTileView(view *burl.TileView, offX, offY int) {
+	w, h := s.shipMap.Dims()
+	x, y := 0, 0
+	displayWidth, displayHeight := view.Dims()
+
+	for i := 0; i < w*h; i++ {
+		//tileView-space coords
+		x = i%w + offX
+		y = i/w + offY
+
+		if burl.CheckBounds(x, y, displayWidth, displayHeight) {
+			t := s.shipMap.GetTile(i%w, i/w)
+			if t.TileType != 0 {
+				tv := t.GetVisuals()
+				view.Draw(x, y, tv.Glyph, tv.ForeColour, burl.COL_BLACK)
+			}
+
+			if e := s.shipMap.GetEntity(i%w, i/w); e != nil {
+				view.Draw(x, y, e.GetVisuals().Glyph, e.GetVisuals().ForeColour, burl.COL_BLACK)
 			}
 		}
 	}
