@@ -161,7 +161,7 @@ func (scm *ShipCreateMenu) HandleEvent(e *burl.Event) {
 			if scm.shipNameInput.GetText() == "" {
 				scm.dialog = NewCommDialog("", "", "", "You must give your ship a name before you can continue!")
 			} else {
-				//burl.ChangeState(NewCrewCreateMenu(scm.galaxy, scm.ship))
+				burl.ChangeState(NewSpaceshipGame(scm.galaxy, scm.ship))
 			}
 		} else if e.Message == "cancel" {
 			burl.ChangeState(NewCreateGalaxyMenu())

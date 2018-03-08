@@ -125,7 +125,9 @@ func GenerateGoToMission(s *Ship, dest, avoid Locatable) (m *Mission) {
 	m.description = "You need to get there buddy."
 
 	m.AddStep(NewGoToStep(s, dest))
-	m.AddCriteria(NewStayAwayCriteria(s, avoid, 1e6))
+	if avoid != nil {
+		m.AddCriteria(NewStayAwayCriteria(s, avoid, 1e6))
+	}
 
 	return
 }

@@ -65,7 +65,7 @@ type SpaceshipGame struct {
 	playerShip *Ship //THINK: do we need this? it's just a pointer to player.Spaceship
 }
 
-func NewSpaceshipGame(g *Galaxy) *SpaceshipGame {
+func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	sg := new(SpaceshipGame)
 
 	sg.simSpeed = 1
@@ -74,7 +74,7 @@ func NewSpaceshipGame(g *Galaxy) *SpaceshipGame {
 	sg.startTime = sg.galaxy.spaceTime
 
 	sg.player = NewPlayer("Ol Cappy")
-	sg.player.SpaceShip = NewShip("The Undestructable", sg.galaxy)
+	sg.player.SpaceShip = s
 	sg.playerShip = sg.player.SpaceShip
 
 	ss := sg.galaxy.GetSector(8, 8).GenerateSubSector(250, 171)
@@ -84,8 +84,7 @@ func NewSpaceshipGame(g *Galaxy) *SpaceshipGame {
 	sg.SetupUI() //must be done after ship setup
 	sg.CenterShip()
 
-	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[4], ss.starSystem.Star))
-	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[5], ss.starSystem.Planets[2]))
+	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[2], nil))
 
 	welcomeMessage := "Hi Captain! Welcome to " + sg.playerShip.GetName() + "! I am the Ship Computer Interactive Parameter-Parsing Intelligence Entity, but you can call me SCIPPIE! "
 	sg.dialog = NewCommDialog("SCIPPIE", sg.player.Name+", Captain of "+sg.playerShip.GetName(), "res/art/scippie.csv", welcomeMessage)
