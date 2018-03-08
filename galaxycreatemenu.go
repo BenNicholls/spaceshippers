@@ -47,9 +47,7 @@ func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 
 	cgm.randomButton = burl.NewButton(15, 1, 58, 30, 2, true, true, "Randomize Galaxy")
 	cgm.generateButton = burl.NewButton(15, 1, 58, 34, 1, true, true, "Generate the Galaxy as Shown!")
-	cgm.generateButton.Register(burl.NewEvent(burl.BUTTON_PRESS, "generate"))
 	cgm.cancelButton = burl.NewButton(15, 1, 58, 38, 2, true, true, "Return to Main Menu")
-	cgm.cancelButton.Register(burl.NewEvent(burl.BUTTON_PRESS, "cancel"))
 
 	cgm.galaxyMap = NewGalaxyMapView(25, 25, 53, 0, 0, true, cgm.galaxy)
 
@@ -138,82 +136,46 @@ func (cgm *CreateGalaxyMenu) HandleKeypress(key sdl.Keycode) {
 		return
 	}
 
+	cgm.focusedField.HandleKeypress(key)
+
 	switch key {
 	case sdl.K_UP:
-		cgm.focusedField.ToggleFocus()
-		cgm.focusedField = cgm.window.FindPrevTab(cgm.focusedField)
-		cgm.focusedField.ToggleFocus()
-		cgm.UpdateExplanation()
+		burl.PushEvent(burl.NewEvent(burl.EV_TAB_FIELD, "-"))
 	case sdl.K_DOWN, sdl.K_TAB:
-		cgm.focusedField.ToggleFocus()
-		cgm.focusedField = cgm.window.FindNextTab(cgm.focusedField)
-		cgm.focusedField.ToggleFocus()
-		cgm.UpdateExplanation()
+		burl.PushEvent(burl.NewEvent(burl.EV_TAB_FIELD, "+"))
 	default:
-		switch cgm.focusedField {
-		case cgm.nameInput:
-			switch key {
-			case sdl.K_BACKSPACE:
-				cgm.nameInput.Delete()
-			case sdl.K_SPACE:
-				cgm.nameInput.Insert(" ")
-			default:
-				cgm.nameInput.InsertText(rune(key))
-			}
-		case cgm.densityChoice:
-			switch key {
-			case sdl.K_LEFT:
-				cgm.densityChoice.Prev()
-				cgm.Generate()
-			case sdl.K_RIGHT:
-				cgm.densityChoice.Next()
-				cgm.Generate()
-			}
-		case cgm.shapeChoice:
-			switch key {
-			case sdl.K_LEFT:
-				cgm.shapeChoice.Prev()
-				cgm.Generate()
-			case sdl.K_RIGHT:
-				cgm.shapeChoice.Next()
-				cgm.Generate()
-			}
-		case cgm.sizeChoice:
-			switch key {
-			case sdl.K_LEFT:
-				cgm.sizeChoice.Prev()
-				cgm.Generate()
-			case sdl.K_RIGHT:
-				cgm.sizeChoice.Next()
-				cgm.Generate()
-			}
-		case cgm.randomButton:
-			if key == sdl.K_RETURN {
-				cgm.randomButton.Press()
-				cgm.Randomize()
-			}
-		case cgm.generateButton:
-			if key == sdl.K_RETURN {
-				cgm.generateButton.Press()
-			}
-		case cgm.cancelButton:
-			if key == sdl.K_RETURN {
-				cgm.cancelButton.Press()
-			}
-		}
+
 	}
 }
 
 func (cgm *CreateGalaxyMenu) HandleEvent(e *burl.Event) {
 	switch e.ID {
-	case burl.ANIMATION_DONE:
-		if e.Message == "generate" {
+	case burl.EV_TAB_FIELD:
+		cgm.focusedField.ToggleFocus()
+		if e.Message == "+" {
+			cgm.focusedField = cgm.window.FindNextTab(cgm.focusedField)
+		} else {
+			cgm.focusedField = cgm.window.FindPrevTab(cgm.focusedField)
+		}
+		cgm.focusedField.ToggleFocus()
+		cgm.UpdateExplanation()
+	case burl.EV_BUTTON_PRESS:
+		if e.Caller == cgm.randomButton {
+			cgm.Randomize()
+		}
+	case burl.EV_LIST_CYCLE:
+		switch e.Caller {
+		case cgm.shapeChoice, cgm.sizeChoice, cgm.densityChoice:
+			cgm.Generate()
+		}
+	case burl.EV_ANIMATION_DONE:
+		if e.Caller == cgm.generateButton {
 			if cgm.nameInput.GetText() == "" {
 				cgm.dialog = NewCommDialog("", "", "", "You must give your galaxy a name before you can continue!")
 			} else {
 				burl.ChangeState(NewShipCreateMenu(cgm.galaxy))
 			}
-		} else if e.Message == "cancel" {
+		} else if e.Caller == cgm.cancelButton {
 			burl.ChangeState(NewMainMenu())
 		}
 	}

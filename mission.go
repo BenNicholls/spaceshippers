@@ -62,10 +62,10 @@ func (g *Goal) Update() {
 
 	if g.failure() {
 		g.status = goal_FAILED
-		burl.PushEvent(burl.NewEvent(burl.UPDATE_UI_EVENT, "missions"))
+		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "missions"))
 	} else if g.success() {
 		g.status = goal_COMPLETE
-		burl.PushEvent(burl.NewEvent(burl.UPDATE_UI_EVENT, "missions"))
+		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "missions"))
 	}
 }
 

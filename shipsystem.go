@@ -37,7 +37,7 @@ func (ps *PropulsionSystem) Update() {
 			}
 
 			ps.ship.Fuel.Mod(-ps.FuelUse)
-			burl.PushEvent(burl.NewEvent(burl.UPDATE_UI_EVENT, "ship status"))
+			burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship status"))
 		}
 	}
 }

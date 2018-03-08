@@ -10,7 +10,7 @@ import (
 //Event types for spaceshippers!
 //NOTE: is this setup kind of goofy? we could handle this like we do for adding tile data (see below).
 const (
-	LOG_EVENT burl.EventType = burl.MAX_EVENTS + iota
+	LOG_EVENT burl.EventType = burl.EV_MAX_EVENTS + iota
 )
 
 //load some tile data
@@ -96,7 +96,7 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 //THINK ABOUT: this could be a method for the player object???
 func (sg *SpaceshipGame) AddMission(m *Mission) {
 	sg.player.MissionLog = append(sg.player.MissionLog, *m)
-	burl.PushEvent(burl.NewEvent(burl.UPDATE_UI_EVENT, "missions"))
+	burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "missions"))
 }
 
 //Centers the map of the ship in the main view.
@@ -211,7 +211,7 @@ func (sg *SpaceshipGame) Update() {
 
 func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 	switch event.ID {
-	case burl.UPDATE_UI_EVENT:
+	case burl.EV_UPDATE_UI:
 		switch event.Message {
 		case "inbox":
 			sg.commsMenu.UpdateInbox()

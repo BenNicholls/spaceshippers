@@ -47,7 +47,7 @@ func (mm *MainMenu) HandleKeypress(key sdl.Keycode) {
 		case 3: //Options
 			//Options Dialog
 		case 4: //Quit
-			burl.PushEvent(burl.NewEvent(burl.QUIT_EVENT, ""))
+			burl.PushEvent(burl.NewEvent(burl.EV_QUIT, ""))
 		}
 	case sdl.K_SPACE: //FOR TESTING PURPOSES ONLY DAMMIT
 		g := NewGalaxy("Test Galaxy", GAL_MAX_RADIUS, GAL_DENSE)

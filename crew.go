@@ -42,7 +42,7 @@ func (c *Crewman) Update() {
 	//increase sleepy. if too sleepy, drop what your doing and go to sleep.
 	if c.IsAwake() {
 		c.Awakeness.Mod(-1)
-		burl.PushEvent(burl.NewEvent(burl.UPDATE_UI_EVENT, "crew"))
+		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "crew"))
 	}
 	if c.Awakeness.Get() == 0 {
 		if c.CurrentTask != nil {

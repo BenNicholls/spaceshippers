@@ -46,9 +46,7 @@ func NewShipCreateMenu(g *Galaxy) (scm *ShipCreateMenu) {
 	scm.shipDescriptionText = burl.NewTextbox(38, 17, 20, 25, 1, true, false, "DESCRIPTIOS")
 
 	scm.generateButton = burl.NewButton(15, 1, 61, 30, 1, true, true, "Confirm Ship Selection!")
-	scm.generateButton.Register(burl.NewEvent(burl.BUTTON_PRESS, "continue"))
 	scm.cancelButton = burl.NewButton(15, 1, 61, 35, 1, true, true, "Return to Galaxy Creation")
-	scm.cancelButton.Register(burl.NewEvent(burl.BUTTON_PRESS, "cancel"))
 
 	scm.window.Add(scm.shipView, scm.shipNameInput, scm.shipTypeList, scm.shipDescriptionText, scm.generateButton, scm.cancelButton)
 
@@ -109,61 +107,33 @@ func (scm *ShipCreateMenu) HandleKeypress(key sdl.Keycode) {
 		return
 	}
 
-	switch key {
-	case sdl.K_TAB:
-		scm.focusedField.ToggleFocus()
-		scm.focusedField = scm.window.FindNextTab(scm.focusedField)
-		scm.focusedField.ToggleFocus()
+	//non-standard ui behaviour
+	if key == sdl.K_TAB || (key == sdl.K_RETURN && scm.focusedField == scm.shipNameInput) {
+		burl.PushEvent(burl.NewEvent(burl.EV_TAB_FIELD, "+"))
 	}
 
-	switch scm.focusedField {
-	case scm.shipNameInput:
-		switch key {
-		case sdl.K_BACKSPACE:
-			scm.shipNameInput.Delete()
-		case sdl.K_SPACE:
-			scm.shipNameInput.Insert(" ")
-		case sdl.K_RETURN:
-			scm.focusedField.ToggleFocus()
-			scm.focusedField = scm.window.FindNextTab(scm.focusedField)
-			scm.focusedField.ToggleFocus()
-		default:
-			scm.shipNameInput.InsertText(rune(key))
-		}
-	case scm.shipTypeList:
-		switch key {
-		case sdl.K_UP:
-			scm.shipTypeList.Prev()
-			scm.UpdateShipDescription()
-			scm.CreateShip()
-		case sdl.K_DOWN:
-			scm.shipTypeList.Next()
-			scm.UpdateShipDescription()
-			scm.CreateShip()
-		}
-	case scm.generateButton:
-		switch key {
-		case sdl.K_RETURN:
-			scm.generateButton.Press()
-		}
-	case scm.cancelButton:
-		switch key {
-		case sdl.K_RETURN:
-			scm.cancelButton.Press()
-		}
-	}
+	scm.focusedField.HandleKeypress(key)
 }
 
 func (scm *ShipCreateMenu) HandleEvent(e *burl.Event) {
 	switch e.ID {
-	case burl.ANIMATION_DONE:
-		if e.Message == "continue" {
+	case burl.EV_LIST_CYCLE:
+		if e.Caller == scm.shipTypeList {
+			scm.UpdateShipDescription()
+			scm.CreateShip()
+		}
+	case burl.EV_TAB_FIELD:
+		scm.focusedField.ToggleFocus()
+		scm.focusedField = scm.window.FindNextTab(scm.focusedField)
+		scm.focusedField.ToggleFocus()
+	case burl.EV_ANIMATION_DONE:
+		if e.Caller == scm.generateButton {
 			if scm.shipNameInput.GetText() == "" {
 				scm.dialog = NewCommDialog("", "", "", "You must give your ship a name before you can continue!")
 			} else {
 				burl.ChangeState(NewSpaceshipGame(scm.galaxy, scm.ship))
 			}
-		} else if e.Message == "cancel" {
+		} else if e.Caller == scm.cancelButton {
 			burl.ChangeState(NewCreateGalaxyMenu())
 		}
 	}

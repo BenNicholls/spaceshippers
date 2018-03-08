@@ -87,32 +87,23 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 }
 
 func (sg *SpaceshipGame) HandleKeypressInput(key sdl.Keycode) {
-	if burl.ValidText(rune(key)) {
-		sg.input.InsertText(rune(key))
-	} else {
-		switch key {
-		case sdl.K_RETURN:
-			sg.Execute()
-			sg.input.Reset()
-			sg.DeactivateMenu()
-		case sdl.K_BACKSPACE:
-			sg.input.Delete()
-		case sdl.K_SPACE:
-			sg.input.Insert(" ")
-		case sdl.K_ESCAPE:
-			sg.DeactivateMenu()
-			sg.input.Reset()
-		}
+	sg.input.HandleKeypress(key)
+
+	switch key {
+	case sdl.K_RETURN:
+		sg.Execute()
+		sg.input.Reset()
+		sg.DeactivateMenu()
+	case sdl.K_ESCAPE:
+		sg.DeactivateMenu()
+		sg.input.Reset()
 	}
 }
 
 func (sg *SpaceshipGame) HandleKeypressCrewMenu(key sdl.Keycode) {
-	switch key {
-	case sdl.K_UP:
-		sg.crewMenu.crewList.Prev()
-	case sdl.K_DOWN:
-		sg.crewMenu.crewList.Next()
-	case sdl.K_RETURN:
+	sg.crewMenu.crewList.HandleKeypress(key)
+
+	if key == sdl.K_RETURN {
 		sg.crewMenu.ToggleCrewDetails()
 	}
 }
@@ -143,48 +134,31 @@ func (sg *SpaceshipGame) HandleKeypressStarchartMenu(key sdl.Keycode) {
 }
 
 func (sg *SpaceshipGame) HandleKeypressMissionMenu(key sdl.Keycode) {
+	sg.missionMenu.missionList.HandleKeypress(key)
+
 	switch key {
-	case sdl.K_UP:
-		sg.missionMenu.missionList.Prev()
-		sg.missionMenu.Update()
-	case sdl.K_DOWN:
-		sg.missionMenu.missionList.Next()
-		sg.missionMenu.Update()
+	case sdl.K_UP, sdl.K_DOWN:
+		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "missions"))
 	}
 }
 
 func (sg *SpaceshipGame) HandleKeypressCommsMenu(key sdl.Keycode) {
-	switch key {
-	case sdl.K_TAB:
-		sg.commsMenu.NextPage()
-	}
+	sg.commsMenu.HandleKeypress(key)
 
 	switch sg.commsMenu.CurrentIndex() {
 	case 0: //Inbox
-		switch key {
-		case sdl.K_UP:
-			sg.commsMenu.inboxList.Prev()
-		case sdl.K_DOWN:
-			sg.commsMenu.inboxList.Next()
-		case sdl.K_RETURN:
-			if len(sg.commsMenu.comms.Inbox) > 0 {
-				s := sg.commsMenu.inboxList.GetSelection()
-				msg := sg.commsMenu.comms.Inbox[s]
-				sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
-			}
+		sg.commsMenu.inboxList.HandleKeypress(key)
+		if key == sdl.K_RETURN && len(sg.commsMenu.comms.Inbox) > 0 {
+			s := sg.commsMenu.inboxList.GetSelection()
+			msg := sg.commsMenu.comms.Inbox[s]
+			sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
 		}
 	case 2: //Transmissions
-		switch key {
-		case sdl.K_UP:
-			sg.commsMenu.transmissionsList.Prev()
-		case sdl.K_DOWN:
-			sg.commsMenu.transmissionsList.Next()
-		case sdl.K_RETURN:
-			if len(sg.commsMenu.comms.Transmissions) > 0 {
-				s := sg.commsMenu.transmissionsList.GetSelection()
-				msg := sg.commsMenu.comms.Transmissions[s]
-				sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
-			}
+		sg.commsMenu.transmissionsList.HandleKeypress(key)
+		if key == sdl.K_RETURN && len(sg.commsMenu.comms.Transmissions) > 0 {
+			s := sg.commsMenu.transmissionsList.GetSelection()
+			msg := sg.commsMenu.comms.Transmissions[s]
+			sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
 		}
 	}
 }
