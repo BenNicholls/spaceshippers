@@ -77,17 +77,17 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	sg.player.SpaceShip = s
 	sg.playerShip = sg.player.SpaceShip
 
-	ss := sg.galaxy.GetSector(8, 8).GenerateSubSector(250, 171)
-	ss.starSystem = NewStarSystem(ss.GetCoords())
-	sg.playerShip.SetLocation(ss.starSystem.Planets[2]) //Earth!!
+	sg.playerShip.SetLocation(sg.galaxy.GetEarth())
 
 	sg.SetupUI() //must be done after ship setup
 	sg.CenterShip()
 
-	sg.AddMission(GenerateGoToMission(sg.playerShip, ss.starSystem.Planets[2], nil))
+	sg.LoadSpaceEvents()
 
-	welcomeMessage := "Hi Captain! Welcome to " + sg.playerShip.GetName() + "! I am the Ship Computer Interactive Parameter-Parsing Intelligence Entity, but you can call me SCIPPIE! "
-	sg.dialog = NewCommDialog("SCIPPIE", sg.player.Name+", Captain of "+sg.playerShip.GetName(), "res/art/scippie.csv", welcomeMessage)
+	// welcomeMessage := "Hi Captain! Welcome to " + sg.playerShip.GetName() + "! I am the Ship Computer Interactive Parameter-Parsing Intelligence Entity, but you can call me SCIPPIE! "
+	// sg.dialog = NewCommDialog("SCIPPIE", sg.player.Name+", Captain of "+sg.playerShip.GetName(), "res/art/scippie.csv", welcomeMessage)
+
+	sg.dialog = NewSpaceEventDialog(spaceEvents[1])
 
 	return sg
 }
@@ -167,9 +167,9 @@ func (sg *SpaceshipGame) Update() {
 	//check if we should be handling a dialog
 	if sg.dialog != nil {
 		if sg.dialog.Done() {
-			sg.dialog.ToggleVisible()
 			sg.dialog = nil
 		} else {
+			sg.dialog.Update()
 			return
 		}
 	}

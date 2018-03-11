@@ -103,7 +103,7 @@ func (scm *ShipCreateMenu) CreateShip() {
 
 func (scm *ShipCreateMenu) HandleKeypress(key sdl.Keycode) {
 	if scm.dialog != nil {
-		scm.dialog.HandleInput(key)
+		scm.dialog.HandleKeypress(key)
 		return
 	}
 
@@ -141,7 +141,6 @@ func (scm *ShipCreateMenu) HandleEvent(e *burl.Event) {
 
 func (scm *ShipCreateMenu) Update() {
 	if scm.dialog != nil && scm.dialog.Done() {
-		scm.dialog.ToggleVisible()
 		scm.dialog = nil
 	}
 

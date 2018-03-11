@@ -6,7 +6,13 @@ type Player struct {
 	Credit int //money to player's name.
 
 	MissionLog []Mission
-	SpaceShip  *Ship
+
+	//EventLog tracks which events (referenced by the int event.id) the player has handled.
+	//Naturally does not track repeating events, just unique and story-based ones.
+	EventLog map[int]bool
+
+	//The most important thing in the game.
+	SpaceShip *Ship
 }
 
 func NewPlayer(n string) (p *Player) {

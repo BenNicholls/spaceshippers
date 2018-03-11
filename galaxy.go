@@ -22,6 +22,8 @@ type Galaxy struct {
 	radius        int //radius in sectors
 
 	sectors []*Sector //galactic map data goes in here! potential for crazy hugeness in here
+
+	earth Coordinates //coordinates of EARTH!!
 }
 
 func NewGalaxy(name string, radius, densityFactor int) (g *Galaxy) {
@@ -39,6 +41,11 @@ func NewGalaxy(name string, radius, densityFactor int) (g *Galaxy) {
 		density := burl.Clamp(densityFactor-int(float64(densityFactor)*dist/float64(g.radius)), 0, densityFactor)
 		g.sectors = append(g.sectors, NewSector(x, y, density))
 	}
+
+	//generate the sol system and save the coordinates of Earth
+	ss := g.GetSector(8, 8).GenerateSubSector(250, 171)
+	ss.starSystem = NewStarSystem(ss.GetCoords())
+	g.earth = ss.starSystem.Planets[2].GetCoords()
 
 	return
 }
@@ -70,11 +77,20 @@ func (g Galaxy) GetLocation(c Coordinates) Locatable {
 		return subsector
 	} else {
 		if star := subsector.starSystem; star.Coords.StarCoord == c.StarCoord {
+			for _, l := range star.GetLocations() {
+				if c.IsIn(l) {
+					return l
+				}
+			}
 			return star
 		} else {
 			return subsector
 		}
 	}
+}
+
+func (g Galaxy) GetEarth() Locatable {
+	return g.GetLocation(g.earth)
 }
 
 type Sector struct {

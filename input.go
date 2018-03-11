@@ -9,7 +9,7 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 
 	//dialogs have the highest priority and they handle their own input
 	if sg.dialog != nil {
-		sg.dialog.HandleInput(key)
+		sg.dialog.HandleKeypress(key)
 		return
 	}
 

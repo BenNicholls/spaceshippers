@@ -6,8 +6,9 @@ import (
 )
 
 type CommDialog struct {
-	burl.Container
+	burl.BaseState
 
+	container     *burl.Container
 	senderText    *burl.Textbox
 	recipientText *burl.Textbox
 	senderPic     *burl.TileView
@@ -17,12 +18,12 @@ type CommDialog struct {
 
 func NewCommDialog(from, to, picFile, message string) (cd *CommDialog) {
 	cd = new(CommDialog)
-	cd.Container = *burl.NewContainer(48, 12, 1, 1, 50, true)
-	cd.CenterInConsole()
+	cd.container = burl.NewContainer(48, 12, 1, 1, 50, true)
+	cd.container.CenterInConsole()
 
 	cd.okayButton = burl.NewButton(6, 1, 0, 10, 1, true, true, "Sounds Good!")
 	cd.okayButton.ToggleFocus()
-	w, _ := cd.Dims()
+	w, _ := cd.container.Dims()
 
 	if from == "" && to == "" && picFile == "" {
 		//special dialog version with just a message.
@@ -34,24 +35,26 @@ func NewCommDialog(from, to, picFile, message string) (cd *CommDialog) {
 		cd.messageText = burl.NewTextbox(35, 5, 13, 3, 0, false, false, message)
 		cd.senderText = burl.NewTextbox(35, 1, 13, 0, 0, false, false, "FROM: "+from)
 		cd.recipientText = burl.NewTextbox(35, 1, 13, 1, 0, false, false, "TO: "+to)
-		cd.Add(cd.senderPic, cd.senderText, cd.recipientText)
+		cd.container.Add(cd.senderPic, cd.senderText, cd.recipientText)
 		cd.okayButton.CenterX(w, 12)
 	}
 
-	cd.Add(cd.messageText, cd.okayButton)
+	cd.container.Add(cd.messageText, cd.okayButton)
 
 	return
 }
 
-func (cd *CommDialog) HandleInput(key sdl.Keycode) {
-	switch key {
-	case sdl.K_RETURN:
-		cd.okayButton.Press()
-	}
+func (cd *CommDialog) HandleKeypress(key sdl.Keycode) {
+	cd.okayButton.HandleKeypress(key)
+}
+
+func (cd *CommDialog) Render() {
+	cd.container.Render()
 }
 
 func (cd CommDialog) Done() bool {
 	if cd.okayButton.PressPulse.IsFinished() {
+		cd.container.ToggleVisible()
 		return true
 	}
 

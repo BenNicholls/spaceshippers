@@ -132,7 +132,7 @@ func (cgm *CreateGalaxyMenu) Generate() {
 
 func (cgm *CreateGalaxyMenu) HandleKeypress(key sdl.Keycode) {
 	if cgm.dialog != nil {
-		cgm.dialog.HandleInput(key)
+		cgm.dialog.HandleKeypress(key)
 		return
 	}
 
@@ -183,7 +183,6 @@ func (cgm *CreateGalaxyMenu) HandleEvent(e *burl.Event) {
 
 func (cgm *CreateGalaxyMenu) Update() {
 	if cgm.dialog != nil && cgm.dialog.Done() {
-		cgm.dialog.ToggleVisible()
 		cgm.dialog = nil
 	}
 }
