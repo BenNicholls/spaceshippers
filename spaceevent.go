@@ -39,6 +39,7 @@ type SpaceEventDialog struct {
 	choiceButtons []*burl.Button
 
 	event SpaceEvent
+	done  bool
 }
 
 func NewSpaceEventDialog(e SpaceEvent) (sed *SpaceEventDialog) {
@@ -73,17 +74,23 @@ func (sed *SpaceEventDialog) HandleKeypress(key sdl.Keycode) {
 	}
 }
 
+func (sed *SpaceEventDialog) HandleEvent(event *burl.Event) {
+	switch event.ID {
+	case burl.EV_ANIMATION_DONE:
+		if event.Caller == sed.choiceButtons[sed.choiceList.GetSelection()] {
+			sed.event.Choices[sed.choiceList.GetSelection()].Result()
+			sed.container.ToggleVisible()
+			sed.done = true
+		}
+	}
+}
+
 func (sed *SpaceEventDialog) Render() {
 	sed.container.Render()
 }
 
 func (sed *SpaceEventDialog) Done() bool {
-	if sed.choiceButtons[sed.choiceList.GetSelection()].PressPulse.IsFinished() {
-		sed.event.Choices[sed.choiceList.GetSelection()].Result()
-		sed.container.ToggleVisible()
-		return true
-	}
-	return false
+	return sed.done
 }
 
 func (sg *SpaceshipGame) LoadSpaceEvents() {
@@ -102,13 +109,8 @@ func (sg *SpaceshipGame) LoadSpaceEvents() {
 				Text: "Holy Moly! Time for an adventure!",
 				Result: func() {
 					sg.AddMission(GenerateGoToMission(sg.playerShip, sg.galaxy.GetEarth(), nil))
-				},
-			},
-
-			EventChoice{
-				Text: "WELL SHIT.",
-				Result: func() {
-					sg.AddMission(GenerateGoToMission(sg.playerShip, sg.galaxy.GetEarth(), nil))
+					welcomeMessage := "Hi Captain! Welcome to " + sg.playerShip.GetName() + "! I am the Ship Computer Interactive Parameter-Parsing Intelligence Entity, but you can call me SCIPPIE! "
+					sg.dialog = NewCommDialog("SCIPPIE", sg.player.Name+", Captain of "+sg.playerShip.GetName(), "res/art/scippie.csv", welcomeMessage)
 				},
 			},
 		},

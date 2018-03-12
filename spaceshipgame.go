@@ -84,9 +84,6 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 
 	sg.LoadSpaceEvents()
 
-	// welcomeMessage := "Hi Captain! Welcome to " + sg.playerShip.GetName() + "! I am the Ship Computer Interactive Parameter-Parsing Intelligence Entity, but you can call me SCIPPIE! "
-	// sg.dialog = NewCommDialog("SCIPPIE", sg.player.Name+", Captain of "+sg.playerShip.GetName(), "res/art/scippie.csv", welcomeMessage)
-
 	sg.dialog = NewSpaceEventDialog(spaceEvents[1])
 
 	return sg
@@ -210,6 +207,10 @@ func (sg *SpaceshipGame) Update() {
 }
 
 func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
+	if sg.dialog != nil {
+		sg.dialog.HandleEvent(event)
+	}
+
 	switch event.ID {
 	case burl.EV_UPDATE_UI:
 		switch event.Message {
