@@ -188,6 +188,9 @@ func (sm *StarchartMenu) DrawGalaxy() {
 
 	x, y := sm.playerShip.Coords.Sector.Get()
 	sm.mapView.Draw(x, y, burl.GLYPH_FACE2, burl.COL_WHITE, burl.COL_BLACK)
+
+	ex, ey := sm.galaxy.earth.Sector.Get()
+	sm.mapView.Draw(ex, ey, burl.GLYPH_DONUT, burl.COL_BLUE, burl.COL_BLACK)
 }
 
 func (sm *StarchartMenu) DrawSystem() {

@@ -42,16 +42,46 @@ func NewGalaxy(name string, radius, densityFactor int) (g *Galaxy) {
 		g.sectors = append(g.sectors, NewSector(x, y, density))
 	}
 
-	//generate the sol system and save the coordinates of Earth
-	ss := g.GetSector(8, 8).GenerateSubSector(250, 171)
-	ss.starSystem = NewStarSystem(ss.GetCoords())
-	g.earth = ss.starSystem.Planets[2].GetCoords()
+	g.GenerateEarth()
+	g.GenerateStart()
 
 	return
 }
 
 func (g Galaxy) Dims() (int, int) {
 	return g.width, g.height
+}
+
+func (g *Galaxy) GenerateStart() Locatable {
+	ss := g.GenerateRandomSubSector()
+	ss.starSystem = NewStarSystem(ss.GetCoords())
+	ss.starSystem.GenerateRandom()
+
+	return ss.starSystem.Planets[0]
+}
+
+//Generates the Sol System (and with it, the ACTUAL STRAIGHT UP EARTH). Totally amazing.
+func (g *Galaxy) GenerateEarth() {
+	ss := g.GenerateRandomSubSector()
+	ss.starSystem = NewStarSystem(ss.GetCoords())
+	ss.starSystem.GenerateSolSystem()
+	g.earth = ss.starSystem.Planets[2].GetCoords()
+}
+
+func (g *Galaxy) GenerateRandomSubSector() (ss *SubSector) {
+	var sx, sy int
+	//pick random non-empty sector
+	for {
+		sx, sy = burl.GenerateCoord(0, 0, g.width, g.height)
+		s := g.GetSector(sx, sy)
+		if s.Density != 0 {
+			break
+		}
+	}
+
+	ss = g.GetSector(sx, sy).GenerateSubSector(burl.GenerateCoord(0, 0, coord_SECTOR_MAX, coord_SECTOR_MAX))
+
+	return
 }
 
 //Retreives sector at (x, y). Returns nil if x,y out of bounds (bad).

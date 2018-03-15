@@ -77,10 +77,10 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	sg.player.SpaceShip = s
 	sg.playerShip = sg.player.SpaceShip
 
-	sg.playerShip.SetLocation(sg.galaxy.GetEarth())
+	sg.playerShip.SetLocation(sg.galaxy.GenerateStart())
+	//sg.playerShip.SetLocation(sg.galaxy.GetEarth())
 
 	sg.SetupUI() //must be done after ship setup
-	sg.CenterShip()
 
 	sg.LoadSpaceEvents()
 
@@ -158,6 +158,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.timeDisplay, sg.menubar, sg.shipMenu, sg.starchartMenu, sg.commsMenu)
 
 	sg.UpdateSpeedUI()
+	sg.CenterShip()
 }
 
 func (sg *SpaceshipGame) Update() {
