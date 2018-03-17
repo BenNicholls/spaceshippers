@@ -160,19 +160,19 @@ func NewUniquePlanet(c Coordinates, orbit, radius, mass float64, name string, pT
 }
 
 func (p *Planet) Generate(t PlanetType) {
-	var min_r, max_r float64
-	var min_d, max_d float64
+	var min_r, max_r float64 //radius, in meters
+	var min_d, max_d float64 //density, in kg m^-3
 
 	switch t {
 	case PLANET_ROCKY:
 		min_r, max_r = 2000e3, 10000e3
-		min_d, max_d = 3000e3, 6000e3
+		min_d, max_d = 3000, 6000
 	case PLANET_GASGIANT:
 		min_r, max_r = 20000e3, 100000e3
-		min_d, max_d = 600e3, 2000e3
+		min_d, max_d = 600, 2000
 	case PLANET_DWARF:
 		min_r, max_r = 1000e3, 1800e3
-		min_d, max_d = 2000e3, 4000e3
+		min_d, max_d = 2000, 4000
 	}
 
 	p.radius = min_r + rand.Float64()*(max_r-min_r)
