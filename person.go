@@ -2,7 +2,7 @@ package main
 
 type PersonType int
 
-var DEFAULT_PIC = "res/art/scippie.csv"
+var DEFAULT_PIC = "res/art/scippie.xp"
 
 const (
 	PERSON_PLAYER PersonType = iota

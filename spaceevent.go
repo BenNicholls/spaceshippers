@@ -16,7 +16,7 @@ type SpaceEvent struct {
 	ID     int
 	Unique bool //whether the event should only ever be presented to the player once.
 
-	Pic         string //picture (currently in rexpaint .csv output format) TODO: create special "picture" resource type.
+	Pic         string //picture (currently in rexpaint .xp output format) TODO: create special "picture" resource type.
 	Description string
 
 	Choices []EventChoice
@@ -48,7 +48,7 @@ func NewSpaceEventDialog(e SpaceEvent) (sed *SpaceEventDialog) {
 	sed.container.CenterInConsole()
 
 	sed.eventPicView = burl.NewTileView(48, 15, 0, 0, 0, true)
-	sed.eventPicView.LoadImageFromCSV(e.Pic)
+	sed.eventPicView.LoadImageFromXP(e.Pic)
 	sed.titleText = burl.NewTextbox(48, 1, 0, 16, 0, true, true, e.Title)
 	sed.descriptionText = burl.NewTextbox(48, 8, 0, 18, 0, true, true, e.Description)
 	sed.choiceList = burl.NewList(20, 10, 14, 27, 0, true, "no choices, how'd this happen")
@@ -102,15 +102,15 @@ func (sg *SpaceshipGame) LoadSpaceEvents() {
 		Title:       "Trapped in space!",
 		ID:          1,
 		Unique:      true,
-		Pic:         "res/art/anomaly.csv",
-		Description: "While on a routine non-descript operation near Earth, your craft, " + sg.playerShip.Name + ", became entagled in a SPACETIME ANOMALY OF SOME DESCRIPTION and was hurled into the depths of the space! Ship damaged, crew rattled, beverages spilled! It is now your job to somehow traverse the galaxy and find your way home!/n/nGood luck Captain! You'll need it!",
+		Pic:         "res/art/anomaly.xp",
+		Description: "While on a routine non-descript operation near Earth, your craft, " + sg.playerShip.Name + ", became entangled in a SPACETIME ANOMALY OF SOME DESCRIPTION and was hurled into the depths of space! Ship damaged, crew rattled, beverages spilled! It is now your job to somehow traverse the galaxy and find your way home!/n/nGood luck Captain! You'll need it!",
 		Choices: []EventChoice{
 			EventChoice{
 				Text: "Holy Moly! Time for an adventure!",
 				Result: func() {
 					sg.AddMission(GenerateGoToMission(sg.playerShip, sg.galaxy.GetEarth(), nil))
 					welcomeMessage := "Hi Captain! Welcome to " + sg.playerShip.GetName() + "! I am the Ship Computer Interactive Parameter-Parsing Intelligence Entity, but you can call me SCIPPIE! "
-					sg.dialog = NewCommDialog("SCIPPIE", sg.player.Name+", Captain of "+sg.playerShip.GetName(), "res/art/scippie.csv", welcomeMessage)
+					sg.dialog = NewCommDialog("SCIPPIE", sg.player.Name+", Captain of "+sg.playerShip.GetName(), "res/art/scippie.xp", welcomeMessage)
 				},
 			},
 		},

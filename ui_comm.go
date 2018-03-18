@@ -31,7 +31,7 @@ func NewCommDialog(from, to, picFile, message string) (cd *CommDialog) {
 		cd.okayButton.CenterX(w, 0)
 	} else {
 		cd.senderPic = burl.NewTileView(12, 12, 0, 0, 0, false)
-		cd.senderPic.LoadImageFromCSV(picFile)
+		cd.senderPic.LoadImageFromXP(picFile)
 		cd.messageText = burl.NewTextbox(35, 5, 13, 3, 0, false, false, message)
 		cd.senderText = burl.NewTextbox(35, 1, 13, 0, 0, false, false, "FROM: "+from)
 		cd.recipientText = burl.NewTextbox(35, 1, 13, 1, 0, false, false, "TO: "+to)
