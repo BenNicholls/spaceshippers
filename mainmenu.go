@@ -43,7 +43,7 @@ func (mm *MainMenu) HandleKeypress(key sdl.Keycode) {
 		case 1: //Load Game
 			//Load Game dialog
 		case 2: //Ship Designer
-			//Not sure if this one stays in.
+			burl.ChangeState(NewShipDesignMenu())
 		case 3: //Options
 			//Options Dialog
 		case 4: //Quit

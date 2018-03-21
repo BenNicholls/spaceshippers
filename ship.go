@@ -1,7 +1,10 @@
 package main
 
-import "github.com/bennicholls/burl-E/burl"
-import "math/rand"
+import (
+	"math/rand"
+
+	"github.com/bennicholls/burl-E/burl"
+)
 
 type Ship struct {
 	Location //ship is technically a location, but you can't go there... you *are* there!
@@ -87,20 +90,38 @@ func (s *Ship) SetLocation(l Locatable) {
 	s.Coords.Resolution = coord_LOCAL
 }
 
-//Adds a room to the ship and connects it.
-//TODO: Check if room is a valid add.
+//Adds a room to the ship and connects it. If room is an invalid add
+//(ex. overlaps too much with an existing room), does nothing.
 func (s *Ship) AddRoom(r *Room, x, y int) {
 	r.X = x
 	r.Y = y
-	s.Rooms = append(s.Rooms, r)
 
-	//attempt to connect to each current room
+	if s.CheckRoomValidAdd(r, x, y) {
+		s.Rooms = append(s.Rooms, r)
+
+		//attempt to connect to each current room
+		for _, room := range s.Rooms {
+			s.ConnectRooms(room, r)
+		}
+
+		s.DrawRoom(r)
+		s.CalcShipDims()
+	} else {
+		burl.LogError("Invalid room add attempt: " + r.Name)
+	}
+}
+
+//Checks to see if the provided room collides illegally with another
+//in the ship. If there is no collision at all, still reports true
+func (s *Ship) CheckRoomValidAdd(r *Room, x, y int) bool {
 	for _, room := range s.Rooms {
-		s.ConnectRooms(room, r)
+		_, _, w, h := burl.FindIntersectionRect(r, room)
+		if w >= 2 && h >= 2 {
+			return false
+		}
 	}
 
-	s.DrawRoom(r)
-	s.CalcShipDims()
+	return true
 }
 
 func (s *Ship) AddCrewman(c *Crewman) {
@@ -185,23 +206,21 @@ func (s *Ship) Update(spaceTime int) {
 
 //draws the ship to the provided TileView UI object, offset by (offX, offY)
 func (s *Ship) DrawToTileView(view *burl.TileView, offX, offY int) {
-	w, h := s.shipMap.Dims()
 	x, y := 0, 0
 	displayWidth, displayHeight := view.Dims()
 
-	for i := 0; i < w*h; i++ {
+	for i := 0; i < s.width*s.height; i++ {
 		//tileView-space coords
-		x = i%w + offX
-		y = i/w + offY
+		x = i%s.width + s.x - offX
+		y = i/s.width + s.y - offY
 
 		if burl.CheckBounds(x, y, displayWidth, displayHeight) {
-			t := s.shipMap.GetTile(i%w, i/w)
-			if t.TileType != 0 {
+			if t := s.shipMap.GetTile(i%s.width+s.x, i/s.width+s.y); t.TileType != 0 {
 				tv := t.GetVisuals()
 				view.Draw(x, y, tv.Glyph, tv.ForeColour, burl.COL_BLACK)
 			}
 
-			if e := s.shipMap.GetEntity(i%w, i/w); e != nil {
+			if e := s.shipMap.GetEntity(i%s.width+s.x, i/s.width+s.y); e != nil {
 				view.Draw(x, y, e.GetVisuals().Glyph, e.GetVisuals().ForeColour, burl.COL_BLACK)
 			}
 		}

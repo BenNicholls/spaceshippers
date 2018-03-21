@@ -4,18 +4,23 @@ package main
 //room data until I can be bothered to write a ststem that imports all of this
 //from raws.
 
-type RoomClass int //general type of room. determines which system(s) it is keyed to
-type RoomType int  //specific variety of room
+var roomTemplates map[RoomType]RoomTemplate
 
-const (
-	ROOMCLASS_CORE        RoomClass = iota //heart of the ship, home of skippie, main controls, LIMIT OF 1
-	ROOMCLASS_ENGINEERING                  //source of propulsion
-	ROOMCLASS_PERSONAL                     //living quarters, barracks, etc.
-	ROOMCLASS_STORAGE                      //cargo bays, fuel pods, etc.
-	ROOMCLASS_WEAPON                       //laser guns, turrets, phasers, uhhh.. torpedos? whatever
-	ROOMCLASS_TECH                         //Specialty rooms like labs, medical bay, scanners, etc.
-	ROOMCLASS_STRUCTURAL                   //Non-functional rooms. Hallways, accessways, elevators maybe)
-)
+type RoomTemplate struct {
+	name                  string
+	description           string
+	roomType              RoomType
+	width, height         int  //default dimensions
+	resizable             bool //if a room is resizable, this will be set and
+	min_width, min_height int  //these paramaeters will be set. Otherwise,
+	max_width, max_height int  //these will be zero.
+
+	stats []RoomStat
+
+	//decorations []Decor //eventually will hold things like how many tables/computers/chairs/crap for the room to contain
+}
+
+type RoomType int //specific variety of room
 
 const (
 	ROOM_BRIDGE RoomType = iota
@@ -33,36 +38,84 @@ const (
 	ROOM_LASERTURRET
 )
 
+func init() {
+	roomTemplates = make(map[RoomType]RoomTemplate)
+
+	roomTemplates[ROOM_ENGINE_SMALL] = RoomTemplate{
+		name:        "Engine Room - Small",
+		description: "A small engine room, with small sub-light engines.",
+		roomType:    ROOM_ENGINE_SMALL,
+		width:       3,
+		height:      5,
+		stats: []RoomStat{
+			RoomStat{
+				Stat:     STAT_SUBLIGHT_THRUST,
+				Modifier: 10,
+			},
+			RoomStat{
+				Stat:     STAT_SUBLIGHT_FUELUSE,
+				Modifier: 2,
+			},
+			RoomStat{
+				Stat:     STAT_SUBLIGHT_POWER,
+				Modifier: 30,
+			},
+		},
+	}
+
+	roomTemplates[ROOM_ENGINE_MEDIUM] = RoomTemplate{
+		name:        "Engine Room - Medium",
+		description: "A medium sized engine room, with decent sub-light engines.",
+		roomType:    ROOM_ENGINE_MEDIUM,
+		width:       5,
+		height:      8,
+		stats: []RoomStat{
+			RoomStat{
+				Stat:     STAT_SUBLIGHT_THRUST,
+				Modifier: 25,
+			},
+			RoomStat{
+				Stat:     STAT_SUBLIGHT_FUELUSE,
+				Modifier: 3,
+			},
+			RoomStat{
+				Stat:     STAT_SUBLIGHT_POWER,
+				Modifier: 50,
+			},
+		},
+	}
+}
+
 func CreateRoomFromTemplate(room RoomType) (r *Room) {
 	r = new(Room)
 
-	switch room {
-	case ROOM_BRIDGE:
-		r = NewRoom("Bridge", ROOM_BRIDGE, ROOMCLASS_CORE, 6, 12, 500, 1000)
-	case ROOM_COCKPIT:
-		r = NewRoom("Cockpit", ROOM_COCKPIT, ROOMCLASS_CORE, 4, 3, 500, 1000)
-	case ROOM_CORRIDOR_H:
-		r = NewRoom("Corridor", ROOM_CORRIDOR_H, ROOMCLASS_STRUCTURAL, 12, 4, 500, 1000)
-	case ROOM_CORRIDOR_V:
-		r = NewRoom("Corridor", ROOM_CORRIDOR_V, ROOMCLASS_STRUCTURAL, 4, 12, 500, 1000)
-	case ROOM_ENGINE_SMALL:
-		r = NewRoom("Engineering", ROOM_ENGINE_SMALL, ROOMCLASS_ENGINEERING, 3, 5, 500, 1000)
-	case ROOM_ENGINE_MEDIUM:
-		r = NewRoom("Engineering", ROOM_ENGINE_MEDIUM, ROOMCLASS_ENGINEERING, 5, 8, 500, 1000)
-	case ROOM_ENGINE_LARGE:
-		r = NewRoom("Engineering", ROOM_ENGINE_LARGE, ROOMCLASS_ENGINEERING, 7, 9, 500, 1000)
-	case ROOM_CARGOBAY:
-		r = NewRoom("Cargo Bay", ROOM_CARGOBAY, ROOMCLASS_STORAGE, 8, 8, 500, 1000)
-	case ROOM_QUARTERS:
-		r = NewRoom("Quarters", ROOM_QUARTERS, ROOMCLASS_PERSONAL, 6, 6, 500, 1000)
-	case ROOM_COMMONAREA:
-		r = NewRoom("Common Area", ROOM_COMMONAREA, ROOMCLASS_PERSONAL, 9, 7, 500, 1000)
-	case ROOM_LABORATORY:
-		r = NewRoom("Laboratory", ROOM_LABORATORY, ROOMCLASS_TECH, 7, 7, 500, 1000)
-	case ROOM_MEDBAY:
-		r = NewRoom("Medical Bay", ROOM_MEDBAY, ROOMCLASS_TECH, 5, 5, 500, 1000)
-	case ROOM_LASERTURRET:
-		r = NewRoom("Laser Turret", ROOM_LASERTURRET, ROOMCLASS_WEAPON, 3, 3, 500, 1000)
+	if temp, ok := roomTemplates[room]; ok {
+		r = NewRoomFromTemplate(temp)
+	} else {
+		switch room {
+		case ROOM_BRIDGE:
+			r = NewRoom("Bridge", ROOM_BRIDGE, 6, 12)
+		case ROOM_COCKPIT:
+			r = NewRoom("Cockpit", ROOM_COCKPIT, 4, 3)
+		case ROOM_CORRIDOR_H:
+			r = NewRoom("Corridor", ROOM_CORRIDOR_H, 12, 4)
+		case ROOM_CORRIDOR_V:
+			r = NewRoom("Corridor", ROOM_CORRIDOR_V, 4, 12)
+		case ROOM_ENGINE_LARGE:
+			r = NewRoom("Engineering", ROOM_ENGINE_LARGE, 7, 9)
+		case ROOM_CARGOBAY:
+			r = NewRoom("Cargo Bay", ROOM_CARGOBAY, 8, 8)
+		case ROOM_QUARTERS:
+			r = NewRoom("Quarters", ROOM_QUARTERS, 6, 6)
+		case ROOM_COMMONAREA:
+			r = NewRoom("Common Area", ROOM_COMMONAREA, 9, 7)
+		case ROOM_LABORATORY:
+			r = NewRoom("Laboratory", ROOM_LABORATORY, 7, 7)
+		case ROOM_MEDBAY:
+			r = NewRoom("Medical Bay", ROOM_MEDBAY, 5, 5)
+		case ROOM_LASERTURRET:
+			r = NewRoom("Laser Turret", ROOM_LASERTURRET, 3, 3)
+		}
 	}
 
 	return

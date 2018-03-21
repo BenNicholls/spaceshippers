@@ -169,8 +169,8 @@ func (scm *ShipCreateMenu) Render() {
 
 	//calculate offset for ship based on ship size, so ship is centered
 	displayWidth, displayHeight := scm.shipView.Dims()
-	offX := displayWidth/2 - scm.ship.width/2 - scm.ship.x
-	offY := displayHeight/2 - scm.ship.height/2 - scm.ship.y
+	offX := scm.ship.width/2 + scm.ship.x - displayWidth/2
+	offY := scm.ship.height/2 + scm.ship.y - displayHeight/2
 
 	scm.ship.DrawToTileView(scm.shipView, offX, offY)
 

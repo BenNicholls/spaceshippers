@@ -1,30 +1,51 @@
 package main
 
-import "strconv"
+//import "strconv"
 import "github.com/bennicholls/burl-E/burl"
 
 type Room struct {
-	Name      string
-	Roomtype  RoomType
-	Roomclass RoomClass
-
-	X, Y          int
+	Name          string
+	Description   string
+	Roomtype      RoomType
 	Width, Height int
 
+	X, Y    int
 	RoomMap *burl.TileMap
 
 	connected []*Room
 
-	RepairState      burl.Stat //state of repair.
-	Upkeep           int       //periodic decay of repair state.
-	RepairDifficulty int       //default time to repair by 1 unit.
+	Stats []RoomStat
 }
 
-func NewRoom(name string, t RoomType, c RoomClass, w, h, upkeep, repair int) *Room {
+func NewRoom(name string, t RoomType, w, h int) *Room {
 	r := new(Room)
 	r.Width, r.Height = w, h
 	r.Name = name
+	r.Stats = make([]RoomStat, 0)
+	r.Description = "a room"
 
+	r.CreateRoomMap()
+	r.connected = make([]*Room, 0, 10)
+
+	return r
+}
+
+func NewRoomFromTemplate(temp RoomTemplate) (r *Room) {
+	r = new(Room)
+	r.Name = temp.name
+	r.Description = temp.description
+	r.Width = temp.width
+	r.Height = temp.height
+	r.Roomtype = temp.roomType
+	r.Stats = temp.stats
+
+	r.CreateRoomMap()
+	r.connected = make([]*Room, 0, 10)
+
+	return
+}
+
+func (r *Room) CreateRoomMap() {
 	r.RoomMap = burl.NewMap(r.Width, r.Height)
 	for i := 0; i < r.Width*r.Height; i++ {
 		if i < r.Width || i%r.Width == 0 || i%r.Width == r.Width-1 || i/r.Width == r.Height-1 {
@@ -33,13 +54,6 @@ func NewRoom(name string, t RoomType, c RoomClass, w, h, upkeep, repair int) *Ro
 			r.RoomMap.ChangeTileType(i%r.Width, i/r.Width, TILE_FLOOR)
 		}
 	}
-
-	r.Upkeep = upkeep
-	r.RepairDifficulty = repair
-	r.RepairState = burl.NewStat(100)
-	r.connected = make([]*Room, 0, 10)
-
-	return r
 }
 
 //Tries to connect room to another. Finds the intersection of the two rooms and puts doors there!
@@ -91,34 +105,34 @@ func (r *Room) RemoveConnection(c *Room) {
 }
 
 func (r Room) GetStatus() string {
-	roomstatus := r.Name + ": Status "
-	if r.RepairState.Get() > 80 {
-		roomstatus += "NOMINAL."
-	} else if r.RepairState.Get() > 50 {
-		roomstatus += "FINE."
-	} else if r.RepairState.Get() > 20 {
-		roomstatus += "NEEDS REPAIR."
-	} else if r.RepairState.Get() > 0 {
-		roomstatus += "CRITICAL."
-	} else {
-		roomstatus += "DESTROYED."
-	}
+	roomstatus := r.Name + ": Status OKAY FOR NOW"
+	// if r.RepairState.Get() > 80 {
+	// 	roomstatus += "NOMINAL."
+	// } else if r.RepairState.Get() > 50 {
+	// 	roomstatus += "FINE."
+	// } else if r.RepairState.Get() > 20 {
+	// 	roomstatus += "NEEDS REPAIR."
+	// } else if r.RepairState.Get() > 0 {
+	// 	roomstatus += "CRITICAL."
+	// } else {
+	// 	roomstatus += "DESTROYED."
+	// }
 
-	roomstatus += " (" + strconv.Itoa(r.RepairState.Get()) + "/100)"
+	// roomstatus += " (" + strconv.Itoa(r.RepairState.Get()) + "/100)"
 
 	return roomstatus
 }
 
 func (r *Room) ApplyUpkeep(spaceTime int) {
-	if r.Upkeep == 0 {
-		return
-	} else if spaceTime%r.Upkeep == 0 {
-		r.RepairState.Mod(-1)
-	}
+	// if r.Upkeep == 0 {
+	// 	return
+	// } else if spaceTime%r.Upkeep == 0 {
+	// 	r.RepairState.Mod(-1)
+	// }
 }
 
 func (r *Room) Update(spaceTime int) {
-	r.ApplyUpkeep(spaceTime)
+	//r.ApplyUpkeep(spaceTime)
 }
 
 func (r Room) Rect() (int, int, int, int) {

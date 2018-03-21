@@ -99,11 +99,15 @@ func (sg *SpaceshipGame) AddMission(m *Mission) {
 //Centers the map of the ship in the main view.
 func (sg *SpaceshipGame) CenterShip() {
 	displayWidth, displayHeight := sg.shipdisplay.Dims()
-	sg.viewX = displayWidth/2 - sg.playerShip.width/2 - sg.playerShip.x
-	sg.viewY = displayHeight/2 - sg.playerShip.height/2 - sg.playerShip.y
+	// sg.viewX = displayWidth/2 - sg.playerShip.width/2 - sg.playerShip.x
+	// sg.viewY = displayHeight/2 - sg.playerShip.height/2 - sg.playerShip.y
+
+	sg.viewX = sg.playerShip.x + sg.playerShip.width/2 - displayWidth/2
+	sg.viewY = sg.playerShip.y + sg.playerShip.height/2 - displayHeight/2
+
 	if sg.activeMenu != nil {
 		w, _ := sg.activeMenu.Dims()
-		sg.viewX -= w / 2
+		sg.viewX += w / 2
 	}
 
 	sg.ResetShipView()
@@ -279,8 +283,8 @@ func (sg *SpaceshipGame) DeactivateMenu() {
 func (sg *SpaceshipGame) MoveShipCamera(dx, dy int) {
 	sg.ResetShipView()
 
-	sg.viewX += dx
-	sg.viewY += dy
+	sg.viewX -= dx
+	sg.viewY -= dy
 }
 
 func (sg *SpaceshipGame) ResetShipView() {

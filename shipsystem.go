@@ -1,43 +1,100 @@
 package main
 
-import "github.com/bennicholls/burl-E/burl"
+var statInformation map[StatType]StatInfo
 
-type PropulsionSystem struct {
-	ship        *Ship
-	RepairState burl.Stat //0 = broken. NOTE: Do systems break, or do rooms break? Think on this.
-	Thrust      float64   //acceleration provided by the ship in m/s^2
-	FuelUse     int       //fuel used in 1 second while on
-	Firing      bool
+type SystemType int
+
+const (
+	SYS_PROPULSION SystemType = iota
+	SYS_POWER
+	SYS_COMPUTER
+	SYS_NAVIGATION
+	SYS_SCANNER
+	SYS_LIFESUPPORT
+	SYS_WEAPON
+	SYS_SHIELD
+	SYS_MAXSYSTEMS
+)
+
+type StatType int
+
+const (
+	//SYS_PROPULSION stats
+	STAT_SUBLIGHT_THRUST StatType = iota
+	STAT_SUBLIGHT_FUELUSE
+	STAT_SUBLIGHT_POWER
+	STAT_FTL_THRUST
+	STAT_FTL_FUELUSE
+	STAT_FTL_POWER
+
+	//SYS_NAVIGATION stats
+	STAT_NAV_POWER
+	STAT_NAV_COMPUTER
+
+	STAT_MAXSTATS
+)
+
+type StatInfo struct {
+	Name        string
+	Description string
+	System      SystemType
+	Stat        StatType
 }
 
-func NewPropulsionSystem(s *Ship) *PropulsionSystem {
-	ps := new(PropulsionSystem)
-	ps.ship = s
-	ps.RepairState = burl.NewStat(100)
-	ps.Thrust = 10
-	ps.FuelUse = 2
-	ps.Firing = false
-
-	return ps
+type RoomStat struct {
+	Stat     StatType
+	Modifier int
 }
 
-func (ps *PropulsionSystem) Update() {
-	if ps.Firing && ps.ship.destination != nil {
-		if ps.ship.Fuel.Get()-ps.FuelUse < 0 {
-			ps.Firing = false
-			burl.PushEvent(burl.NewEvent(LOG_EVENT, "Out of fuel! What a catastrophe!"))
-		} else {
-			switch ps.ship.Navigation.CurrentCourse.Phase {
-			case phase_ACCEL:
-				ps.ship.Velocity.R += ps.Thrust
-			case phase_BRAKE:
-				ps.ship.Velocity.R -= ps.Thrust
-			case phase_COAST:
-				return
-			}
+func (rs RoomStat) GetName() string {
+	return statInformation[rs.Stat].Name
+}
 
-			ps.ship.Fuel.Mod(-ps.FuelUse)
-			burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship status"))
-		}
+func (rs RoomStat) GetDesc() string {
+	return statInformation[rs.Stat].Description
+}
+
+func (rs RoomStat) GetSystem() SystemType {
+	return statInformation[rs.Stat].System
+}
+
+func init() {
+	statInformation = make(map[StatType]StatInfo)
+
+	statInformation[STAT_SUBLIGHT_THRUST] = StatInfo{
+		Name:        "Sublight Thrust Factor",
+		Description: "The thrust provided by the engine for sublight-travel",
+		System:      SYS_PROPULSION,
+		Stat:        STAT_SUBLIGHT_THRUST,
+	}
+	statInformation[STAT_SUBLIGHT_FUELUSE] = StatInfo{
+		Name:        "Sublight Fuel Use",
+		Description: "The fuel used by the engine for sublight-travel",
+		System:      SYS_PROPULSION,
+		Stat:        STAT_SUBLIGHT_FUELUSE,
+	}
+	statInformation[STAT_SUBLIGHT_POWER] = StatInfo{
+		Name:        "Sublight Power Draw",
+		Description: "The power used by the engine for sublight-travel",
+		System:      SYS_PROPULSION,
+		Stat:        STAT_SUBLIGHT_POWER,
+	}
+	statInformation[STAT_FTL_THRUST] = StatInfo{
+		Name:        "FTL Thrust Factor",
+		Description: "The thrust provided by the engine for FTL-travel",
+		System:      SYS_PROPULSION,
+		Stat:        STAT_FTL_THRUST,
+	}
+	statInformation[STAT_FTL_FUELUSE] = StatInfo{
+		Name:        "FTL Fuel Use",
+		Description: "The fuel used by the engine for FTL-travel",
+		System:      SYS_PROPULSION,
+		Stat:        STAT_FTL_FUELUSE,
+	}
+	statInformation[STAT_FTL_POWER] = StatInfo{
+		Name:        "FTL Power Draw",
+		Description: "The power used by the engine for FTL-travel",
+		System:      SYS_PROPULSION,
+		Stat:        STAT_FTL_POWER,
 	}
 }
