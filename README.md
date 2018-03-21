@@ -14,4 +14,4 @@ Thanks so much for looking!
 
 ## Install
 
-Just... don't. Not yet anyways! If you must, know that Space Shippers depends upon [go-sdl2](www.github.com/veandco/go-sdl2), which in turn depends upon having SDL2 installed. I'll put up some nice instructions soon, I promise.
+Just... don't. Not yet anyways! If you must, know that Space Shippers depends upon [go-sdl2](http://github.com/veandco/go-sdl2), which in turn depends upon having SDL2 installed. I'll put up some nice instructions soon, I promise.
