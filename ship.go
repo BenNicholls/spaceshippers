@@ -111,6 +111,32 @@ func (s *Ship) AddRoom(r *Room, x, y int) {
 	}
 }
 
+func (s *Ship) RemoveRoom(r *Room) {
+	//find the room in the ship's roomlist
+	roomIndex := -1
+	for i, room := range s.Rooms {
+		if r == room {
+			roomIndex = i
+		}
+	}
+
+	if roomIndex >= 0 {
+		s.Rooms = append(s.Rooms[:roomIndex], s.Rooms[roomIndex+1:]...)
+		//erase room from shipmap
+		for i := 0; i < r.Width*r.Height; i++ {
+			s.shipMap.ChangeTileType(r.X+i%r.Width, r.Y+i/r.Width, 0)
+		}
+
+		//remove connections and re-draw
+		for _, connected := range r.connected {
+			connected.RemoveConnection(r)
+			s.DrawRoom(connected)
+		}
+
+		s.CalcShipDims()
+	}
+}
+
 //Checks to see if the provided room collides illegally with another
 //in the ship. If there is no collision at all, still reports true
 func (s *Ship) CheckRoomValidAdd(r *Room, x, y int) bool {
