@@ -2,8 +2,6 @@ package main
 
 //import "strconv"
 import (
-	"fmt"
-
 	"github.com/bennicholls/burl-E/burl"
 )
 
@@ -105,10 +103,8 @@ func (r *Room) RemoveConnection(c *Room) {
 		if room == c {
 			r.connected = append(r.connected[:i], r.connected[i+1:]...)
 
+			//redraw walls over now-nonexistent doors
 			x, y, w, h := burl.FindIntersectionRect(r, c)
-
-			fmt.Println(x, y, w, h)
-
 			for i := 0; i < w*h; i++ {
 				r.RoomMap.ChangeTileType(x+i%w-r.X, y+i/w-r.Y, TILE_WALL)
 			}

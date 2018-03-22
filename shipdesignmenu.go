@@ -84,6 +84,7 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 	for i, _ := range roomTemplates {
 		sdm.roomTemplateOrder = append(sdm.roomTemplateOrder, i)
 	}
+
 	sdm.UpdateAllRoomList()
 	sdm.UpdateRoomDetails()
 	sdm.UpdateHelpText()
@@ -136,6 +137,7 @@ func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
 				room := sdm.ship.Rooms[sdm.installedRoomList.GetSelection()]
 				sdm.ship.RemoveRoom(room)
 				sdm.UpdateInstalledRoomList()
+				sdm.addRemoveButton.Press()
 			}
 		case sdl.K_TAB:
 			sdm.roomLists.HandleKeypress(key)
