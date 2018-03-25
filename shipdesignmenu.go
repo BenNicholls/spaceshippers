@@ -106,7 +106,7 @@ func (sdm *ShipDesignMenu) CenterView() {
 
 func (sdm *ShipDesignMenu) UpdateHelpText() {
 	if sdm.roomToAdd != nil {
-		sdm.helpText.ChangeText("ADDING MODULE: " + sdm.roomToAdd.Name + "/n/n Press ARROW KEYS to move, ENTER to add module to ship, and ESCAPE to cancel.")
+		sdm.helpText.ChangeText("ADDING MODULE: " + sdm.roomToAdd.Name + "/n/n Press ARROW KEYS to move, R to rotate, ENTER to add module to ship, and ESCAPE to cancel.")
 	} else if sdm.roomLists.CurrentIndex() == 0 {
 		sdm.helpText.ChangeText("Welcome to the Ship Designer!/n/n Use PGUP/PGDOWN to select a module to add. Press TAB to see all modules currently installed.")
 	} else {
@@ -124,7 +124,7 @@ func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
 		switch key {
 		case sdl.K_a:
 			if sdm.roomLists.CurrentIndex() == 0 {
-				sdm.roomToAdd = CreateRoomFromTemplate(sdm.roomTemplateOrder[sdm.allRoomList.GetSelection()])
+				sdm.roomToAdd = CreateRoomFromTemplate(sdm.roomTemplateOrder[sdm.allRoomList.GetSelection()], false)
 				sdm.roomToAdd.X = sdm.ship.shipMap.Width/2 - sdm.roomToAdd.Width/2
 				sdm.roomToAdd.Y = sdm.ship.shipMap.Height/2 - sdm.roomToAdd.Height/2
 				sdm.CenterView()
@@ -133,7 +133,7 @@ func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
 				sdm.addRemoveButton.Press()
 			}
 		case sdl.K_r:
-			if sdm.roomLists.CurrentIndex() == 1 {
+			if sdm.roomLists.CurrentIndex() == 1 && len(sdm.installedRoomList.Elements) > 0 {
 				room := sdm.ship.Rooms[sdm.installedRoomList.GetSelection()]
 				sdm.ship.RemoveRoom(room)
 				sdm.UpdateInstalledRoomList()
@@ -169,6 +169,9 @@ func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
 		}
 	} else {
 		switch key {
+		case sdl.K_r:
+			sdm.roomToAdd.Rotate()
+			sdm.UpdateRoomState()
 		case sdl.K_RETURN:
 			sdm.AddRoomToShip()
 			sdm.UpdateHelpText()
@@ -251,7 +254,7 @@ func (sdm *ShipDesignMenu) UpdateRoomDetails() {
 
 	switch sdm.roomLists.CurrentIndex() {
 	case 0: //All
-		room = CreateRoomFromTemplate(sdm.roomTemplateOrder[sdm.allRoomList.GetSelection()])
+		room = CreateRoomFromTemplate(sdm.roomTemplateOrder[sdm.allRoomList.GetSelection()], false)
 	case 1: //Installed modules
 		if len(sdm.installedRoomList.Elements) != 0 {
 			room = sdm.ship.Rooms[sdm.installedRoomList.GetSelection()]
@@ -260,11 +263,11 @@ func (sdm *ShipDesignMenu) UpdateRoomDetails() {
 
 	if room != nil {
 		sdm.roomDetails.Add(burl.NewTextbox(20, 1, 0, 0, 0, true, true, room.Name))
-		sdm.roomDetails.Add(burl.NewTextbox(20, 2, 0, 2, 0, false, true, room.Description))
-		sdm.roomDetails.Add(burl.NewTextbox(20, 1, 0, 5, 0, false, false, "Dims: ("+strconv.Itoa(room.Width)+"x"+strconv.Itoa(room.Height)+")"))
-		sdm.roomDetails.Add(burl.NewTextbox(20, 1, 0, 7, 0, false, false, "STATS:"))
+		sdm.roomDetails.Add(burl.NewTextbox(20, 3, 0, 2, 0, false, true, room.Description))
+		sdm.roomDetails.Add(burl.NewTextbox(20, 1, 0, 6, 0, false, false, "Dims: ("+strconv.Itoa(room.Width)+"x"+strconv.Itoa(room.Height)+")"))
+		sdm.roomDetails.Add(burl.NewTextbox(20, 1, 0, 8, 0, false, false, "STATS:"))
 		for i, s := range room.Stats {
-			sdm.roomDetails.Add(burl.NewTextbox(20, 1, 2, 8+i, 0, false, false, s.GetName()+": "+strconv.Itoa(s.Modifier)))
+			sdm.roomDetails.Add(burl.NewTextbox(20, 1, 2, 9+i, 0, false, false, s.GetName()+": "+strconv.Itoa(s.Modifier)))
 		}
 	}
 }

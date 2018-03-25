@@ -58,6 +58,11 @@ func (r *Room) CreateRoomMap() {
 	}
 }
 
+func (r *Room) Rotate() {
+	r.Width, r.Height = r.Height, r.Width
+	r.CreateRoomMap()
+}
+
 //Tries to connect room to another. Finds the intersection of the two rooms and puts doors there!
 //If rooms not properly lined up, does nothing.
 func (r *Room) AddConnection(c *Room) {
