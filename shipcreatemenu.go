@@ -69,36 +69,29 @@ func NewShipCreateMenu(g *Galaxy) (scm *ShipCreateMenu) {
 }
 
 func (scm *ShipCreateMenu) UpdateShipDescription() {
-	switch scm.shipTypeList.GetSelection() {
-	case 0: //Civilian
-		scm.shipDescriptionText.ChangeText("CIVILIAN CRAFT/n/nThe Toyota Camry of spaceships. The Civilian Craft has everything the casual spacegoer might need: door, engine, steering wheel of some variety, snack table, all the cool space things. While it may not look like much, it's cheap to repair, very moddable, and will last forever if you take care of it right!")
-	case 1: //Transport
-		scm.shipDescriptionText.ChangeText("TRANSPORT SHIP/n/nUsed for transporting passengers and cargo. The Transport Ship begins with a larger cargo bay, additional dormitories, and a bulkier engine. Guzzles like an Irishman though.")
-	case 2: //Mining Ship
-		scm.shipDescriptionText.ChangeText("MINING SHIP/n/nAn industrial craft used in the dangerous but lucrative asteroid/comet mining field. The Mining Ship comes with an expanded cargo bay, medical facility, and high durability plating.")
-	case 3: //Fighter
-		scm.shipDescriptionText.ChangeText("FIGHER/n/nA small ship employed as an assault craft to be launched from a larger Carrier vessel. The Fighter begins with a powerful, efficient engine, punchy laser weapons, but with only room for 2 crew!")
-	case 4: //Explorer
-		scm.shipDescriptionText.ChangeText("EXPLORER/n/nA deep-space science vessel used to map new systems. The Explorer has efficient engines, extra fuel capacity, and a laboratory.")
+	if temp, ok := defaultShipTemplates[ShipType(scm.shipTypeList.GetSelection())]; ok {
+		scm.shipDescriptionText.ChangeText(temp.Name + "/n/n" + temp.Description)
+	} else {
+		switch scm.shipTypeList.GetSelection() {
+		case 2: //Mining Ship
+			scm.shipDescriptionText.ChangeText("MINING SHIP/n/nAn industrial craft used in the dangerous but lucrative asteroid/comet mining field. The Mining Ship comes with an expanded cargo bay, medical facility, and high durability plating.")
+		case 3: //Fighter
+			scm.shipDescriptionText.ChangeText("FIGHER/n/nA small ship employed as an assault craft to be launched from a larger Carrier vessel. The Fighter begins with a powerful, efficient engine, punchy laser weapons, but with only room for 2 crew!")
+		case 4: //Explorer
+			scm.shipDescriptionText.ChangeText("EXPLORER/n/nA deep-space science vessel used to map new systems. The Explorer has efficient engines, extra fuel capacity, and a laboratory.")
+		}
 	}
 }
 
 func (scm *ShipCreateMenu) CreateShip() {
-	scm.ship = NewShip(scm.shipNameInput.GetText(), scm.galaxy)
-	switch scm.shipTypeList.GetSelection() {
-	case 0: //Civilian
-		scm.ship.SetupFromTemplate(SHIPTYPE_CIVILIAN)
-	case 1: //Transport
-		scm.ship.SetupFromTemplate(SHIPTYPE_TRANSPORT)
-	case 2: //Mining Ship
-		scm.ship.SetupFromTemplate(SHIPTYPE_CIVILIAN)
-	case 3: //Fighter
-		scm.ship.SetupFromTemplate(SHIPTYPE_CIVILIAN)
-	case 4: //Explorer
-		scm.ship.SetupFromTemplate(SHIPTYPE_CIVILIAN)
+	if temp, ok := defaultShipTemplates[ShipType(scm.shipTypeList.GetSelection())]; ok {
+		scm.ship = NewShip(scm.shipNameInput.GetText(), scm.galaxy)
+		scm.ship.SetupFromTemplate(temp)
+		for i := 0; i < temp.CrewNum; i++ {
+			scm.ship.AddCrewman(NewCrewman())
+		}
+		scm.ship.SetupShip(scm.galaxy)
 	}
-
-	scm.ship.SetupShip(scm.galaxy)
 }
 
 func (scm *ShipCreateMenu) HandleKeypress(key sdl.Keycode) {

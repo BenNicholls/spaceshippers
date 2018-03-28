@@ -1,0 +1,26 @@
+name: Civilian Craft
+description: 'The Toyota Camry of spaceships. The Civilian Craft has everything the
+  casual spacegoer might need: door, engine, steering wheel of some variety, snack
+  table, all the cool space things. While it may not look like much, it''s cheap to
+  repair, very moddable, and will last forever if you take care of it right!'
+shiptype: 0
+rooms:
+- roomtype: 1
+  rotated: false
+  width: 0
+  height: 0
+  x: 34
+  "y": 29
+- roomtype: 8
+  rotated: false
+  width: 0
+  height: 0
+  x: 26
+  "y": 27
+- roomtype: 3
+  rotated: false
+  width: 0
+  height: 0
+  x: 24
+  "y": 28
+crewnum: 4

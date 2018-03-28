@@ -8,10 +8,7 @@ import (
 )
 
 //Event types for spaceshippers!
-//NOTE: is this setup kind of goofy? we could handle this like we do for adding tile data (see below).
-const (
-	LOG_EVENT burl.EventType = burl.EV_MAX_EVENTS + iota
-)
+var LOG_EVENT = burl.RegisterCustomEvent()
 
 //load some tile data
 var TILE_FLOOR = burl.LoadTileData("Floor", true, true, burl.GLYPH_FILL_SPARSE, burl.COL_DARKGREY)

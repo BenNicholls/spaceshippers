@@ -261,15 +261,24 @@ func init() {
 }
 
 //Instantiates a room from a template. "dims" (width, height) is optional, allowing
-//the caller to provide custom dimensions.
+//the caller to provide custom dimensions. If either dimension is zero, uses the default.
 func CreateRoomFromTemplate(room RoomType, rotate bool, dims ...int) (r *Room) {
 	r = new(Room)
 
 	if temp, ok := roomTemplates[room]; ok {
 		r = NewRoomFromTemplate(temp)
 		if temp.resizable && len(dims) == 2 {
-			r.Width = burl.Clamp(dims[0], temp.min_width, temp.max_width)
-			r.Height = burl.Clamp(dims[1], temp.min_height, temp.max_height)
+			if dims[0] == 0 {
+				r.Width = temp.width
+			} else {
+				r.Width = burl.Clamp(dims[0], temp.min_width, temp.max_width)
+			}
+
+			if dims[1] == 0 {
+				r.Height = temp.height
+			} else {
+				r.Height = burl.Clamp(dims[1], temp.min_height, temp.max_height)
+			}
 			r.CreateRoomMap()
 		}
 
