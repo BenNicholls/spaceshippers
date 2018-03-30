@@ -7,6 +7,8 @@ import (
 )
 
 type CommSystem struct {
+	SystemStats
+
 	Freq        int //how often it scans for transmissions. this should be user modifiable and increase power usage
 	Range       int //max range for incoming transmissions
 	Sensitivity int //likeliness to pickup transmission
@@ -17,6 +19,8 @@ type CommSystem struct {
 
 func NewCommSystem() (cs *CommSystem) {
 	cs = new(CommSystem)
+
+	cs.InitStats()
 
 	cs.Freq = HOUR
 	cs.Range = 1e6

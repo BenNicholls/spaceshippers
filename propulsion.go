@@ -3,6 +3,8 @@ package main
 import "github.com/bennicholls/burl-E/burl"
 
 type PropulsionSystem struct {
+	SystemStats
+
 	ship        *Ship
 	RepairState burl.Stat //0 = broken. NOTE: Do systems break, or do rooms break? Think on this.
 	Thrust      float64   //acceleration provided by the ship in m/s^2
@@ -12,6 +14,9 @@ type PropulsionSystem struct {
 
 func NewPropulsionSystem(s *Ship) *PropulsionSystem {
 	ps := new(PropulsionSystem)
+
+	ps.InitStats()
+
 	ps.ship = s
 	ps.RepairState = burl.NewStat(100)
 	ps.Thrust = 10

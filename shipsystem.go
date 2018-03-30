@@ -18,6 +18,51 @@ const (
 	SYS_MAXSYSTEMS
 )
 
+type ShipSystem interface {
+	GetStat(StatType) int
+	GetAllStats() map[StatType]RoomStat
+	AddStat(RoomStat)
+	RemoveStat(RoomStat)
+	InitStats()
+}
+
+type SystemStats struct {
+	Stats map[StatType]RoomStat
+}
+
+func (ss SystemStats) GetStat(s StatType) int {
+	if _, ok := ss.Stats[s]; ok {
+		return ss.Stats[s].Modifier
+	} else {
+		return 0
+	}
+}
+
+func (ss SystemStats) GetAllStats() map[StatType]RoomStat {
+	return ss.Stats
+}
+
+func (ss *SystemStats) AddStat(s RoomStat) {
+	if _, ok := ss.Stats[s.Stat]; ok {
+		ss.Stats[s.Stat] = RoomStat{s.Stat, ss.Stats[s.Stat].Modifier + s.Modifier}
+	} else {
+		ss.Stats[s.Stat] = s
+	}
+}
+
+func (ss *SystemStats) RemoveStat(s RoomStat) {
+	if _, ok := ss.Stats[s.Stat]; ok {
+		ss.Stats[s.Stat] = RoomStat{s.Stat, ss.Stats[s.Stat].Modifier - s.Modifier}
+		if ss.Stats[s.Stat].Modifier <= 0 {
+			delete(ss.Stats, s.Stat)
+		}
+	}
+}
+
+func (ss *SystemStats) InitStats() {
+	ss.Stats = make(map[StatType]RoomStat)
+}
+
 type StatType int
 
 const (

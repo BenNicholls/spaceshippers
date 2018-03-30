@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"sort"
 	"strconv"
 
 	"github.com/bennicholls/burl-E/burl"
@@ -80,6 +81,7 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 	sdm.shipColumn.Add(burl.NewTextbox(5, 1, 0, 4, 0, false, false, "Volume:"))
 	sdm.shipVolumeText = burl.NewTextbox(14, 1, 6, 4, 0, false, false, strconv.Itoa(sdm.ship.volume))
 	sdm.shipStatsList = burl.NewList(20, 30, 0, 13, 0, true, "Ship has no stats to display. Try adding some modules!")
+	sdm.shipStatsList.Highlight = false
 	sdm.shipColumn.Add(sdm.shipNameText, sdm.shipVolumeText, sdm.shipStatsList)
 
 	sdm.buttons = burl.NewContainer(36, 6, 21, 37, 0, true)
@@ -320,6 +322,18 @@ func (sdm *ShipDesignMenu) UpdateRoomDetails() {
 func (sdm *ShipDesignMenu) UpdateShipDetails() {
 	sdm.shipNameText.ChangeText(sdm.ship.Name)
 	sdm.shipVolumeText.ChangeText(strconv.Itoa(sdm.ship.volume))
+
+	sdm.shipStatsList.ClearElements()
+
+	for _, sys := range sdm.ship.Systems {
+		var statStrings []string
+		for _, stat := range sys.GetAllStats() {
+
+			statStrings = append(statStrings, stat.GetName()+": "+strconv.Itoa(stat.Modifier))
+		}
+		sort.Strings(statStrings)
+		sdm.shipStatsList.Append(statStrings...)
+	}
 }
 
 func (sdm *ShipDesignMenu) Render() {

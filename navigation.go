@@ -4,6 +4,8 @@ import "math"
 import "github.com/bennicholls/burl-E/burl"
 
 type NavigationSystem struct {
+	SystemStats
+
 	ship          *Ship
 	galaxy        *Galaxy
 	CurrentCourse Course //computed course for the ship to take
@@ -11,6 +13,9 @@ type NavigationSystem struct {
 
 func NewNavigationSystem(s *Ship, g *Galaxy) *NavigationSystem {
 	n := new(NavigationSystem)
+
+	n.InitStats()
+
 	n.ship = s
 	n.galaxy = g
 

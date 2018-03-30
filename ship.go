@@ -23,6 +23,8 @@ type Ship struct {
 	//Weapons *WeaponSystem
 	//Shields *ShieldSystem
 
+	Systems map[SystemType]ShipSystem
+
 	//status numbers.
 	Hull burl.Stat
 	Fuel burl.Stat
@@ -51,10 +53,16 @@ func NewShip(n string, g *Galaxy) *Ship {
 	s.Crew = make([]*Crewman, 0, 50)
 	s.Rooms = make([]*Room, 0, 50)
 
+	s.Systems = make(map[SystemType]ShipSystem)
+
 	//systems
 	s.Engine = NewPropulsionSystem(s)
+	s.Systems[SYS_PROPULSION] = s.Engine
 	s.Navigation = NewNavigationSystem(s, g)
+	s.Systems[SYS_NAVIGATION] = s.Navigation
 	s.Comms = NewCommSystem()
+	s.Systems[SYS_COMMS] = s.Comms
+
 	s.Fuel = burl.NewStat(1000000)
 
 	s.shipMap = burl.NewMap(100, 100)
@@ -90,6 +98,21 @@ func (s *Ship) SetupShip(g *Galaxy) {
 	s.Navigation.galaxy = g
 }
 
+func (s *Ship) CompileStats() {
+	//remove stats from ship systems, we're starting fresh
+	for i := range s.Systems {
+		s.Systems[i].InitStats()
+	}
+
+	for _, room := range s.Rooms {
+		for _, stat := range room.Stats {
+			if _, ok := s.Systems[stat.GetSystem()]; ok {
+				s.Systems[stat.GetSystem()].AddStat(stat)
+			}
+		}
+	}
+}
+
 func (s *Ship) SetLocation(l Locatable) {
 	s.currentLocation = l
 	s.Coords = l.GetCoords()
@@ -112,6 +135,7 @@ func (s *Ship) AddRoom(r *Room, x, y int) {
 
 		s.DrawRoom(r)
 		s.CalcShipDims()
+		s.CompileStats()
 	} else {
 		burl.LogError("Invalid room add attempt: " + r.Name)
 	}
@@ -140,6 +164,7 @@ func (s *Ship) RemoveRoom(r *Room) {
 		}
 
 		s.CalcShipDims()
+		s.CompileStats()
 	}
 }
 
