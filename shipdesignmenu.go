@@ -25,7 +25,10 @@ type ShipDesignMenu struct {
 	selectionAnimation *burl.PulseAnimation
 	stars              StarField
 
-	shipColumn *burl.Container
+	shipColumn     *burl.Container
+	shipNameText   *burl.Textbox
+	shipVolumeText *burl.Textbox
+	shipStatsList  *burl.List
 
 	buttons         *burl.Container
 	addRemoveButton *burl.Button
@@ -48,6 +51,8 @@ type ShipDesignMenu struct {
 func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 	sdm = new(ShipDesignMenu)
 
+	sdm.ship = NewShip("whatever", nil)
+
 	sdm.window = burl.NewContainer(78, 43, 1, 1, 0, true)
 	sdm.window.SetTitle("USE YOUR IMAGINATION")
 
@@ -55,7 +60,7 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 	sdm.roomColumn.Add(burl.NewTextbox(20, 1, 0, 0, 0, false, true, "Modules"))
 	sdm.roomLists = burl.NewPagedContainer(20, 20, 0, 2, 0, true)
 
-	sdm.allRoomList = burl.NewList(18, 16, 0, 0, 0, true, "No modules exists in the whole universe somehow.")
+	sdm.allRoomList = burl.NewList(18, 16, 0, 0, 0, true, "No modules exist in the whole universe somehow.")
 	sdm.installedRoomList = burl.NewList(18, 16, 0, 0, 0, true, "Ain't got no modules!")
 
 	all := sdm.roomLists.AddPage("All")
@@ -69,20 +74,24 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 
 	sdm.shipView = burl.NewTileView(36, 36, 21, 0, 0, false)
 	sdm.shipColumn = burl.NewContainer(20, 43, 58, 0, 0, true)
-	sdm.buttons = burl.NewContainer(36, 6, 21, 37, 0, true)
+	sdm.shipColumn.Add(burl.NewTextbox(20, 1, 0, 0, 0, true, true, "Ship Details"))
+	sdm.shipColumn.Add(burl.NewTextbox(5, 1, 0, 3, 0, false, false, "Ship Name:"))
+	sdm.shipNameText = burl.NewTextbox(14, 2, 6, 3, 0, false, false, "Unnamed Ship")
+	sdm.shipColumn.Add(burl.NewTextbox(5, 1, 0, 4, 0, false, false, "Volume:"))
+	sdm.shipVolumeText = burl.NewTextbox(14, 1, 6, 4, 0, false, false, strconv.Itoa(sdm.ship.volume))
+	sdm.shipStatsList = burl.NewList(20, 30, 0, 13, 0, true, "Ship has no stats to display. Try adding some modules!")
+	sdm.shipColumn.Add(sdm.shipNameText, sdm.shipVolumeText, sdm.shipStatsList)
 
+	sdm.buttons = burl.NewContainer(36, 6, 21, 37, 0, true)
 	sdm.addRemoveButton = burl.NewButton(8, 1, 0, 0, 0, true, true, "[A]dd Module")
 	sdm.loadButton = burl.NewButton(8, 1, 19, 0, 0, true, true, "[L]oad")
 	sdm.saveButton = burl.NewButton(8, 1, 28, 0, 0, true, true, "[S]ave")
-
 	sdm.helpText = burl.NewTextbox(36, 4, 0, 2, 0, true, true, "")
 	sdm.buttons.Add(sdm.addRemoveButton, sdm.saveButton, sdm.loadButton, sdm.helpText)
 
 	sdm.window.Add(sdm.roomColumn, sdm.shipView, sdm.shipColumn, sdm.buttons)
 
 	sdm.stars = NewStarField(20, sdm.shipView)
-
-	sdm.ship = NewShip("whatever", nil)
 	sdm.CenterView()
 
 	sdm.roomTemplateOrder = make([]RoomType, 0)
@@ -94,6 +103,7 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 	sdm.UpdateRoomDetails()
 	sdm.UpdateHelpText()
 	sdm.UpdateSelectionAnimation()
+	sdm.UpdateShipDetails()
 
 	return
 }
@@ -147,6 +157,7 @@ func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
 				room := sdm.ship.Rooms[sdm.installedRoomList.GetSelection()]
 				sdm.ship.RemoveRoom(room)
 				sdm.UpdateInstalledRoomList()
+				sdm.UpdateShipDetails()
 				sdm.addRemoveButton.Press()
 			}
 		case sdl.K_l:
@@ -188,6 +199,7 @@ func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
 		case sdl.K_RETURN:
 			sdm.AddRoomToShip()
 			sdm.UpdateHelpText()
+			sdm.UpdateShipDetails()
 		case sdl.K_UP:
 			sdm.roomToAdd.Y -= 1
 			sdm.UpdateRoomState()
@@ -303,6 +315,11 @@ func (sdm *ShipDesignMenu) UpdateRoomDetails() {
 			sdm.roomDetails.Add(burl.NewTextbox(20, 1, 2, 9+i, 0, false, false, s.GetName()+": "+strconv.Itoa(s.Modifier)))
 		}
 	}
+}
+
+func (sdm *ShipDesignMenu) UpdateShipDetails() {
+	sdm.shipNameText.ChangeText(sdm.ship.Name)
+	sdm.shipVolumeText.ChangeText(strconv.Itoa(sdm.ship.volume))
 }
 
 func (sdm *ShipDesignMenu) Render() {

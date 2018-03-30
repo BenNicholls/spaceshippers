@@ -16,6 +16,12 @@ type Ship struct {
 	Engine     *PropulsionSystem
 	Navigation *NavigationSystem
 	Comms      *CommSystem
+	//Power *PowerSystem
+	//Computer *ComputerSystem
+	//LifeSupport *LifeSupportSystem
+	//Storage *StorageSystem
+	//Weapons *WeaponSystem
+	//Shields *ShieldSystem
 
 	//status numbers.
 	Hull burl.Stat
@@ -181,6 +187,7 @@ func (s *Ship) DrawRoom(r *Room) {
 func (s *Ship) CalcShipDims() {
 	s.x, s.y = s.shipMap.Dims()
 	x2, y2 := 0, 0
+	s.volume = 0
 
 	for _, r := range s.Rooms {
 		s.x = burl.Min(s.x, r.X)
