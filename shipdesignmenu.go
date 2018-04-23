@@ -1,15 +1,13 @@
 package main
 
 import (
-	"io/ioutil"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/bennicholls/burl-E/burl"
 	"github.com/veandco/go-sdl2/sdl"
 )
-
-var EV_LOADFILE = burl.RegisterCustomEvent() //event.Message will contain local pathname
 
 type ShipDesignMenu struct {
 	burl.BaseState
@@ -52,7 +50,7 @@ type ShipDesignMenu struct {
 func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 	sdm = new(ShipDesignMenu)
 
-	sdm.ship = NewShip("whatever", nil)
+	sdm.ship = NewShip("Unsaved Ship", nil)
 
 	sdm.window = burl.NewContainer(78, 43, 1, 1, 0, true)
 	sdm.window.SetTitle("USE YOUR IMAGINATION")
@@ -77,7 +75,7 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 	sdm.shipColumn = burl.NewContainer(20, 43, 58, 0, 0, true)
 	sdm.shipColumn.Add(burl.NewTextbox(20, 1, 0, 0, 0, true, true, "Ship Details"))
 	sdm.shipColumn.Add(burl.NewTextbox(5, 1, 0, 3, 0, false, false, "Ship Name:"))
-	sdm.shipNameText = burl.NewTextbox(14, 2, 6, 3, 0, false, false, "Unnamed Ship")
+	sdm.shipNameText = burl.NewTextbox(14, 2, 6, 3, 0, false, false, "")
 	sdm.shipColumn.Add(burl.NewTextbox(5, 1, 0, 4, 0, false, false, "Volume:"))
 	sdm.shipVolumeText = burl.NewTextbox(14, 1, 6, 4, 0, false, false, strconv.Itoa(sdm.ship.volume))
 	sdm.shipStatsList = burl.NewList(20, 30, 0, 13, 0, true, "Ship has no stats to display. Try adding some modules!")
@@ -164,7 +162,14 @@ func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
 			}
 		case sdl.K_l:
 			sdm.loadButton.Press()
-			sdm.dialog = NewChooseFileDialog("raws/ship/")
+			sdm.dialog = NewChooseFileDialog("raws/ship/", ".shp")
+		case sdl.K_s:
+			sdm.saveButton.Press()
+			if sdm.ship.Name != "Unsaved Ship" {
+				sdm.dialog = NewSaveDialog("raws/ship/", ".shp", sdm.ship.Name)
+			} else {
+				sdm.dialog = NewSaveDialog("raws/ship/", ".shp", "")
+			}
 		case sdl.K_TAB:
 			sdm.roomLists.HandleKeypress(key)
 			sdm.UpdateRoomDetails()
@@ -193,7 +198,7 @@ func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
 			}
 			sdm.UpdateRoomDetails()
 		}
-	} else {
+	} else { //adding a room
 		switch key {
 		case sdl.K_r:
 			sdm.roomToAdd.Rotate()
@@ -254,10 +259,17 @@ func (sdm *ShipDesignMenu) HandleEvent(e *burl.Event) {
 		} else {
 			sdm.ship = NewShip("whatever", nil)
 			sdm.ship.SetupFromTemplate(temp)
+			sdm.ship.Name = temp.Name
 			sdm.UpdateInstalledRoomList()
 			sdm.UpdateRoomDetails()
+			sdm.UpdateShipDetails()
 			sdm.CenterView()
 		}
+	case EV_SAVEFILE:
+		sdm.ship.Name = strings.TrimSuffix(e.Message, ".shp")
+		temp := sdm.ship.CreateShipTemplate()
+		temp.Save()
+		sdm.UpdateShipDetails()
 	}
 }
 
@@ -366,79 +378,4 @@ func (sdm *ShipDesignMenu) Render() {
 	if sdm.dialog != nil {
 		sdm.dialog.Render()
 	}
-}
-
-type ChooseFileDialog struct {
-	burl.BaseState
-
-	container    *burl.Container
-	fileList     *burl.List
-	okayButton   *burl.Button
-	cancelButton *burl.Button
-
-	filenames []string
-
-	dirPath string
-}
-
-func NewChooseFileDialog(dirPath string) (cfd *ChooseFileDialog) {
-	cfd = new(ChooseFileDialog)
-	cfd.dirPath = dirPath
-
-	cfd.container = burl.NewContainer(20, 29, 0, 0, 50, true)
-	cfd.container.CenterInConsole()
-	cfd.container.ToggleFocus()
-	cfd.container.SetTitle("Select file!")
-
-	cfd.fileList = burl.NewList(20, 25, 0, 0, 0, true, "No Files Found!/n/n(Press C or ESCAPE to cancel)")
-	cfd.fileList.ToggleFocus()
-	cfd.okayButton = burl.NewButton(8, 1, 1, 27, 1, true, true, "[L]oad File")
-	cfd.cancelButton = burl.NewButton(8, 1, 11, 27, 2, true, true, "[C]ancel")
-
-	cfd.container.Add(cfd.fileList, cfd.okayButton, cfd.cancelButton)
-
-	cfd.filenames = make([]string, 0)
-	dirContents, err := ioutil.ReadDir(cfd.dirPath)
-	if err != nil {
-		cfd.fileList.ChangeEmptyText("Could not load files!/n/n(See log.txt for details, Press C or ESCAPE to cancel)")
-		burl.LogError(err.Error())
-	} else {
-		for i, file := range dirContents {
-			if !file.IsDir() {
-				cfd.filenames = append(cfd.filenames, dirContents[i].Name())
-				cfd.fileList.Append(file.Name())
-			}
-		}
-	}
-
-	return
-}
-
-func (cfd *ChooseFileDialog) HandleKeypress(key sdl.Keycode) {
-	cfd.fileList.HandleKeypress(key)
-	switch key {
-	case sdl.K_RETURN, sdl.K_l:
-		if len(cfd.fileList.Elements) != 0 {
-			cfd.okayButton.Press()
-		}
-	case sdl.K_ESCAPE, sdl.K_c:
-		cfd.cancelButton.Press()
-	}
-}
-
-func (cfd *ChooseFileDialog) Render() {
-	cfd.container.Render()
-}
-
-func (cfd *ChooseFileDialog) Done() bool {
-	if cfd.okayButton.PressPulse.IsFinished() {
-		burl.PushEvent(burl.NewEvent(EV_LOADFILE, cfd.filenames[cfd.fileList.GetSelection()]))
-		cfd.container.ToggleVisible()
-		return true
-	} else if cfd.cancelButton.PressPulse.IsFinished() {
-		cfd.container.ToggleVisible()
-		return true
-	}
-
-	return false
 }

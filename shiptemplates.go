@@ -126,7 +126,7 @@ func (s *Ship) SetupFromTemplate(temp ShipTemplate) {
 }
 
 func (st *ShipTemplate) Save() error {
-	f, err := os.Create("raws/ship/" + st.Name + ".txt")
+	f, err := os.Create("raws/ship/" + st.Name + ".shp")
 	if err != nil {
 		return err
 	}
@@ -162,5 +162,31 @@ func LoadShipTemplate(path string) (ShipTemplate, error) {
 	}
 
 	return st, nil
+}
 
+func (s *Ship) CreateShipTemplate() (st ShipTemplate) {
+	st = ShipTemplate{
+		Name:        s.Name,
+		Description: s.Description,
+		Shiptype:    SHIPTYPE_CUSTOM,
+	}
+
+	st.Rooms = make([]RoomDef, len(s.Rooms))
+	for i, room := range s.Rooms {
+		st.Rooms[i] = RoomDef{
+			RoomType: room.Roomtype,
+			Rotated:  room.Rotated,
+			Width:    room.Width,
+			Height:   room.Height,
+			X:        room.X,
+			Y:        room.Y,
+		}
+		if room.Rotated {
+			st.Rooms[i].Width, st.Rooms[i].Height = st.Rooms[i].Height, st.Rooms[i].Width
+		}
+	}
+
+	st.CrewNum = 4
+
+	return
 }

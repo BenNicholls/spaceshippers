@@ -9,6 +9,7 @@ type Room struct {
 	Name          string
 	Description   string
 	Roomtype      RoomType
+	Rotated       bool
 	Width, Height int
 
 	X, Y    int
@@ -60,6 +61,7 @@ func (r *Room) CreateRoomMap() {
 
 func (r *Room) Rotate() {
 	r.Width, r.Height = r.Height, r.Width
+	r.Rotated = !r.Rotated
 	r.CreateRoomMap()
 }
 

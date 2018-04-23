@@ -4,11 +4,6 @@ import "github.com/bennicholls/burl-E/burl"
 import "github.com/veandco/go-sdl2/sdl"
 import "strconv"
 
-type Dialog interface {
-	burl.State
-	Done() bool
-}
-
 type SetCourseDialog struct {
 	burl.BaseState
 

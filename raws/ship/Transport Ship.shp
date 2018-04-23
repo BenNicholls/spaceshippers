@@ -2,48 +2,48 @@ name: Transport Ship
 description: Used for transporting passengers and cargo. The Transport Ship begins
   with a larger cargo bay, additional dormitories, and a bulkier engine. Guzzles like
   an Irishman though.
-shiptype: 1
+shiptype: 2
 rooms:
 - roomtype: 0
   rotated: false
-  width: 0
-  height: 0
+  width: 7
+  height: 9
   x: 45
   "y": 21
 - roomtype: 2
   rotated: false
-  width: 16
+  width: 15
   height: 4
   x: 34
   "y": 29
 - roomtype: 2
   rotated: true
-  width: 0
-  height: 0
+  width: 12
+  height: 4
   x: 36
   "y": 18
 - roomtype: 7
   rotated: false
-  width: 0
-  height: 0
+  width: 6
+  height: 6
   x: 39
   "y": 18
 - roomtype: 7
   rotated: false
-  width: 0
-  height: 0
+  width: 6
+  height: 6
   x: 39
   "y": 24
 - roomtype: 6
   rotated: false
-  width: 0
-  height: 0
+  width: 8
+  height: 8
   x: 29
   "y": 20
 - roomtype: 5
   rotated: false
-  width: 0
-  height: 0
+  width: 7
+  height: 9
   x: 28
   "y": 27
-crewnum: 6
+crewnum: 4
