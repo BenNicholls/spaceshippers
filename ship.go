@@ -8,7 +8,6 @@ import (
 
 type Ship struct {
 	Location //ship is technically a location, but you can't go there... you *are* there!
-	ShipType ShipType
 
 	Crew  []*Crewman
 	Rooms []*Room

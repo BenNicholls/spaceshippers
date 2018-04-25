@@ -24,6 +24,8 @@ type ShipCreateMenu struct {
 	ship *Ship
 
 	stars StarField
+
+	templates []ShipTemplate
 }
 
 func NewShipCreateMenu(g *Galaxy) (scm *ShipCreateMenu) {
@@ -50,7 +52,19 @@ func NewShipCreateMenu(g *Galaxy) (scm *ShipCreateMenu) {
 
 	scm.window.Add(scm.shipView, scm.shipNameInput, scm.shipTypeList, scm.shipDescriptionText, scm.generateButton, scm.cancelButton)
 
-	scm.shipTypeList.Append("Civilian Craft", "Transport", "Mining Ship", "Fighter", "Explorer")
+	scm.templates = make([]ShipTemplate, 0)
+	shipFiles, _ := burl.GetFileList("raws/ship/", ".shp")
+
+	for _, file := range shipFiles {
+		temp, err := LoadShipTemplate("raws/ship/" + file)
+		if err != nil {
+			burl.LogError(err.Error())
+		} else {
+			scm.templates = append(scm.templates, temp)
+			scm.shipTypeList.Append(temp.Name)
+		}
+	}
+
 	scm.UpdateShipDescription()
 
 	scm.focusedField = scm.shipNameInput
@@ -69,29 +83,18 @@ func NewShipCreateMenu(g *Galaxy) (scm *ShipCreateMenu) {
 }
 
 func (scm *ShipCreateMenu) UpdateShipDescription() {
-	if temp, ok := defaultShipTemplates[ShipType(scm.shipTypeList.GetSelection())]; ok {
-		scm.shipDescriptionText.ChangeText(temp.Name + "/n/n" + temp.Description)
-	} else {
-		switch scm.shipTypeList.GetSelection() {
-		case 2: //Mining Ship
-			scm.shipDescriptionText.ChangeText("MINING SHIP/n/nAn industrial craft used in the dangerous but lucrative asteroid/comet mining field. The Mining Ship comes with an expanded cargo bay, medical facility, and high durability plating.")
-		case 3: //Fighter
-			scm.shipDescriptionText.ChangeText("FIGHER/n/nA small ship employed as an assault craft to be launched from a larger Carrier vessel. The Fighter begins with a powerful, efficient engine, punchy laser weapons, but with only room for 2 crew!")
-		case 4: //Explorer
-			scm.shipDescriptionText.ChangeText("EXPLORER/n/nA deep-space science vessel used to map new systems. The Explorer has efficient engines, extra fuel capacity, and a laboratory.")
-		}
-	}
+	temp := scm.templates[scm.shipTypeList.GetSelection()]
+	scm.shipDescriptionText.ChangeText(temp.Name + "/n/n" + temp.Description)
 }
 
 func (scm *ShipCreateMenu) CreateShip() {
-	if temp, ok := defaultShipTemplates[ShipType(scm.shipTypeList.GetSelection())]; ok {
-		scm.ship = NewShip(scm.shipNameInput.GetText(), scm.galaxy)
-		scm.ship.SetupFromTemplate(temp)
-		for i := 0; i < temp.CrewNum; i++ {
-			scm.ship.AddCrewman(NewCrewman())
-		}
-		scm.ship.SetupShip(scm.galaxy)
+	temp := scm.templates[scm.shipTypeList.GetSelection()]
+	scm.ship = NewShip(scm.shipNameInput.GetText(), scm.galaxy)
+	scm.ship.SetupFromTemplate(temp)
+	for i := 0; i < temp.CrewNum; i++ {
+		scm.ship.AddCrewman(NewCrewman())
 	}
+	scm.ship.SetupShip(scm.galaxy)
 }
 
 func (scm *ShipCreateMenu) HandleKeypress(key sdl.Keycode) {

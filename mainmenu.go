@@ -52,7 +52,8 @@ func (mm *MainMenu) HandleKeypress(key sdl.Keycode) {
 	case sdl.K_SPACE: //FOR TESTING PURPOSES ONLY DAMMIT
 		g := NewGalaxy("Test Galaxy", GAL_MAX_RADIUS, GAL_DENSE)
 		s := NewShip("The Greatest Spaceship There Is", g)
-		s.SetupFromTemplate(defaultShipTemplates[SHIPTYPE_TRANSPORT])
+		temp, _ := LoadShipTemplate("raws/ship/Transport Ship.shp")
+		s.SetupFromTemplate(temp)
 		burl.ChangeState(NewSpaceshipGame(g, s))
 	}
 }

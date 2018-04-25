@@ -1,9 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
-	"strings"
-
 	"github.com/bennicholls/burl-E/burl"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -45,21 +42,14 @@ func NewChooseFileDialog(dirPath, ext string) (cfd *ChooseFileDialog) {
 
 	cfd.container.Add(cfd.fileList, cfd.okayButton, cfd.cancelButton)
 
-	cfd.filenames = make([]string, 0)
-	dirContents, err := ioutil.ReadDir(cfd.dirPath)
+	var err error
+	cfd.filenames, err = burl.GetFileList(dirPath, ext)
 	if err != nil {
 		cfd.fileList.ChangeEmptyText("Could not load files!/n/n(See log.txt for details, Press C or ESCAPE to cancel)")
-		burl.LogError(err.Error())
-	} else {
-		for i, file := range dirContents {
-			if !file.IsDir() {
-				if ext != "" && !strings.HasSuffix(dirContents[i].Name(), ext) {
-					continue
-				}
-				cfd.filenames = append(cfd.filenames, dirContents[i].Name())
-				cfd.fileList.Append(file.Name())
-			}
-		}
+	}
+
+	for _, name := range cfd.filenames {
+		cfd.fileList.Append(name)
 	}
 
 	return
@@ -132,18 +122,7 @@ func NewSaveDialog(dirPath, ext, def string) (sd *SaveDialog) {
 
 	sd.container.Add(sd.nameInput, sd.fileText, sd.saveButton, sd.cancelButton)
 
-	sd.filenames = make([]string, 0)
-	dirContents, err := ioutil.ReadDir(sd.dirPath)
-	if err != nil {
-		burl.LogError(err.Error())
-	} else {
-		for i, file := range dirContents {
-			if !file.IsDir() {
-				sd.filenames = append(sd.filenames, dirContents[i].Name())
-			}
-		}
-	}
-
+	sd.filenames, _ = burl.GetFileList(dirPath, "")
 	sd.UpdateFileText()
 
 	return
