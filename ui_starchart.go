@@ -182,7 +182,7 @@ func (sm *StarchartMenu) DrawGalaxy() {
 		if bright == 0 {
 			g = burl.GLYPH_NONE
 		}
-		sm.mapView.Draw(x, y, g, burl.MakeColour(bright, bright, bright), burl.COL_BLACK)
+		sm.mapView.Draw(x, y, g, burl.MakeOpaqueColour(bright, bright, bright), burl.COL_BLACK)
 	}
 	//----------------------------
 

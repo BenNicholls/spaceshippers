@@ -220,7 +220,7 @@ func (gmv *GalaxyMapView) DrawGalaxy() {
 			if bright == 0 {
 				g = burl.GLYPH_NONE
 			}
-			gmv.Draw(x, y, g, burl.MakeColour(bright, bright, bright), burl.COL_BLACK)
+			gmv.Draw(x, y, g, burl.MakeOpaqueColour(bright, bright, bright), burl.COL_BLACK)
 		}
 	}
 }
