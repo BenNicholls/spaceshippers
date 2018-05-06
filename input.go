@@ -57,6 +57,8 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			sg.HandleKeypressInput(key)
 		case sg.crewMenu:
 			sg.HandleKeypressCrewMenu(key)
+		case sg.shipMenu:
+			sg.HandleKeypressShipMenu(key)
 		case sg.starchartMenu:
 			sg.HandleKeypressStarchartMenu(key)
 		case sg.missionMenu:
@@ -160,5 +162,18 @@ func (sg *SpaceshipGame) HandleKeypressCommsMenu(key sdl.Keycode) {
 			msg := sg.commsMenu.comms.Transmissions[s]
 			sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
 		}
+	}
+}
+
+func (sg *SpaceshipGame) HandleKeypressShipMenu(key sdl.Keycode) {
+	switch key {
+	case sdl.K_PAGEUP:
+		sg.shipMenu.pages[sg.shipMenu.pageList.GetSelection()].ToggleVisible()
+		sg.shipMenu.pageList.Prev()
+		sg.shipMenu.pages[sg.shipMenu.pageList.GetSelection()].ToggleVisible()
+	case sdl.K_PAGEDOWN:
+		sg.shipMenu.pages[sg.shipMenu.pageList.GetSelection()].ToggleVisible()
+		sg.shipMenu.pageList.Next()
+		sg.shipMenu.pages[sg.shipMenu.pageList.GetSelection()].ToggleVisible()
 	}
 }

@@ -1,20 +1,51 @@
 package main
 
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"github.com/bennicholls/burl-E/burl"
+)
 
 type ShipMenu struct {
 	burl.Container
+
+	pageList *burl.List
+
+	pages []*burl.Container
+
+	shipPage       *burl.Container
+	propulsionPage *burl.Container
+	powerPage      *burl.Container
 }
 
 func NewShipMenu() (sm *ShipMenu) {
 	sm = new(ShipMenu)
 
-	sm.Container = *burl.NewContainer(20, 26, 59, 4, 15, true)
+	sm.Container = *burl.NewContainer(40, 26, 39, 4, 5, true)
 	sm.SetTitle("Ship")
 	sm.SetVisibility(false)
-	sm.ToggleFocus()
 
-	sm.Add(burl.NewTextbox(13, 1, 2, 2, 1, true, true, "ship stuff?"))
+	sm.pageList = burl.NewList(7, 26, 0, 0, 0, true, "No pages??")
+	sm.pageList.Append("Ship", "Propulsion", "Power")
+
+	sm.Add(sm.pageList)
+
+	sm.pages = make([]*burl.Container, 0)
+
+	sm.shipPage = burl.NewContainer(32, 26, 8, 0, 0, true)
+	sm.shipPage.Add(burl.NewTextbox(10, 1, 10, 10, 0, true, true, "Ship Stuff"))
+
+	sm.propulsionPage = burl.NewContainer(32, 26, 8, 0, 0, true)
+	sm.propulsionPage.SetVisibility(false)
+	sm.propulsionPage.Add(burl.NewTextbox(10, 1, 10, 10, 0, true, true, "propulsion Stuff"))
+
+	sm.powerPage = burl.NewContainer(32, 26, 8, 0, 0, true)
+	sm.powerPage.SetVisibility(false)
+	sm.powerPage.Add(burl.NewTextbox(10, 1, 10, 10, 0, true, true, "power Stuff"))
+
+	sm.pages = append(sm.pages, sm.shipPage, sm.propulsionPage, sm.powerPage)
+
+	for p := range sm.pages {
+		sm.Add(sm.pages[p])
+	}
 
 	return
 }

@@ -4,9 +4,11 @@ import (
 	"github.com/bennicholls/burl-E/burl"
 )
 
-//Similarly to the shiptemplates.go file, this file is just going to hold
-//room data until I can be bothered to write a ststem that imports all of this
-//from raws.
+//This file is just going to hold room data until I can be bothered to 
+//write a system that imports all of this from raws.
+//CONSIDER: Changing the word "room" to module?? That's what we'll be referring
+//to these as in the game.
+//THINK: If we change the order of the roomtype list or add ones in between, saved ships break. How to fix???
 
 var roomTemplates map[RoomType]RoomTemplate
 
