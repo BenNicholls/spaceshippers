@@ -165,10 +165,12 @@ func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
 			sdm.dialog = NewChooseFileDialog("raws/ship/", ".shp")
 		case sdl.K_s:
 			sdm.saveButton.Press()
-			if sdm.ship.Name != "Unsaved Ship" {
-				sdm.dialog = NewSaveDialog("raws/ship/", ".shp", sdm.ship.Name)
-			} else {
-				sdm.dialog = NewSaveDialog("raws/ship/", ".shp", "")
+			if len(sdm.installedRoomList.Elements) != 0 {
+				if sdm.ship.Name != "Unsaved Ship" {
+					sdm.dialog = NewSaveDialog("raws/ship/", ".shp", sdm.ship.Name)
+				} else {
+					sdm.dialog = NewSaveDialog("raws/ship/", ".shp", "")
+				}
 			}
 		case sdl.K_TAB:
 			sdm.roomLists.HandleKeypress(key)
