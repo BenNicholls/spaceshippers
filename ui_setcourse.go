@@ -45,24 +45,26 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 	distanceText := burl.NewTextbox(26, 1, 30, 2, 0, false, false, "Distance: "+strconv.Itoa(int(sc.distance/1000))+" km")
 	orbitText := burl.NewTextbox(26, 1, 30, 3, 3, false, false, "Required Speed to Orbit: "+strconv.Itoa(int(d.GetVisitSpeed()/1000))+" km/s")
 	shipSpeedText := burl.NewTextbox(26, 1, 30, 4, 3, false, false, "Current Ship Speed: "+strconv.Itoa(s.GetSpeed())+" m/s")
-	maxFuelText := burl.NewTextbox(26, 1, 30, 5, 3, false, false, "Fuel Available "+strconv.Itoa(s.Fuel.Get())+" Litres")
+	maxFuelText := burl.NewTextbox(26, 1, 30, 5, 3, false, false, "Fuel Available: "+strconv.Itoa(s.Fuel.Get())+" Litres")
+	fuelUseText := burl.NewTextbox(26, 1, 30, 6, 3, false, false, "Fuel Use Rate: "+strconv.Itoa(s.Engine.FuelUse)+" Litres per second")
+	engineThrustText := burl.NewTextbox(26, 1, 30, 7, 3, false, false, "Total Engine Thrust: "+strconv.Itoa(int(s.Engine.Thrust))+" m/s/s")
 
-	sc.container.Add(distanceText, orbitText, shipSpeedText, maxFuelText)
+	sc.container.Add(distanceText, orbitText, shipSpeedText, maxFuelText, fuelUseText, engineThrustText)
 
-	sc.travelTimeText = burl.NewTextbox(26, 1, 30, 7, 3, false, false, "")
-	sc.travelSpeedText = burl.NewTextbox(26, 1, 30, 8, 3, false, false, "")
-	sc.arrivalTimeText = burl.NewTextbox(26, 1, 30, 9, 3, false, false, "")
+	sc.travelTimeText = burl.NewTextbox(26, 1, 30, 9, 3, false, false, "")
+	sc.travelSpeedText = burl.NewTextbox(26, 1, 30, 10, 3, false, false, "")
+	sc.arrivalTimeText = burl.NewTextbox(26, 1, 30, 11, 3, false, false, "")
 
-	sc.fuelGauge = burl.NewProgressBar(26, 1, 30, 12, 1, true, true, "", burl.COL_GREEN)
+	sc.fuelGauge = burl.NewProgressBar(26, 1, 30, 14, 1, true, true, "", burl.COL_GREEN)
 	sc.fuelGauge.SetProgress(50)
 
 	sc.container.Add(sc.travelSpeedText, sc.travelTimeText, sc.arrivalTimeText, sc.fuelGauge)
 
 	sc.UpdateCourse()
 
-	sc.goButton = burl.NewButton(20, 1, 33, 18, 1, true, true, "This Looks Good, Let's Go!!")
+	sc.goButton = burl.NewButton(20, 1, 33, 20, 1, true, true, "This Looks Good, Let's Go!!")
 	sc.goButton.ToggleFocus()
-	sc.cancelButton = burl.NewButton(20, 1, 33, 21, 2, true, true, "On Second Thought, nevermind.")
+	sc.cancelButton = burl.NewButton(20, 1, 33, 23, 2, true, true, "On Second Thought, nevermind.")
 
 	sc.container.Add(sc.goButton, sc.cancelButton)
 
