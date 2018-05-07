@@ -24,6 +24,7 @@ type ShipSystem interface {
 	AddStat(RoomStat)
 	RemoveStat(RoomStat)
 	InitStats()
+	Update(int)
 }
 
 type SystemStats struct {

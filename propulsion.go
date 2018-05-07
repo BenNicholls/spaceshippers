@@ -29,7 +29,7 @@ func (ps *PropulsionSystem) UpdateEngineStats() {
 	ps.FuelUse = ps.GetStat(STAT_SUBLIGHT_FUELUSE)        //TODO: afterburner calc here??
 }
 
-func (ps *PropulsionSystem) Update() {
+func (ps *PropulsionSystem) Update(tick int) {
 	ps.UpdateEngineStats()
 
 	if ps.Firing && ps.ship.destination != nil {
@@ -50,4 +50,7 @@ func (ps *PropulsionSystem) Update() {
 			burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship status"))
 		}
 	}
+
+	x, y := ps.ship.Velocity.ToRect().Get()
+	ps.ship.Coords.moveLocal(x, y)
 }

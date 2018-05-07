@@ -238,18 +238,16 @@ func (s Ship) GetSpeed() int {
 }
 
 func (s *Ship) Update(spaceTime int) {
-	s.Navigation.Update(spaceTime)
-	s.Engine.Update()
-	s.Comms.Update(spaceTime)
 
-	x, y := s.Velocity.ToRect().Get()
-	s.Coords.moveLocal(x, y)
+	for sys := range s.Systems {
+		s.Systems[sys].Update(spaceTime)
+	}
 
-	for i, _ := range s.Rooms {
+	for i := range s.Rooms {
 		s.Rooms[i].Update(spaceTime)
 	}
 
-	for i, _ := range s.Crew {
+	for i := range s.Crew {
 		s.Crew[i].Update()
 		if spaceTime%20 == 0 && s.Crew[i].IsAwake() {
 			dx, dy := burl.RandomDirection()
