@@ -161,5 +161,4 @@ func init() {
 		System:      SYS_POWER,
 		Stat:        STAT_POWER_DRAW,
 	}
-
 }

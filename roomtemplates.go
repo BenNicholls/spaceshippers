@@ -4,7 +4,7 @@ import (
 	"github.com/bennicholls/burl-E/burl"
 )
 
-//This file is just going to hold room data until I can be bothered to 
+//This file is just going to hold room data until I can be bothered to
 //write a system that imports all of this from raws.
 //CONSIDER: Changing the word "room" to module?? That's what we'll be referring
 //to these as in the game.
