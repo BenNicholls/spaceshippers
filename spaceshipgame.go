@@ -114,12 +114,19 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.menubar = burl.NewContainer(80, 1, 0, 1, 10, false)
 	sg.gameMenuButton = burl.NewButton(8, 1, 3, 0, 1, true, true, "Game")
+	sg.gameMenuButton.SetHint("F1")
 	sg.shipMenuButton = burl.NewButton(8, 1, 14, 0, 2, true, true, "Ship")
+	sg.shipMenuButton.SetHint("F2")
 	sg.galaxyMenuButton = burl.NewButton(8, 1, 25, 0, 1, true, true, "Galaxy")
+	sg.galaxyMenuButton.SetHint("F3")
 	sg.crewMenuButton = burl.NewButton(8, 1, 36, 0, 2, true, true, "Crew")
+	sg.crewMenuButton.SetHint("F4")
 	sg.commMenuButton = burl.NewButton(8, 1, 47, 0, 1, true, true, "Communications")
+	sg.commMenuButton.SetHint("F5")
 	sg.viewMenuButton = burl.NewButton(8, 1, 58, 0, 2, true, true, "View  Mode")
+	sg.viewMenuButton.SetHint("F6")
 	sg.mainMenuButton = burl.NewButton(8, 1, 69, 0, 1, true, true, "Main  Menu")
+	sg.mainMenuButton.SetHint("ESC")
 
 	sg.menubar.Add(sg.gameMenuButton, sg.shipMenuButton, sg.galaxyMenuButton, sg.crewMenuButton, sg.commMenuButton, sg.viewMenuButton, sg.mainMenuButton)
 
@@ -136,6 +143,7 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.output = burl.NewList(51, 12, 28, 32, 10, true, "Nothing to report, Captain!")
 	sg.output.ToggleHighlight()
+	sg.output.SetHint("PgUp/PgDown to scroll")
 
 	sg.crewMenu = NewCrewMenu(sg.playerShip)
 	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)

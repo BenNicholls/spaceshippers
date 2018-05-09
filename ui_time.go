@@ -17,6 +17,7 @@ func NewTimeDisplay(g *Galaxy) (td *TimeDisplay) {
 	td = new(TimeDisplay)
 
 	td.Container = *burl.NewContainer(26, 1, 1, 43, 10, true)
+	td.Container.SetHint("+/-: change speed")
 	td.timeText = burl.NewTextbox(20, 1, 5, 0, 0, false, false, "")
 	td.speedDisplay = burl.NewTileView(4, 1, 0, 0, 0, true)
 
