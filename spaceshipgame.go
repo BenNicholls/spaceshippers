@@ -30,13 +30,14 @@ type SpaceshipGame struct {
 	shipdisplay *burl.TileView
 
 	//top menu. contains buttons for submenus
-	menubar             *burl.Container
-	crewMenuButton      *burl.Button
-	shipMenuButton      *burl.Button
-	missionMenuButton   *burl.Button
-	mainMenuButton      *burl.Button
-	starchartMenuButton *burl.Button
-	commsMenuButton     *burl.Button
+	menubar          *burl.Container
+	gameMenuButton   *burl.Button
+	shipMenuButton   *burl.Button
+	galaxyMenuButton *burl.Button
+	crewMenuButton   *burl.Button
+	commMenuButton   *burl.Button
+	viewMenuButton   *burl.Button
+	mainMenuButton   *burl.Button
 
 	crewMenu      *CrewMenu      //crew menu (F1)
 	shipMenu      *ShipMenu      //shipmenu (F2)
@@ -111,14 +112,16 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.timeDisplay = NewTimeDisplay(sg.galaxy)
 
-	sg.menubar = burl.NewContainer(69, 1, 12, 1, 10, false)
-	sg.crewMenuButton = burl.NewButton(9, 1, 1, 0, 1, true, true, "Crew")
-	sg.shipMenuButton = burl.NewButton(9, 1, 12, 0, 2, true, true, "Ship")
-	sg.missionMenuButton = burl.NewButton(9, 1, 23, 0, 1, true, true, "Missions")
-	sg.starchartMenuButton = burl.NewButton(9, 1, 34, 0, 2, true, true, "Star Chart")
-	sg.commsMenuButton = burl.NewButton(9, 1, 45, 0, 1, true, true, "Comm Panel")
-	sg.mainMenuButton = burl.NewButton(9, 1, 56, 0, 2, true, true, "Main  Menu")
-	sg.menubar.Add(sg.crewMenuButton, sg.shipMenuButton, sg.missionMenuButton, sg.starchartMenuButton, sg.commsMenuButton, sg.mainMenuButton)
+	sg.menubar = burl.NewContainer(80, 1, 0, 1, 10, false)
+	sg.gameMenuButton = burl.NewButton(8, 1, 3, 0, 1, true, true, "Game")
+	sg.shipMenuButton = burl.NewButton(8, 1, 14, 0, 2, true, true, "Ship")
+	sg.galaxyMenuButton = burl.NewButton(8, 1, 25, 0, 1, true, true, "Galaxy")
+	sg.crewMenuButton = burl.NewButton(8, 1, 36, 0, 2, true, true, "Crew")
+	sg.commMenuButton = burl.NewButton(8, 1, 47, 0, 1, true, true, "Communications")
+	sg.viewMenuButton = burl.NewButton(8, 1, 58, 0, 2, true, true, "View  Mode")
+	sg.mainMenuButton = burl.NewButton(8, 1, 69, 0, 1, true, true, "Main  Menu")
+
+	sg.menubar.Add(sg.gameMenuButton, sg.shipMenuButton, sg.galaxyMenuButton, sg.crewMenuButton, sg.commMenuButton, sg.viewMenuButton, sg.mainMenuButton)
 
 	sg.shipdisplay = burl.NewTileView(80, 28, 0, 3, 1, false)
 	sg.Stars = NewStarField(20, sg.shipdisplay)

@@ -16,23 +16,29 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 	//general keys -- works in all menus, modes, etc. Mainly menu switching stuff
 	switch key {
 	case sdl.K_F1:
-		sg.crewMenuButton.Press()
-		sg.ActivateMenu(sg.crewMenu)
+		sg.gameMenuButton.Press()
+		//sg.ActivateMenu(sg.missionMenu)
 	case sdl.K_F2:
 		sg.shipMenuButton.Press()
-		sg.ActivateMenu(sg.shipMenu)
+		//sg.ActivateMenu(sg.shipMenu)
 	case sdl.K_F3:
-		sg.missionMenuButton.Press()
-		sg.ActivateMenu(sg.missionMenu)
+		sg.galaxyMenuButton.Press()
+		// if sg.activeMenu != sg.starchartMenu {
+		// 	sg.starchartMenu.OnActivate()
+		// }
+		// sg.ActivateMenu(sg.starchartMenu)
 	case sdl.K_F4:
-		sg.starchartMenuButton.Press()
-		if sg.activeMenu != sg.starchartMenu {
-			sg.starchartMenu.OnActivate()
-		}
-		sg.ActivateMenu(sg.starchartMenu)
+		sg.crewMenuButton.Press()
+		//sg.ActivateMenu(sg.crewMenu)
 	case sdl.K_F5:
-		sg.commsMenuButton.Press()
-		sg.ActivateMenu(sg.commsMenu)
+		sg.commMenuButton.Press()
+		//sg.ActivateMenu(sg.commsMenu)
+	case sdl.K_F6:
+		sg.viewMenuButton.Press()
+		//sg.ActivateMenu(sg.viewMenu)
+	case sdl.K_F7:
+		sg.mainMenuButton.Press()
+		//sg.ActivateMenu(sg.mainMenu)
 	case sdl.K_KP_PLUS:
 		if sg.simSpeed < 4 {
 			sg.simSpeed++
