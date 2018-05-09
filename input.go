@@ -36,12 +36,12 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 	case sdl.K_KP_PLUS:
 		if sg.simSpeed < 4 {
 			sg.simSpeed++
-			sg.UpdateSpeedUI()
+			sg.timeDisplay.UpdateSpeed(sg.simSpeed)
 		}
 	case sdl.K_KP_MINUS:
 		if sg.simSpeed > 0 {
 			sg.simSpeed--
-			sg.UpdateSpeedUI()
+			sg.timeDisplay.UpdateSpeed(sg.simSpeed)
 		}
 	case sdl.K_SPACE:
 		sg.paused = !sg.paused

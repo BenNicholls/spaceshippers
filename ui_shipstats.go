@@ -19,12 +19,12 @@ func NewShipStatsWindow(ship *Ship) *ShipStatsWindow {
 	ss := new(ShipStatsWindow)
 	ss.playerShip = ship
 
-	ss.Container = *burl.NewContainer(26, 12, 1, 32, 10, true)
+	ss.Container = *burl.NewContainer(26, 10, 1, 32, 10, true)
 	ss.name = burl.NewTextbox(26, 1, 0, 0, 1, false, true, ss.playerShip.Name)
 	ss.speed = burl.NewTextbox(26, 1, 0, 2, 1, false, false, "Speed: "+strconv.Itoa(ss.playerShip.GetSpeed()))
 	ss.fuel = burl.NewProgressBar(26, 1, 0, 3, 1, false, false, "", burl.COL_GREEN)
-	ss.location = burl.NewTextbox(26, 1, 0, 10, 1, false, false, "")
-	ss.destination = burl.NewTextbox(26, 1, 0, 11, 1, false, false, "")
+	ss.location = burl.NewTextbox(26, 1, 0, 8, 1, false, false, "")
+	ss.destination = burl.NewTextbox(26, 1, 0, 9, 1, false, false, "")
 
 	ss.Add(ss.name, ss.speed, ss.fuel, ss.location, ss.destination)
 

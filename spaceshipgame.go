@@ -22,13 +22,12 @@ func init() {
 
 type SpaceshipGame struct {
 	//ui stuff
-	window       *burl.Container
-	input        *burl.Inputbox
-	output       *burl.List
-	shipstatus   *ShipStatsWindow
-	timeDisplay  *TimeDisplay
-	speeddisplay *burl.TileView
-	shipdisplay  *burl.TileView
+	window      *burl.Container
+	input       *burl.Inputbox
+	output      *burl.List
+	shipstatus  *ShipStatsWindow
+	timeDisplay *TimeDisplay
+	shipdisplay *burl.TileView
 
 	//top menu. contains buttons for submenus
 	menubar             *burl.Container
@@ -96,9 +95,6 @@ func (sg *SpaceshipGame) AddMission(m *Mission) {
 //Centers the map of the ship in the main view.
 func (sg *SpaceshipGame) CenterShip() {
 	displayWidth, displayHeight := sg.shipdisplay.Dims()
-	// sg.viewX = displayWidth/2 - sg.playerShip.width/2 - sg.playerShip.x
-	// sg.viewY = displayHeight/2 - sg.playerShip.height/2 - sg.playerShip.y
-
 	sg.viewX = sg.playerShip.x + sg.playerShip.width/2 - displayWidth/2
 	sg.viewY = sg.playerShip.y + sg.playerShip.height/2 - displayHeight/2
 
@@ -110,22 +106,10 @@ func (sg *SpaceshipGame) CenterShip() {
 	sg.ResetShipView()
 }
 
-func (sg *SpaceshipGame) UpdateSpeedUI() {
-	sg.speeddisplay.Reset()
-	for i := 0; i < 4; i++ {
-		if i < sg.simSpeed {
-			sg.speeddisplay.Draw(i, 0, burl.GLYPH_TRIANGLE_RIGHT, burl.COL_WHITE, burl.COL_BLACK)
-		} else {
-			sg.speeddisplay.Draw(i, 0, burl.GLYPH_UNDERSCORE, burl.COL_WHITE, burl.COL_BLACK)
-		}
-	}
-}
-
 func (sg *SpaceshipGame) SetupUI() {
 	sg.window = burl.NewContainer(80, 45, 0, 0, 0, false)
 
 	sg.timeDisplay = NewTimeDisplay(sg.galaxy)
-	sg.speeddisplay = burl.NewTileView(4, 1, 1, 4, 10, true)
 
 	sg.menubar = burl.NewContainer(69, 1, 12, 1, 10, false)
 	sg.crewMenuButton = burl.NewButton(9, 1, 1, 0, 1, true, true, "Crew")
@@ -156,9 +140,9 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.missionMenu = NewMissionMenu(&sg.player.MissionLog)
 	sg.commsMenu = NewCommsMenu(sg.playerShip.Comms)
 
-	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.speeddisplay, sg.timeDisplay, sg.menubar, sg.shipMenu, sg.starchartMenu, sg.commsMenu)
+	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.timeDisplay, sg.menubar, sg.shipMenu, sg.starchartMenu, sg.commsMenu)
 
-	sg.UpdateSpeedUI()
+	sg.timeDisplay.UpdateSpeed(sg.simSpeed)
 	sg.CenterShip()
 }
 
@@ -205,7 +189,7 @@ func (sg *SpaceshipGame) Update() {
 		}
 	}
 
-	sg.timeDisplay.Update()
+	sg.timeDisplay.UpdateTime()
 }
 
 func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
