@@ -20,7 +20,7 @@ func main() {
 
 	console.SetFullscreen()
 
-	burl.InitState(NewMainMenu())
+	burl.InitState(NewStartMenu())
 
 	err = burl.GameLoop()
 

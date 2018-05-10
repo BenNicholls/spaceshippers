@@ -7,6 +7,17 @@ import (
 	"github.com/bennicholls/burl-E/burl"
 )
 
+const (
+	MENU_GAME int = iota
+	MENU_SHIP
+	MENU_GALAXY
+	MENU_CREW
+	MENU_COMM
+	MENU_VIEW
+	MENU_MAIN
+	MAX_MENUS
+)
+
 //Event types for spaceshippers!
 var LOG_EVENT = burl.RegisterCustomEvent()
 
@@ -23,14 +34,12 @@ func init() {
 type SpaceshipGame struct {
 	//ui stuff
 	window      *burl.Container
-	input       *burl.Inputbox
 	output      *burl.List
 	shipstatus  *ShipStatsWindow
 	timeDisplay *TimeDisplay
 	shipdisplay *burl.TileView
 
 	//top menu. contains buttons for submenus
-	menubar          *burl.Container
 	gameMenuButton   *burl.Button
 	shipMenuButton   *burl.Button
 	galaxyMenuButton *burl.Button
@@ -39,11 +48,16 @@ type SpaceshipGame struct {
 	viewMenuButton   *burl.Button
 	mainMenuButton   *burl.Button
 
-	crewMenu      *CrewMenu      //crew menu (F1)
-	shipMenu      *ShipMenu      //shipmenu (F2)
-	missionMenu   *MissionMenu   //missionmenu (F3)
-	starchartMenu *StarchartMenu //starchart (F4)
-	commsMenu     *CommsMenu     //communications menu (F5)
+	gameMenu   *GameMenu   //(F1)
+	shipMenu   *ShipMenu   //(F2)
+	galaxyMenu *GalaxyMenu //(F3)
+	crewMenu   *CrewMenu   //(F4)
+	commMenu   *CommMenu   //(F5)
+	viewMenu   *ViewMenu   //(F6)
+	mainMenu   *MainMenu   //(ESC)
+
+	menus       []burl.UIElem
+	menuButtons []*burl.Button
 
 	activeMenu burl.UIElem
 	dialog     Dialog //dialog presented to the player. higher priority than everything else!
@@ -110,50 +124,56 @@ func (sg *SpaceshipGame) CenterShip() {
 func (sg *SpaceshipGame) SetupUI() {
 	sg.window = burl.NewContainer(80, 45, 0, 0, 0, false)
 
-	sg.timeDisplay = NewTimeDisplay(sg.galaxy)
-
-	sg.menubar = burl.NewContainer(80, 1, 0, 1, 10, false)
-	sg.gameMenuButton = burl.NewButton(8, 1, 3, 0, 1, true, true, "Game")
-	sg.gameMenuButton.SetHint("F1")
-	sg.shipMenuButton = burl.NewButton(8, 1, 14, 0, 2, true, true, "Ship")
-	sg.shipMenuButton.SetHint("F2")
-	sg.galaxyMenuButton = burl.NewButton(8, 1, 25, 0, 1, true, true, "Galaxy")
-	sg.galaxyMenuButton.SetHint("F3")
-	sg.crewMenuButton = burl.NewButton(8, 1, 36, 0, 2, true, true, "Crew")
-	sg.crewMenuButton.SetHint("F4")
-	sg.commMenuButton = burl.NewButton(8, 1, 47, 0, 1, true, true, "Communications")
-	sg.commMenuButton.SetHint("F5")
-	sg.viewMenuButton = burl.NewButton(8, 1, 58, 0, 2, true, true, "View  Mode")
-	sg.viewMenuButton.SetHint("F6")
-	sg.mainMenuButton = burl.NewButton(8, 1, 69, 0, 1, true, true, "Main  Menu")
-	sg.mainMenuButton.SetHint("ESC")
-
-	sg.menubar.Add(sg.gameMenuButton, sg.shipMenuButton, sg.galaxyMenuButton, sg.crewMenuButton, sg.commMenuButton, sg.viewMenuButton, sg.mainMenuButton)
-
 	sg.shipdisplay = burl.NewTileView(80, 28, 0, 3, 1, false)
 	sg.Stars = NewStarField(20, sg.shipdisplay)
 
 	sg.shipstatus = NewShipStatsWindow(sg.playerShip)
 	sg.shipstatus.Update()
-
-	sg.input = burl.NewInputbox(50, 1, 15, 27, 100, true)
-	sg.input.ToggleFocus()
-	sg.input.SetVisibility(false)
-	sg.input.SetTitle("SCIPPIE V6.18")
+	sg.timeDisplay = NewTimeDisplay(sg.galaxy)
+	sg.timeDisplay.UpdateSpeed(sg.simSpeed)
 
 	sg.output = burl.NewList(51, 12, 28, 32, 10, true, "Nothing to report, Captain!")
 	sg.output.ToggleHighlight()
 	sg.output.SetHint("PgUp/PgDown to scroll")
 
-	sg.crewMenu = NewCrewMenu(sg.playerShip)
-	sg.starchartMenu = NewStarchartMenu(sg.galaxy, sg.playerShip)
+	sg.window.Add(sg.output, sg.shipstatus, sg.shipdisplay, sg.timeDisplay)
+
+	sg.menus = make([]burl.UIElem, 0, MAX_MENUS)
+
+	sg.gameMenu = NewGameMenu()
 	sg.shipMenu = NewShipMenu()
-	sg.missionMenu = NewMissionMenu(&sg.player.MissionLog)
-	sg.commsMenu = NewCommsMenu(sg.playerShip.Comms)
+	sg.galaxyMenu = NewGalaxyMenu()
+	sg.crewMenu = NewCrewMenu()
+	sg.commMenu = NewCommsMenu(sg.playerShip.Comms)
+	sg.viewMenu = NewViewMenu()
+	sg.mainMenu = NewMainMenu()
 
-	sg.window.Add(sg.input, sg.output, sg.shipstatus, sg.shipdisplay, sg.timeDisplay, sg.menubar, sg.shipMenu, sg.starchartMenu, sg.commsMenu)
+	sg.menus = append(sg.menus, sg.gameMenu, sg.shipMenu, sg.galaxyMenu, sg.crewMenu, sg.commMenu, sg.viewMenu, sg.mainMenu)
+	sg.window.Add(sg.menus...)
 
-	sg.timeDisplay.UpdateSpeed(sg.simSpeed)
+	sg.menuButtons = make([]*burl.Button, 0, MAX_MENUS)
+
+	sg.gameMenuButton = burl.NewButton(8, 1, 3, 1, 10, true, true, "Game")
+	sg.gameMenuButton.SetHint("F1")
+	sg.shipMenuButton = burl.NewButton(8, 1, 14, 1, 10, true, true, "Ship")
+	sg.shipMenuButton.SetHint("F2")
+	sg.galaxyMenuButton = burl.NewButton(8, 1, 25, 1, 10, true, true, "Galaxy")
+	sg.galaxyMenuButton.SetHint("F3")
+	sg.crewMenuButton = burl.NewButton(8, 1, 36, 1, 10, true, true, "Crew")
+	sg.crewMenuButton.SetHint("F4")
+	sg.commMenuButton = burl.NewButton(8, 1, 47, 1, 10, true, true, "Communications")
+	sg.commMenuButton.SetHint("F5")
+	sg.viewMenuButton = burl.NewButton(8, 1, 58, 1, 10, true, true, "View  Mode")
+	sg.viewMenuButton.SetHint("F6")
+	sg.mainMenuButton = burl.NewButton(8, 1, 69, 1, 10, true, true, "Main  Menu")
+	sg.mainMenuButton.SetHint("ESC")
+
+	sg.menuButtons = append(sg.menuButtons, sg.gameMenuButton, sg.shipMenuButton, sg.galaxyMenuButton, sg.crewMenuButton, sg.commMenuButton, sg.viewMenuButton, sg.mainMenuButton)
+
+	for i := range sg.menuButtons {
+		sg.window.Add(sg.menuButtons[i])
+	}
+
 	sg.CenterShip()
 }
 
@@ -168,7 +188,7 @@ func (sg *SpaceshipGame) Update() {
 		}
 	}
 
-	startCoords := sg.playerShip.Coords
+	//startCoords := sg.playerShip.Coords
 
 	//simulation!
 	for i := 0; i < sg.GetIncrement(); i++ {
@@ -190,15 +210,15 @@ func (sg *SpaceshipGame) Update() {
 	}
 
 	//update starchart if ship has moved
-	if sg.activeMenu == sg.starchartMenu && sg.playerShip.GetSpeed() != 0 {
-		sg.starchartMenu.Update()
-		delta := startCoords.CalcVector(sg.playerShip.Coords)
-		if sec := delta.Sector; sg.starchartMenu.mapMode == coord_SECTOR && (sec.X != 0 || sec.Y != 0) {
-			sg.starchartMenu.DrawMap()
-		} else if sg.starchartMenu.mapMode == coord_LOCAL {
-			sg.starchartMenu.DrawSystem() //should we really do this every update tick??? ugh.
-		}
-	}
+	// if sg.activeMenu == sg.starchartMenu && sg.playerShip.GetSpeed() != 0 {
+	// 	sg.starchartMenu.Update()
+	// 	delta := startCoords.CalcVector(sg.playerShip.Coords)
+	// 	if sec := delta.Sector; sg.starchartMenu.mapMode == coord_SECTOR && (sec.X != 0 || sec.Y != 0) {
+	// 		sg.starchartMenu.DrawMap()
+	// 	} else if sg.starchartMenu.mapMode == coord_LOCAL {
+	// 		sg.starchartMenu.DrawSystem() //should we really do this every update tick??? ugh.
+	// 	}
+	// }
 
 	sg.timeDisplay.UpdateTime()
 }
@@ -212,15 +232,15 @@ func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 	case burl.EV_UPDATE_UI:
 		switch event.Message {
 		case "inbox":
-			sg.commsMenu.UpdateInbox()
+			sg.commMenu.UpdateInbox()
 		case "transmissions":
-			sg.commsMenu.UpdateTransmissions()
-		case "missions":
-			sg.missionMenu.Update()
-		case "crew":
-			if sg.activeMenu == sg.crewMenu {
-				sg.crewMenu.UpdateCrewDetails()
-			}
+			sg.commMenu.UpdateTransmissions()
+		// case "missions":
+		// 	sg.missionMenu.Update()
+		// case "crew":
+		// 	if sg.activeMenu == sg.crewMenu {
+		// 		sg.crewMenu.UpdateCrewDetails()
+		// 	}
 		case "ship status":
 			sg.shipstatus.Update()
 		}
@@ -245,7 +265,10 @@ func (sg *SpaceshipGame) Render() {
 }
 
 //Activates a menu (crew, rooms, systems, etc). Deactivates menu if menu already active.
-func (sg *SpaceshipGame) ActivateMenu(m burl.UIElem) {
+func (sg *SpaceshipGame) ActivateMenu(menu int) {
+	sg.menuButtons[menu].Press()
+	m := sg.menus[menu]
+
 	if sg.activeMenu == m {
 		sg.DeactivateMenu()
 		return
@@ -256,10 +279,6 @@ func (sg *SpaceshipGame) ActivateMenu(m burl.UIElem) {
 		sg.activeMenu.SetVisibility(false)
 	}
 	sg.activeMenu = m
-
-	if m != sg.input {
-		sg.CenterShip()
-	}
 }
 
 //deactivates the open menu (if there is one)
@@ -269,6 +288,10 @@ func (sg *SpaceshipGame) DeactivateMenu() {
 	}
 	sg.activeMenu.SetVisibility(false)
 	sg.activeMenu = nil
+
+	for i := range sg.menuButtons {
+		sg.menuButtons[i].SetVisibility(true)
+	}
 	sg.CenterShip()
 }
 

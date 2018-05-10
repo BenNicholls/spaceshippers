@@ -1,9 +1,51 @@
 package main
 
-import "strconv"
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"strconv"
+
+	"github.com/bennicholls/burl-E/burl"
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 //TODO: incorpoate GalaxyMapView object here, maybe once i put together a systemMapView
+
+type GalaxyMenu struct {
+	burl.PagedContainer
+}
+
+func NewGalaxyMenu() (gm *GalaxyMenu) {
+	gm = new(GalaxyMenu)
+	gm.PagedContainer = *burl.NewPagedContainer(40, 28, 39, 3, 10, true)
+
+	gm.SetVisibility(false)
+
+	return
+}
+
+func (sg *SpaceshipGame) HandleKeypressGalaxyMenu(key sdl.Keycode) {
+	// switch key {
+	// case sdl.K_UP:
+	// 	sg.starchartMenu.MoveMapCursor(0, -1)
+	// case sdl.K_DOWN:
+	// 	sg.starchartMenu.MoveMapCursor(0, 1)
+	// case sdl.K_LEFT:
+	// 	sg.starchartMenu.MoveMapCursor(-1, 0)
+	// case sdl.K_RIGHT:
+	// 	sg.starchartMenu.MoveMapCursor(1, 0)
+	// case sdl.K_PAGEUP:
+	// 	sg.starchartMenu.ZoomIn()
+	// case sdl.K_PAGEDOWN:
+	// 	sg.starchartMenu.ZoomOut()
+	// case sdl.K_RETURN:
+	// 	if sg.starchartMenu.mapMode == coord_LOCAL {
+	// 		sg.starchartMenu.systemSetCourseButton.Press()
+	// 		l := sg.starchartMenu.systemLocations[sg.starchartMenu.systemLocationsList.GetSelection()]
+	// 		if l != sg.playerShip && l != sg.playerShip.currentLocation {
+	// 			sg.dialog = NewSetCourseDialog(sg.playerShip, l, sg.GetTime())
+	// 		}
+	// 	}
+	// }
+}
 
 //Menu for viewing star charts, getting location data, setting courses, etc.
 type StarchartMenu struct {

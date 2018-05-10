@@ -176,7 +176,7 @@ func (cgm *CreateGalaxyMenu) HandleEvent(e *burl.Event) {
 				burl.ChangeState(NewShipCreateMenu(cgm.galaxy))
 			}
 		} else if e.Caller == cgm.cancelButton {
-			burl.ChangeState(NewMainMenu())
+			burl.ChangeState(NewStartMenu())
 		}
 	}
 }

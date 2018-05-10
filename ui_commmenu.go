@@ -1,8 +1,11 @@
 package main
 
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"github.com/bennicholls/burl-E/burl"
+	"github.com/veandco/go-sdl2/sdl"
+)
 
-type CommsMenu struct {
+type CommMenu struct {
 	burl.PagedContainer
 
 	inboxPage *burl.Container
@@ -18,13 +21,12 @@ type CommsMenu struct {
 	comms *CommSystem
 }
 
-func NewCommsMenu(comm *CommSystem) (cm *CommsMenu) {
-	cm = new(CommsMenu)
+func NewCommsMenu(comm *CommSystem) (cm *CommMenu) {
+	cm = new(CommMenu)
 
 	cm.comms = comm
 
-	cm.PagedContainer = *burl.NewPagedContainer(40, 27, 39, 4, 5, true)
-	cm.SetTitle("Comm Panel")
+	cm.PagedContainer = *burl.NewPagedContainer(40, 28, 39, 3, 10, true)
 	cm.SetVisibility(false)
 
 	cm.inboxPage = cm.AddPage("Inbox")
@@ -45,7 +47,28 @@ func NewCommsMenu(comm *CommSystem) (cm *CommsMenu) {
 	return
 }
 
-func (cm *CommsMenu) Update() {
+func (sg *SpaceshipGame) HandleKeypressCommMenu(key sdl.Keycode) {
+	sg.commMenu.HandleKeypress(key)
+
+	switch sg.commMenu.CurrentIndex() {
+	case 0: //Inbox
+		sg.commMenu.inboxList.HandleKeypress(key)
+		if key == sdl.K_RETURN && len(sg.commMenu.comms.Inbox) > 0 {
+			s := sg.commMenu.inboxList.GetSelection()
+			msg := sg.commMenu.comms.Inbox[s]
+			sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
+		}
+	case 2: //Transmissions
+		sg.commMenu.transmissionsList.HandleKeypress(key)
+		if key == sdl.K_RETURN && len(sg.commMenu.comms.Transmissions) > 0 {
+			s := sg.commMenu.transmissionsList.GetSelection()
+			msg := sg.commMenu.comms.Transmissions[s]
+			sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
+		}
+	}
+}
+
+func (cm *CommMenu) Update() {
 	switch cm.CurrentIndex() {
 	case 0: //Inbox
 		cm.UpdateInbox()
@@ -58,7 +81,7 @@ func (cm *CommsMenu) Update() {
 	}
 }
 
-func (cm *CommsMenu) UpdateInbox() {
+func (cm *CommMenu) UpdateInbox() {
 	//build message list
 	cm.inboxList.ClearElements()
 	w, _ := cm.inboxList.Dims()
@@ -72,11 +95,11 @@ func (cm *CommsMenu) UpdateInbox() {
 	}
 }
 
-func (cm *CommsMenu) UpdateContacts() {
+func (cm *CommMenu) UpdateContacts() {
 
 }
 
-func (cm *CommsMenu) UpdateTransmissions() {
+func (cm *CommMenu) UpdateTransmissions() {
 	//build message list
 	cm.transmissionsList.ClearElements()
 	w, _ := cm.transmissionsList.Dims()
@@ -90,6 +113,6 @@ func (cm *CommsMenu) UpdateTransmissions() {
 	}
 }
 
-func (cm *CommsMenu) UpdateLogs() {
+func (cm *CommMenu) UpdateLogs() {
 
 }

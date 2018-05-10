@@ -5,7 +5,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-type MainMenu struct {
+type StartMenu struct {
 	burl.BaseState
 
 	menu  *burl.List
@@ -15,29 +15,29 @@ type MainMenu struct {
 	stars      StarField
 }
 
-func NewMainMenu() (mm *MainMenu) {
-	mm = new(MainMenu)
+func NewStartMenu() (sm *StartMenu) {
+	sm = new(StartMenu)
 
-	mm.title = burl.NewTextbox(20, 1, 0, 10, 1, true, true, "SPACE SHIPPERS: The Ones Who Space Ship!")
-	mm.title.CenterX(80, 0)
+	sm.title = burl.NewTextbox(20, 1, 0, 10, 1, true, true, "SPACE SHIPPERS: The Ones Who Space Ship!")
+	sm.title.CenterX(80, 0)
 
-	mm.menu = burl.NewList(10, 5, 10, 10, 1, true, "")
-	mm.menu.CenterInConsole()
-	mm.menu.Append("New Game", "Load Game", "Ship Designer", "Options", "Quit")
+	sm.menu = burl.NewList(10, 5, 10, 10, 1, true, "")
+	sm.menu.CenterInConsole()
+	sm.menu.Append("New Game", "Load Game", "Ship Designer", "Options", "Quit")
 
-	mm.background = burl.NewTileView(80, 45, 0, 0, 0, false)
-	mm.stars = NewStarField(25, mm.background)
+	sm.background = burl.NewTileView(80, 45, 0, 0, 0, false)
+	sm.stars = NewStarField(25, sm.background)
 	return
 }
 
-func (mm *MainMenu) HandleKeypress(key sdl.Keycode) {
+func (sm *StartMenu) HandleKeypress(key sdl.Keycode) {
 	switch key {
 	case sdl.K_UP:
-		mm.menu.Prev()
+		sm.menu.Prev()
 	case sdl.K_DOWN:
-		mm.menu.Next()
+		sm.menu.Next()
 	case sdl.K_RETURN:
-		switch mm.menu.GetSelection() {
+		switch sm.menu.GetSelection() {
 		case 0: //New Game
 			burl.ChangeState(NewCreateGalaxyMenu())
 		case 1: //Load Game
@@ -58,19 +58,19 @@ func (mm *MainMenu) HandleKeypress(key sdl.Keycode) {
 	}
 }
 
-func (mm *MainMenu) Update() {
-	mm.Tick++
+func (sm *StartMenu) Update() {
+	sm.Tick++
 
-	if mm.Tick%10 == 0 {
-		mm.stars.Shift()
+	if sm.Tick%10 == 0 {
+		sm.stars.Shift()
 	}
 
 }
 
-func (mm *MainMenu) Render() {
-	mm.stars.Draw()
+func (sm *StartMenu) Render() {
+	sm.stars.Draw()
 
-	mm.title.Render()
-	mm.menu.Render()
-	mm.background.Render()
+	sm.title.Render()
+	sm.menu.Render()
+	sm.background.Render()
 }

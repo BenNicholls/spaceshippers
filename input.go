@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -16,29 +15,22 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 	//general keys -- works in all menus, modes, etc. Mainly menu switching stuff
 	switch key {
 	case sdl.K_F1:
-		sg.gameMenuButton.Press()
-		//sg.ActivateMenu(sg.missionMenu)
+		sg.ActivateMenu(MENU_GAME)
 	case sdl.K_F2:
-		sg.shipMenuButton.Press()
-		//sg.ActivateMenu(sg.shipMenu)
+		sg.ActivateMenu(MENU_SHIP)
 	case sdl.K_F3:
-		sg.galaxyMenuButton.Press()
 		// if sg.activeMenu != sg.starchartMenu {
 		// 	sg.starchartMenu.OnActivate()
 		// }
-		// sg.ActivateMenu(sg.starchartMenu)
+		sg.ActivateMenu(MENU_GALAXY)
 	case sdl.K_F4:
-		sg.crewMenuButton.Press()
-		//sg.ActivateMenu(sg.crewMenu)
+		sg.ActivateMenu(MENU_CREW)
 	case sdl.K_F5:
-		sg.commMenuButton.Press()
-		//sg.ActivateMenu(sg.commsMenu)
+		sg.ActivateMenu(MENU_COMM)
 	case sdl.K_F6:
-		sg.viewMenuButton.Press()
-		//sg.ActivateMenu(sg.viewMenu)
+		sg.ActivateMenu(MENU_VIEW)
 	case sdl.K_F7:
-		sg.mainMenuButton.Press()
-		//sg.ActivateMenu(sg.mainMenu)
+		sg.ActivateMenu(MENU_MAIN)
 	case sdl.K_KP_PLUS:
 		if sg.simSpeed < 4 {
 			sg.simSpeed++
@@ -59,18 +51,16 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 	default:
 		//Check for active menus. If nothing, apply to base game.
 		switch sg.activeMenu {
-		case sg.input:
-			sg.HandleKeypressInput(key)
 		case sg.crewMenu:
 			sg.HandleKeypressCrewMenu(key)
 		case sg.shipMenu:
 			sg.HandleKeypressShipMenu(key)
-		case sg.starchartMenu:
-			sg.HandleKeypressStarchartMenu(key)
-		case sg.missionMenu:
-			sg.HandleKeypressMissionMenu(key)
-		case sg.commsMenu:
-			sg.HandleKeypressCommsMenu(key)
+		case sg.galaxyMenu:
+			sg.HandleKeypressGalaxyMenu(key)
+		case sg.gameMenu:
+			sg.HandleKeypressGameMenu(key)
+		case sg.commMenu:
+			sg.HandleKeypressCommMenu(key)
 		default:
 			switch key {
 			case sdl.K_PAGEUP:
@@ -87,99 +77,7 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 				sg.MoveShipCamera(-1, 0)
 			case sdl.K_RIGHT:
 				sg.MoveShipCamera(1, 0)
-			case sdl.K_ESCAPE:
-				sg.ActivateMenu(sg.input)
 			}
 		}
-	}
-}
-
-func (sg *SpaceshipGame) HandleKeypressInput(key sdl.Keycode) {
-	sg.input.HandleKeypress(key)
-
-	switch key {
-	case sdl.K_RETURN:
-		sg.Execute()
-		sg.input.Reset()
-		sg.DeactivateMenu()
-	case sdl.K_ESCAPE:
-		sg.DeactivateMenu()
-		sg.input.Reset()
-	}
-}
-
-func (sg *SpaceshipGame) HandleKeypressCrewMenu(key sdl.Keycode) {
-	sg.crewMenu.crewList.HandleKeypress(key)
-
-	if key == sdl.K_RETURN {
-		sg.crewMenu.ToggleCrewDetails()
-	}
-}
-
-func (sg *SpaceshipGame) HandleKeypressStarchartMenu(key sdl.Keycode) {
-	switch key {
-	case sdl.K_UP:
-		sg.starchartMenu.MoveMapCursor(0, -1)
-	case sdl.K_DOWN:
-		sg.starchartMenu.MoveMapCursor(0, 1)
-	case sdl.K_LEFT:
-		sg.starchartMenu.MoveMapCursor(-1, 0)
-	case sdl.K_RIGHT:
-		sg.starchartMenu.MoveMapCursor(1, 0)
-	case sdl.K_PAGEUP:
-		sg.starchartMenu.ZoomIn()
-	case sdl.K_PAGEDOWN:
-		sg.starchartMenu.ZoomOut()
-	case sdl.K_RETURN:
-		if sg.starchartMenu.mapMode == coord_LOCAL {
-			sg.starchartMenu.systemSetCourseButton.Press()
-			l := sg.starchartMenu.systemLocations[sg.starchartMenu.systemLocationsList.GetSelection()]
-			if l != sg.playerShip && l != sg.playerShip.currentLocation {
-				sg.dialog = NewSetCourseDialog(sg.playerShip, l, sg.GetTime())
-			}
-		}
-	}
-}
-
-func (sg *SpaceshipGame) HandleKeypressMissionMenu(key sdl.Keycode) {
-	sg.missionMenu.missionList.HandleKeypress(key)
-
-	switch key {
-	case sdl.K_UP, sdl.K_DOWN:
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "missions"))
-	}
-}
-
-func (sg *SpaceshipGame) HandleKeypressCommsMenu(key sdl.Keycode) {
-	sg.commsMenu.HandleKeypress(key)
-
-	switch sg.commsMenu.CurrentIndex() {
-	case 0: //Inbox
-		sg.commsMenu.inboxList.HandleKeypress(key)
-		if key == sdl.K_RETURN && len(sg.commsMenu.comms.Inbox) > 0 {
-			s := sg.commsMenu.inboxList.GetSelection()
-			msg := sg.commsMenu.comms.Inbox[s]
-			sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
-		}
-	case 2: //Transmissions
-		sg.commsMenu.transmissionsList.HandleKeypress(key)
-		if key == sdl.K_RETURN && len(sg.commsMenu.comms.Transmissions) > 0 {
-			s := sg.commsMenu.transmissionsList.GetSelection()
-			msg := sg.commsMenu.comms.Transmissions[s]
-			sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
-		}
-	}
-}
-
-func (sg *SpaceshipGame) HandleKeypressShipMenu(key sdl.Keycode) {
-	switch key {
-	case sdl.K_PAGEUP:
-		sg.shipMenu.pages[sg.shipMenu.pageList.GetSelection()].ToggleVisible()
-		sg.shipMenu.pageList.Prev()
-		sg.shipMenu.pages[sg.shipMenu.pageList.GetSelection()].ToggleVisible()
-	case sdl.K_PAGEDOWN:
-		sg.shipMenu.pages[sg.shipMenu.pageList.GetSelection()].ToggleVisible()
-		sg.shipMenu.pageList.Next()
-		sg.shipMenu.pages[sg.shipMenu.pageList.GetSelection()].ToggleVisible()
 	}
 }
