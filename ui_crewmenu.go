@@ -14,6 +14,7 @@ func NewCrewMenu() (cm *CrewMenu) {
 	cm.PagedContainer = *burl.NewPagedContainer(40, 28, 39, 3, 10, true)
 
 	cm.SetVisibility(false)
+	cm.SetHint("TAB to switch submenus")
 
 	return
 }

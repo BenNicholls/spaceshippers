@@ -29,7 +29,7 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 		sg.ActivateMenu(MENU_COMM)
 	case sdl.K_F6:
 		sg.ActivateMenu(MENU_VIEW)
-	case sdl.K_F7:
+	case sdl.K_ESCAPE:
 		sg.ActivateMenu(MENU_MAIN)
 	case sdl.K_KP_PLUS:
 		if sg.simSpeed < 4 {
@@ -54,11 +54,11 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 		case sg.crewMenu:
 			sg.HandleKeypressCrewMenu(key)
 		case sg.shipMenu:
-			sg.HandleKeypressShipMenu(key)
+			sg.menus[MENU_SHIP].HandleKeypress(key)
 		case sg.galaxyMenu:
 			sg.HandleKeypressGalaxyMenu(key)
 		case sg.gameMenu:
-			sg.HandleKeypressGameMenu(key)
+			sg.menus[MENU_GAME].HandleKeypress(key)
 		case sg.commMenu:
 			sg.HandleKeypressCommMenu(key)
 		default:

@@ -140,7 +140,7 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.menus = make([]burl.UIElem, 0, MAX_MENUS)
 
-	sg.gameMenu = NewGameMenu()
+	sg.gameMenu = NewGameMenu(sg.player)
 	sg.shipMenu = NewShipMenu()
 	sg.galaxyMenu = NewGalaxyMenu()
 	sg.crewMenu = NewCrewMenu()
@@ -235,8 +235,8 @@ func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 			sg.commMenu.UpdateInbox()
 		case "transmissions":
 			sg.commMenu.UpdateTransmissions()
-		// case "missions":
-		// 	sg.missionMenu.Update()
+		case "missions":
+			sg.gameMenu.UpdateMissions()
 		// case "crew":
 		// 	if sg.activeMenu == sg.crewMenu {
 		// 		sg.crewMenu.UpdateCrewDetails()
