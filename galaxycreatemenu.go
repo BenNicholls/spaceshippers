@@ -199,12 +199,18 @@ type GalaxyMapView struct {
 	burl.TileView
 
 	galaxy *Galaxy
+
+	Cursor    burl.Coord
+	highlight *burl.PulseAnimation
 }
 
 func NewGalaxyMapView(w, h, x, y, z int, bord bool, g *Galaxy) (gmv *GalaxyMapView) {
 	gmv = new(GalaxyMapView)
 	gmv.TileView = *burl.NewTileView(w, h, x, y, z, bord)
 	gmv.galaxy = g
+
+	gmv.highlight = burl.NewPulseAnimation(1, 1, 1, 1, 100, 10, true)
+	gmv.AddAnimation(gmv.highlight)
 
 	return
 }
@@ -222,5 +228,31 @@ func (gmv *GalaxyMapView) DrawGalaxy() {
 			}
 			gmv.Draw(x, y, g, burl.MakeOpaqueColour(bright, bright, bright), burl.COL_BLACK)
 		}
+	}
+}
+
+func (gmv *GalaxyMapView) ToggleHighlight() {
+	gmv.highlight.MoveTo(gmv.Cursor.X, gmv.Cursor.Y)
+	gmv.highlight.Activate()
+}
+
+func (gmv *GalaxyMapView) HandleKeypress(key sdl.Keycode) {
+	switch key {
+	case sdl.K_UP:
+		gmv.MoveCursor(0, -1)
+	case sdl.K_DOWN:
+		gmv.MoveCursor(0, 1)
+	case sdl.K_LEFT:
+		gmv.MoveCursor(-1, 0)
+	case sdl.K_RIGHT:
+		gmv.MoveCursor(1, 0)
+	}
+}
+
+func (gmv *GalaxyMapView) MoveCursor(dx, dy int) {
+	w, h := gmv.Dims()
+	if burl.CheckBounds(gmv.Cursor.X+dx, gmv.Cursor.Y+dy, w, h) {
+		gmv.Cursor.Move(dx, dy)
+		gmv.highlight.Move(dx, dy)
 	}
 }

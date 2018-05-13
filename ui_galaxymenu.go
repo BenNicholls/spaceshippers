@@ -7,32 +7,51 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-//TODO: incorpoate GalaxyMapView object here, maybe once i put together a systemMapView
-
 type GalaxyMenu struct {
 	burl.PagedContainer
+
+	galaxy     *Galaxy
+	playerShip *Ship
+
+	starchartPage    *burl.Container
+	starchartMapView *GalaxyMapView
+
+	coursePage  *burl.Container
+	scannerPage *burl.Container
 }
 
-func NewGalaxyMenu() (gm *GalaxyMenu) {
+func NewGalaxyMenu(g *Galaxy, s *Ship) (gm *GalaxyMenu) {
 	gm = new(GalaxyMenu)
-	gm.PagedContainer = *burl.NewPagedContainer(40, 28, 39, 3, 10, true)
+	gm.galaxy = g
+	gm.playerShip = s
 
+	gm.PagedContainer = *burl.NewPagedContainer(40, 28, 39, 3, 10, true)
 	gm.SetVisibility(false)
 	gm.SetHint("TAB to switch submenus")
+
+	gm.starchartPage = gm.AddPage("Star Chart")
+	gm.starchartMapView = NewGalaxyMapView(25, 25, 0, 0, 0, true, gm.galaxy)
+	gm.starchartMapView.SetHint("Arrows to select sector, PgUp/PgDown to zoom")
+	gm.starchartMapView.Cursor = gm.playerShip.Coords.Sector
+	gm.starchartMapView.ToggleHighlight()
+	gm.DrawGalaxy()
+
+	gm.starchartPage.Add(gm.starchartMapView)
+
+	gm.coursePage = gm.AddPage("Course")
+	gm.scannerPage = gm.AddPage("Scanners")
 
 	return
 }
 
-func (sg *SpaceshipGame) HandleKeypressGalaxyMenu(key sdl.Keycode) {
+func (gm *GalaxyMenu) HandleKeypress(key sdl.Keycode) {
+	gm.PagedContainer.HandleKeypress(key)
+
+	switch key {
+	case sdl.K_UP, sdl.K_DOWN, sdl.K_LEFT, sdl.K_RIGHT:
+		gm.starchartMapView.HandleKeypress(key)
+	}
 	// switch key {
-	// case sdl.K_UP:
-	// 	sg.starchartMenu.MoveMapCursor(0, -1)
-	// case sdl.K_DOWN:
-	// 	sg.starchartMenu.MoveMapCursor(0, 1)
-	// case sdl.K_LEFT:
-	// 	sg.starchartMenu.MoveMapCursor(-1, 0)
-	// case sdl.K_RIGHT:
-	// 	sg.starchartMenu.MoveMapCursor(1, 0)
 	// case sdl.K_PAGEUP:
 	// 	sg.starchartMenu.ZoomIn()
 	// case sdl.K_PAGEDOWN:
@@ -46,6 +65,17 @@ func (sg *SpaceshipGame) HandleKeypressGalaxyMenu(key sdl.Keycode) {
 	// 		}
 	// 	}
 	// }
+}
+
+func (gm *GalaxyMenu) DrawGalaxy() {
+	gm.starchartMapView.DrawGalaxy()
+
+	x, y := gm.playerShip.Coords.Sector.Get()
+	gm.starchartMapView.Draw(x, y, burl.GLYPH_FACE2, burl.COL_WHITE, burl.COL_BLACK)
+
+	//TODO: make it so this is only drawn if you've scanned/discovered the location of earth
+	ex, ey := gm.galaxy.earth.Sector.Get()
+	gm.starchartMapView.Draw(ex, ey, burl.GLYPH_DONUT, burl.COL_BLUE, burl.COL_BLACK)
 }
 
 //Menu for viewing star charts, getting location data, setting courses, etc.
@@ -206,34 +236,10 @@ func (sm *StarchartMenu) UpdateLocalInfo() {
 func (sm *StarchartMenu) DrawMap() {
 	switch sm.mapMode {
 	case coord_SECTOR:
-		sm.DrawGalaxy()
+		//sm.DrawGalaxy()
 	case coord_LOCAL:
 		sm.DrawSystem()
 	}
-}
-
-func (sm *StarchartMenu) DrawGalaxy() {
-
-	/////NOTE: Replace this with GalaxyMapView.DrawGalaxy
-	//--------------------------
-	w, h := sm.galaxy.Dims()
-	for i := 0; i < w*h; i++ {
-		x, y := i%w, i/w
-		s := sm.galaxy.GetSector(x, y)
-		bright := burl.Lerp(0, 255, s.Density, 100)
-		g := burl.GLYPH_FILL_SPARSE
-		if bright == 0 {
-			g = burl.GLYPH_NONE
-		}
-		sm.mapView.Draw(x, y, g, burl.MakeOpaqueColour(bright, bright, bright), burl.COL_BLACK)
-	}
-	//----------------------------
-
-	x, y := sm.playerShip.Coords.Sector.Get()
-	sm.mapView.Draw(x, y, burl.GLYPH_FACE2, burl.COL_WHITE, burl.COL_BLACK)
-
-	ex, ey := sm.galaxy.earth.Sector.Get()
-	sm.mapView.Draw(ex, ey, burl.GLYPH_DONUT, burl.COL_BLUE, burl.COL_BLACK)
 }
 
 func (sm *StarchartMenu) DrawSystem() {

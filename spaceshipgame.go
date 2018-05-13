@@ -142,7 +142,7 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.gameMenu = NewGameMenu(sg.player)
 	sg.shipMenu = NewShipMenu()
-	sg.galaxyMenu = NewGalaxyMenu()
+	sg.galaxyMenu = NewGalaxyMenu(sg.galaxy, sg.player.SpaceShip)
 	sg.crewMenu = NewCrewMenu()
 	sg.commMenu = NewCommsMenu(sg.playerShip.Comms)
 	sg.viewMenu = NewViewMenu()
@@ -279,6 +279,7 @@ func (sg *SpaceshipGame) ActivateMenu(menu int) {
 		sg.activeMenu.SetVisibility(false)
 	}
 	sg.activeMenu = m
+	sg.CenterShip()
 }
 
 //deactivates the open menu (if there is one)

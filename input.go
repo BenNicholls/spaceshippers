@@ -56,7 +56,7 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 		case sg.shipMenu:
 			sg.menus[MENU_SHIP].HandleKeypress(key)
 		case sg.galaxyMenu:
-			sg.HandleKeypressGalaxyMenu(key)
+			sg.menus[MENU_GALAXY].HandleKeypress(key)
 		case sg.gameMenu:
 			sg.menus[MENU_GAME].HandleKeypress(key)
 		case sg.commMenu:
