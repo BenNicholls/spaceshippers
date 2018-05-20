@@ -61,7 +61,7 @@ func (gm *GalaxyMenu) HandleKeypress(key sdl.Keycode) {
 	// 		sg.starchartMenu.systemSetCourseButton.Press()
 	// 		l := sg.starchartMenu.systemLocations[sg.starchartMenu.systemLocationsList.GetSelection()]
 	// 		if l != sg.playerShip && l != sg.playerShip.currentLocation {
-	// 			sg.dialog = NewSetCourseDialog(sg.playerShip, l, sg.GetTime())
+	// 			sg.OpenDialog(NewSetCourseDialog(sg.playerShip, l, sg.GetTime()))
 	// 		}
 	// 	}
 	// }
@@ -152,7 +152,7 @@ func NewStarchartMenu(gal *Galaxy, ship *Ship) (sm *StarchartMenu) {
 	sm.LoadLocalInfo()
 	sm.systemDetails.Add(sm.systemLocTitleText, sm.systemLocNameText, sm.systemLocDescText, sm.systemLocDistText, sm.systemSetCourseButton, sm.systemLocationsList)
 
-	sm.mapHighlight = burl.NewPulseAnimation(sm.xCursor, sm.yCursor, 1, 1, 50, 10, true)
+	sm.mapHighlight = burl.NewPulseAnimation(sm.xCursor, sm.yCursor, 0, 1, 1, 50, 10, true)
 	sm.mapHighlight.Activate()
 	sm.mapView.AddAnimation(sm.mapHighlight)
 	sm.Add(sm.mapView, sm.mapTitleText, sm.sectorDetails, sm.systemDetails)

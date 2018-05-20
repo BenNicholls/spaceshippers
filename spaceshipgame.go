@@ -32,10 +32,11 @@ func init() {
 }
 
 type SpaceshipGame struct {
+	burl.StatePrototype
+
 	//ui stuff
-	window      *burl.Container
 	output      *burl.List
-	shipstatus  *ShipStatsWindow
+	quickstats  *QuickStatsWindow
 	timeDisplay *TimeDisplay
 	shipdisplay *burl.TileView
 
@@ -60,7 +61,6 @@ type SpaceshipGame struct {
 	menuButtons []*burl.Button
 
 	activeMenu burl.UIElem
-	dialog     Dialog //dialog presented to the player. higher priority than everything else!
 
 	//Time Globals.
 	startTime int //time since launch, measured in Standard Galactic Seconds
@@ -95,7 +95,7 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 
 	sg.LoadSpaceEvents()
 
-	sg.dialog = NewSpaceEventDialog(spaceEvents[1])
+	sg.OpenDialog(NewSpaceEventDialog(spaceEvents[1]))
 
 	return sg
 }
@@ -122,21 +122,18 @@ func (sg *SpaceshipGame) CenterShip() {
 }
 
 func (sg *SpaceshipGame) SetupUI() {
-	sg.window = burl.NewContainer(80, 45, 0, 0, 0, false)
+	sg.InitWindow(false)
 
-	sg.shipdisplay = burl.NewTileView(80, 28, 0, 3, 1, false)
+	sg.shipdisplay = burl.NewTileView(80, 37, 0, 3, 1, false)
 	sg.Stars = NewStarField(20, sg.shipdisplay)
 
-	sg.shipstatus = NewShipStatsWindow(sg.playerShip)
-	sg.shipstatus.Update()
-	sg.timeDisplay = NewTimeDisplay(sg.galaxy)
+	sg.output = burl.NewList(37, 8, 1, 36, 10, true, "Nothing to report, Captain!")
+	sg.output.SetHint("PgUp/PgDown to scroll")
+	sg.quickstats = NewQuickStatsWindow(39, 41, sg.playerShip)
+	sg.timeDisplay = NewTimeDisplay(63, 41, sg.galaxy)
 	sg.timeDisplay.UpdateSpeed(sg.simSpeed)
 
-	sg.output = burl.NewList(51, 12, 28, 32, 10, true, "Nothing to report, Captain!")
-	sg.output.ToggleHighlight()
-	sg.output.SetHint("PgUp/PgDown to scroll")
-
-	sg.window.Add(sg.output, sg.shipstatus, sg.shipdisplay, sg.timeDisplay)
+	sg.Window.Add(sg.output, sg.shipdisplay, sg.timeDisplay, sg.quickstats)
 
 	sg.menus = make([]burl.UIElem, 0, MAX_MENUS)
 
@@ -149,7 +146,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.mainMenu = NewMainMenu()
 
 	sg.menus = append(sg.menus, sg.gameMenu, sg.shipMenu, sg.galaxyMenu, sg.crewMenu, sg.commMenu, sg.viewMenu, sg.mainMenu)
-	sg.window.Add(sg.menus...)
+	sg.Window.Add(sg.menus...)
 
 	sg.menuButtons = make([]*burl.Button, 0, MAX_MENUS)
 
@@ -171,23 +168,13 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.menuButtons = append(sg.menuButtons, sg.gameMenuButton, sg.shipMenuButton, sg.galaxyMenuButton, sg.crewMenuButton, sg.commMenuButton, sg.viewMenuButton, sg.mainMenuButton)
 
 	for i := range sg.menuButtons {
-		sg.window.Add(sg.menuButtons[i])
+		sg.Window.Add(sg.menuButtons[i])
 	}
 
 	sg.CenterShip()
 }
 
 func (sg *SpaceshipGame) Update() {
-	//check if we should be handling a dialog
-	if sg.dialog != nil {
-		if sg.dialog.Done() {
-			sg.dialog = nil
-		} else {
-			sg.dialog.Update()
-			return
-		}
-	}
-
 	//startCoords := sg.playerShip.Coords
 
 	//simulation!
@@ -224,10 +211,6 @@ func (sg *SpaceshipGame) Update() {
 }
 
 func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
-	if sg.dialog != nil {
-		sg.dialog.HandleEvent(event)
-	}
-
 	switch event.ID {
 	case burl.EV_UPDATE_UI:
 		switch event.Message {
@@ -242,7 +225,7 @@ func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 		// 		sg.crewMenu.UpdateCrewDetails()
 		// 	}
 		case "ship status":
-			sg.shipstatus.Update()
+			sg.quickstats.Update()
 		}
 
 	case LOG_EVENT:
@@ -253,15 +236,6 @@ func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 func (sg *SpaceshipGame) Render() {
 	sg.Stars.Draw()
 	sg.playerShip.DrawToTileView(sg.shipdisplay, sg.viewX, sg.viewY)
-
-	sg.window.Render()
-	if sg.activeMenu != nil {
-		sg.activeMenu.Render()
-	}
-
-	if sg.dialog != nil {
-		sg.dialog.Render()
-	}
 }
 
 //Activates a menu (crew, rooms, systems, etc). Deactivates menu if menu already active.

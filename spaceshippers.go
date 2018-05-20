@@ -19,6 +19,7 @@ func main() {
 	defer console.Cleanup()
 
 	console.SetFullscreen()
+	console.ToggleChanges()
 
 	burl.InitState(NewStartMenu())
 

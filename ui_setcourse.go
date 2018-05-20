@@ -5,9 +5,8 @@ import "github.com/veandco/go-sdl2/sdl"
 import "strconv"
 
 type SetCourseDialog struct {
-	burl.BaseState
+	burl.StatePrototype
 
-	container       *burl.Container
 	travelTimeText  *burl.Textbox
 	travelSpeedText *burl.Textbox
 	arrivalTimeText *burl.Textbox
@@ -29,17 +28,17 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 	sc.destination = d
 	sc.startTime = time
 
-	sc.container = burl.NewContainer(58, 33, 1, 1, 50, true)
-	sc.container.CenterInConsole()
-	sc.container.SetTitle("OFF WE GO!")
-	sc.container.ToggleFocus()
+	sc.Window = burl.NewContainer(58, 33, 1, 1, 50, true)
+	sc.Window.CenterInConsole()
+	sc.Window.SetTitle("OFF WE GO!")
+	sc.Window.ToggleFocus()
 
 	//left column
 	courseLabel := burl.NewTextbox(26, 1, 1, 0, 0, false, true, "Setting Course For:")
 	destName := burl.NewTextbox(26, 1, 1, 2, 1, true, true, d.GetName())
 	destDescription := burl.NewTextbox(26, 13, 1, 4, 1, true, true, d.GetDescription())
 	sc.places = burl.NewList(26, 14, 1, 18, 1, true, "Nothing in orbit! :(")
-	sc.container.Add(courseLabel, destName, destDescription, sc.places)
+	sc.Window.Add(courseLabel, destName, destDescription, sc.places)
 
 	sc.distance = s.Coords.CalcVector(d.GetCoords()).Distance * METERS_PER_LY
 	distanceText := burl.NewTextbox(26, 1, 30, 2, 0, false, false, "Distance: "+strconv.Itoa(int(sc.distance/1000))+" km")
@@ -49,7 +48,7 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 	fuelUseText := burl.NewTextbox(26, 1, 30, 6, 3, false, false, "Fuel Use Rate: "+strconv.Itoa(s.Engine.FuelUse)+" Litres per second")
 	engineThrustText := burl.NewTextbox(26, 1, 30, 7, 3, false, false, "Total Engine Thrust: "+strconv.Itoa(int(s.Engine.Thrust))+" m/s/s")
 
-	sc.container.Add(distanceText, orbitText, shipSpeedText, maxFuelText, fuelUseText, engineThrustText)
+	sc.Window.Add(distanceText, orbitText, shipSpeedText, maxFuelText, fuelUseText, engineThrustText)
 
 	sc.travelTimeText = burl.NewTextbox(26, 1, 30, 9, 3, false, false, "")
 	sc.travelSpeedText = burl.NewTextbox(26, 1, 30, 10, 3, false, false, "")
@@ -58,7 +57,7 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 	sc.fuelGauge = burl.NewProgressBar(26, 1, 30, 14, 1, true, true, "", burl.COL_GREEN)
 	sc.fuelGauge.SetProgress(50)
 
-	sc.container.Add(sc.travelSpeedText, sc.travelTimeText, sc.arrivalTimeText, sc.fuelGauge)
+	sc.Window.Add(sc.travelSpeedText, sc.travelTimeText, sc.arrivalTimeText, sc.fuelGauge)
 
 	sc.UpdateCourse()
 
@@ -66,7 +65,7 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 	sc.goButton.ToggleFocus()
 	sc.cancelButton = burl.NewButton(20, 1, 33, 23, 2, true, true, "On Second Thought, nevermind.")
 
-	sc.container.Add(sc.goButton, sc.cancelButton)
+	sc.Window.Add(sc.goButton, sc.cancelButton)
 
 	return sc
 }
@@ -96,10 +95,6 @@ func (sc *SetCourseDialog) HandleKeypress(key sdl.Keycode) {
 	}
 }
 
-func (sc *SetCourseDialog) Render() {
-	sc.container.Render()
-}
-
 func (sc *SetCourseDialog) UpdateCourse() {
 	maxFuel := burl.Min(sc.ship.Fuel.Get(), sc.ship.Engine.FuelUse*int(sc.ship.Navigation.CalcMaxBurnTime(sc.destination.GetVisitSpeed(), sc.distance)))
 	c := sc.ship.Navigation.ComputeCourse(sc.destination, maxFuel*sc.fuelGauge.GetProgress()/100, sc.startTime)
@@ -117,13 +112,11 @@ func (sc *SetCourseDialog) UpdateCourse() {
 func (sc *SetCourseDialog) Done() bool {
 	if sc.goButton.IsFocused() {
 		if sc.goButton.PressPulse.IsFinished() {
-			sc.container.ToggleVisible()
 			burl.PushEvent(burl.NewEvent(LOG_EVENT, "Setting course for "+sc.destination.GetName()))
 			return true
 		}
 	} else {
 		if sc.cancelButton.PressPulse.IsFinished() {
-			sc.container.ToggleVisible()
 			burl.PushEvent(burl.NewEvent(LOG_EVENT, "Course selection cancelled."))
 			return true
 		}

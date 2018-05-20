@@ -8,9 +8,8 @@ import (
 )
 
 type CreateGalaxyMenu struct {
-	burl.BaseState
+	burl.StatePrototype
 
-	window         *burl.Container
 	nameInput      *burl.Inputbox
 	densityChoice  *burl.ChoiceBox //choice between some pre-defined densities
 	shapeChoice    *burl.ChoiceBox //choice between blob, spiral, maybe more esoteric shapes??
@@ -21,7 +20,6 @@ type CreateGalaxyMenu struct {
 	cancelButton   *burl.Button
 
 	focusedField burl.UIElem
-	dialog       Dialog
 
 	galaxyMap *GalaxyMapView
 
@@ -30,17 +28,16 @@ type CreateGalaxyMenu struct {
 
 func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 	cgm = new(CreateGalaxyMenu)
+	cgm.InitWindow(true)
+	cgm.Window.SetTitle("CREATE A WHOLE GALAXY WHY NOT")
 
-	cgm.window = burl.NewContainer(78, 43, 1, 1, 0, true)
-	cgm.window.SetTitle("CREATE A WHOLE GALAXY WHY NOT")
-
-	cgm.window.Add(burl.NewTextbox(5, 1, 2, 2, 1, false, false, "Name:"))
+	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 2, 1, false, false, "Name:"))
 	cgm.nameInput = burl.NewInputbox(20, 1, 10, 2, 1, true)
-	cgm.window.Add(burl.NewTextbox(5, 1, 2, 5, 1, false, false, "Density:"))
+	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 5, 1, false, false, "Density:"))
 	cgm.densityChoice = burl.NewChoiceBox(20, 1, 10, 5, 2, true, burl.CHOICE_HORIZONTAL, "Sparse", "Normal", "Dense")
-	cgm.window.Add(burl.NewTextbox(5, 1, 2, 8, 1, false, false, "Shape:"))
+	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 8, 1, false, false, "Shape:"))
 	cgm.shapeChoice = burl.NewChoiceBox(20, 1, 10, 8, 1, true, burl.CHOICE_HORIZONTAL, "Disk", "Spiral")
-	cgm.window.Add(burl.NewTextbox(5, 1, 2, 11, 1, false, false, "Size:"))
+	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 11, 1, false, false, "Size:"))
 	cgm.sizeChoice = burl.NewChoiceBox(20, 1, 10, 11, 2, true, burl.CHOICE_HORIZONTAL, "Small", "Medium", "Large")
 
 	cgm.explainText = burl.NewTextbox(30, 10, 2, 28, 1, true, false, "explanations")
@@ -51,7 +48,7 @@ func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 
 	cgm.galaxyMap = NewGalaxyMapView(25, 25, 53, 0, 0, true, cgm.galaxy)
 
-	cgm.window.Add(cgm.nameInput, cgm.densityChoice, cgm.shapeChoice, cgm.generateButton, cgm.explainText, cgm.cancelButton, cgm.galaxyMap, cgm.randomButton, cgm.sizeChoice)
+	cgm.Window.Add(cgm.nameInput, cgm.densityChoice, cgm.shapeChoice, cgm.generateButton, cgm.explainText, cgm.cancelButton, cgm.galaxyMap, cgm.randomButton, cgm.sizeChoice)
 
 	cgm.nameInput.SetTabID(1)
 	cgm.densityChoice.SetTabID(2)
@@ -66,8 +63,6 @@ func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 	cgm.UpdateExplanation()
 
 	cgm.Generate()
-
-	cgm.dialog = nil
 
 	return
 }
@@ -131,11 +126,6 @@ func (cgm *CreateGalaxyMenu) Generate() {
 }
 
 func (cgm *CreateGalaxyMenu) HandleKeypress(key sdl.Keycode) {
-	if cgm.dialog != nil {
-		cgm.dialog.HandleKeypress(key)
-		return
-	}
-
 	cgm.focusedField.HandleKeypress(key)
 
 	switch key {
@@ -153,9 +143,9 @@ func (cgm *CreateGalaxyMenu) HandleEvent(e *burl.Event) {
 	case burl.EV_TAB_FIELD:
 		cgm.focusedField.ToggleFocus()
 		if e.Message == "+" {
-			cgm.focusedField = cgm.window.FindNextTab(cgm.focusedField)
+			cgm.focusedField = cgm.Window.FindNextTab(cgm.focusedField)
 		} else {
-			cgm.focusedField = cgm.window.FindPrevTab(cgm.focusedField)
+			cgm.focusedField = cgm.Window.FindPrevTab(cgm.focusedField)
 		}
 		cgm.focusedField.ToggleFocus()
 		cgm.UpdateExplanation()
@@ -171,27 +161,13 @@ func (cgm *CreateGalaxyMenu) HandleEvent(e *burl.Event) {
 	case burl.EV_ANIMATION_DONE:
 		if e.Caller == cgm.generateButton {
 			if cgm.nameInput.GetText() == "" {
-				cgm.dialog = NewCommDialog("", "", "", "You must give your galaxy a name before you can continue!")
+				cgm.OpenDialog(NewCommDialog("", "", "", "You must give your galaxy a name before you can continue!"))
 			} else {
 				burl.ChangeState(NewShipCreateMenu(cgm.galaxy))
 			}
 		} else if e.Caller == cgm.cancelButton {
 			burl.ChangeState(NewStartMenu())
 		}
-	}
-}
-
-func (cgm *CreateGalaxyMenu) Update() {
-	if cgm.dialog != nil && cgm.dialog.Done() {
-		cgm.dialog = nil
-	}
-}
-
-func (cgm *CreateGalaxyMenu) Render() {
-	cgm.window.Render()
-
-	if cgm.dialog != nil {
-		cgm.dialog.Render()
 	}
 }
 
@@ -209,7 +185,7 @@ func NewGalaxyMapView(w, h, x, y, z int, bord bool, g *Galaxy) (gmv *GalaxyMapVi
 	gmv.TileView = *burl.NewTileView(w, h, x, y, z, bord)
 	gmv.galaxy = g
 
-	gmv.highlight = burl.NewPulseAnimation(1, 1, 1, 1, 100, 10, true)
+	gmv.highlight = burl.NewPulseAnimation(1, 1, 0, 1, 1, 100, 10, true)
 	gmv.AddAnimation(gmv.highlight)
 
 	return
@@ -253,6 +229,6 @@ func (gmv *GalaxyMapView) MoveCursor(dx, dy int) {
 	w, h := gmv.Dims()
 	if burl.CheckBounds(gmv.Cursor.X+dx, gmv.Cursor.Y+dy, w, h) {
 		gmv.Cursor.Move(dx, dy)
-		gmv.highlight.Move(dx, dy)
+		gmv.highlight.Move(dx, dy, 0)
 	}
 }

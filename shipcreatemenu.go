@@ -6,9 +6,8 @@ import (
 )
 
 type ShipCreateMenu struct {
-	burl.BaseState
+	burl.StatePrototype
 
-	window              *burl.Container
 	shipView            *burl.TileView
 	shipNameInput       *burl.Inputbox
 	shipTypeList        *burl.List
@@ -17,11 +16,8 @@ type ShipCreateMenu struct {
 	cancelButton        *burl.Button
 	focusedField        burl.UIElem
 
-	dialog Dialog
-
 	galaxy *Galaxy //ship exists in a galaxy, for real
-
-	ship *Ship
+	ship   *Ship
 
 	stars StarField
 
@@ -30,9 +26,8 @@ type ShipCreateMenu struct {
 
 func NewShipCreateMenu(g *Galaxy) (scm *ShipCreateMenu) {
 	scm = new(ShipCreateMenu)
-
-	scm.window = burl.NewContainer(78, 43, 1, 1, 0, true)
-	scm.window.SetTitle("YOUR SHIP IS YOUR WHOLE WORLD")
+	scm.InitWindow(true)
+	scm.Window.SetTitle("YOUR SHIP IS YOUR WHOLE WORLD")
 
 	scm.shipView = burl.NewTileView(78, 21, 0, 0, 0, true)
 
@@ -50,7 +45,7 @@ func NewShipCreateMenu(g *Galaxy) (scm *ShipCreateMenu) {
 	scm.generateButton = burl.NewButton(15, 1, 61, 30, 1, true, true, "Confirm Ship Selection!")
 	scm.cancelButton = burl.NewButton(15, 1, 61, 35, 1, true, true, "Return to Galaxy Creation")
 
-	scm.window.Add(scm.shipView, scm.shipNameInput, scm.shipTypeList, scm.shipDescriptionText, scm.generateButton, scm.cancelButton)
+	scm.Window.Add(scm.shipView, scm.shipNameInput, scm.shipTypeList, scm.shipDescriptionText, scm.generateButton, scm.cancelButton)
 
 	scm.templates = make([]ShipTemplate, 0)
 	shipFiles, _ := burl.GetFileList("raws/ship/", ".shp")
@@ -98,11 +93,6 @@ func (scm *ShipCreateMenu) CreateShip() {
 }
 
 func (scm *ShipCreateMenu) HandleKeypress(key sdl.Keycode) {
-	if scm.dialog != nil {
-		scm.dialog.HandleKeypress(key)
-		return
-	}
-
 	//non-standard ui behaviour
 	if key == sdl.K_TAB || (key == sdl.K_RETURN && scm.focusedField == scm.shipNameInput) {
 		burl.PushEvent(burl.NewEvent(burl.EV_TAB_FIELD, "+"))
@@ -120,12 +110,12 @@ func (scm *ShipCreateMenu) HandleEvent(e *burl.Event) {
 		}
 	case burl.EV_TAB_FIELD:
 		scm.focusedField.ToggleFocus()
-		scm.focusedField = scm.window.FindNextTab(scm.focusedField)
+		scm.focusedField = scm.Window.FindNextTab(scm.focusedField)
 		scm.focusedField.ToggleFocus()
 	case burl.EV_ANIMATION_DONE:
 		if e.Caller == scm.generateButton {
 			if scm.shipNameInput.GetText() == "" {
-				scm.dialog = NewCommDialog("", "", "", "You must give your ship a name before you can continue!")
+				scm.OpenDialog(NewCommDialog("", "", "", "You must give your ship a name before you can continue!"))
 			} else {
 				scm.ship.Name = scm.shipNameInput.GetText()
 				burl.ChangeState(NewSpaceshipGame(scm.galaxy, scm.ship))
@@ -137,10 +127,6 @@ func (scm *ShipCreateMenu) HandleEvent(e *burl.Event) {
 }
 
 func (scm *ShipCreateMenu) Update() {
-	if scm.dialog != nil && scm.dialog.Done() {
-		scm.dialog = nil
-	}
-
 	scm.Tick++
 
 	if scm.Tick%10 == 0 {
@@ -169,10 +155,4 @@ func (scm *ShipCreateMenu) Render() {
 	offY := scm.ship.height/2 + scm.ship.y - displayHeight/2
 
 	scm.ship.DrawToTileView(scm.shipView, offX, offY)
-
-	scm.window.Render()
-
-	if scm.dialog != nil {
-		scm.dialog.Render()
-	}
 }

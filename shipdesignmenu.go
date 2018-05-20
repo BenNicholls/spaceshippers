@@ -10,9 +10,7 @@ import (
 )
 
 type ShipDesignMenu struct {
-	burl.BaseState
-
-	window *burl.Container
+	burl.StatePrototype
 
 	roomColumn        *burl.Container
 	roomLists         *burl.PagedContainer
@@ -36,8 +34,6 @@ type ShipDesignMenu struct {
 	returnButton    *burl.Button
 	helpText        *burl.Textbox
 
-	dialog Dialog
-
 	ship        *Ship
 	roomToAdd   *Room
 	roomAddGood bool
@@ -52,15 +48,15 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 
 	sdm.ship = NewShip("Unsaved Ship", nil)
 
-	sdm.window = burl.NewContainer(78, 43, 1, 1, 0, true)
-	sdm.window.SetTitle("USE YOUR IMAGINATION")
+	sdm.InitWindow(true)
+	sdm.Window.SetTitle("USE YOUR IMAGINATION")
 
 	sdm.roomColumn = burl.NewContainer(20, 43, 0, 0, 0, true)
 	sdm.roomColumn.Add(burl.NewTextbox(20, 1, 0, 0, 0, false, true, "Modules"))
 	sdm.roomLists = burl.NewPagedContainer(20, 20, 0, 2, 0, true)
 
-	sdm.allRoomList = burl.NewList(18, 16, 0, 0, 0, true, "No modules exist in the whole universe somehow.")
-	sdm.installedRoomList = burl.NewList(18, 16, 0, 0, 0, true, "Ain't got no modules!")
+	sdm.allRoomList = burl.NewList(20, 18, 0, 0, 0, true, "No modules exist in the whole universe somehow.")
+	sdm.installedRoomList = burl.NewList(20, 18, 0, 0, 0, true, "Ain't got no modules!")
 
 	all := sdm.roomLists.AddPage("All")
 	all.Add(sdm.allRoomList)
@@ -89,7 +85,7 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 	sdm.helpText = burl.NewTextbox(36, 4, 0, 2, 0, true, true, "")
 	sdm.buttons.Add(sdm.addRemoveButton, sdm.saveButton, sdm.loadButton, sdm.helpText)
 
-	sdm.window.Add(sdm.roomColumn, sdm.shipView, sdm.shipColumn, sdm.buttons)
+	sdm.Window.Add(sdm.roomColumn, sdm.shipView, sdm.shipColumn, sdm.buttons)
 
 	sdm.stars = NewStarField(20, sdm.shipView)
 	sdm.CenterView()
@@ -130,11 +126,6 @@ func (sdm *ShipDesignMenu) UpdateHelpText() {
 }
 
 func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
-	if sdm.dialog != nil {
-		sdm.dialog.HandleKeypress(key)
-		return
-	}
-
 	if sdm.roomToAdd == nil {
 		switch key {
 		case sdl.K_a:
@@ -162,14 +153,14 @@ func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
 			}
 		case sdl.K_l:
 			sdm.loadButton.Press()
-			sdm.dialog = NewChooseFileDialog("raws/ship/", ".shp")
+			sdm.OpenDialog(NewChooseFileDialog("raws/ship/", ".shp"))
 		case sdl.K_s:
 			sdm.saveButton.Press()
 			if len(sdm.installedRoomList.Elements) != 0 {
 				if sdm.ship.Name != "Unsaved Ship" {
-					sdm.dialog = NewSaveDialog("raws/ship/", ".shp", sdm.ship.Name)
+					sdm.OpenDialog(NewSaveDialog("raws/ship/", ".shp", sdm.ship.Name))
 				} else {
-					sdm.dialog = NewSaveDialog("raws/ship/", ".shp", "")
+					sdm.OpenDialog(NewSaveDialog("raws/ship/", ".shp", ""))
 				}
 			}
 		case sdl.K_TAB:
@@ -232,7 +223,7 @@ func (sdm *ShipDesignMenu) UpdateSelectionAnimation() {
 	sdm.shipView.RemoveAnimation(sdm.selectionAnimation)
 	if len(sdm.installedRoomList.Elements) != 0 {
 		room := sdm.ship.Rooms[sdm.installedRoomList.GetSelection()]
-		sdm.selectionAnimation = burl.NewPulseAnimation(0, 0, room.Width, room.Height, 50, 0, true)
+		sdm.selectionAnimation = burl.NewPulseAnimation(0, 0, 0, room.Width, room.Height, 50, 0, true)
 		sdm.shipView.AddAnimation(sdm.selectionAnimation)
 		if sdm.roomLists.CurrentIndex() == 1 {
 			sdm.selectionAnimation.Activate()
@@ -241,10 +232,6 @@ func (sdm *ShipDesignMenu) UpdateSelectionAnimation() {
 }
 
 func (sdm *ShipDesignMenu) Update() {
-	if sdm.dialog != nil && sdm.dialog.Done() {
-		sdm.dialog = nil
-	}
-
 	sdm.Tick++
 
 	if sdm.Tick%10 == 0 {
@@ -373,11 +360,5 @@ func (sdm *ShipDesignMenu) Render() {
 	} else if sdm.roomLists.CurrentIndex() == 1 && len(sdm.installedRoomList.Elements) != 0 {
 		room := sdm.ship.Rooms[sdm.installedRoomList.GetSelection()]
 		sdm.selectionAnimation.MoveTo(room.X-sdm.offX, room.Y-sdm.offY)
-	}
-
-	sdm.window.Render()
-
-	if sdm.dialog != nil {
-		sdm.dialog.Render()
 	}
 }

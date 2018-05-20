@@ -5,13 +5,6 @@ import (
 )
 
 func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
-
-	//dialogs have the highest priority and they handle their own input
-	if sg.dialog != nil {
-		sg.dialog.HandleKeypress(key)
-		return
-	}
-
 	//general keys -- works in all menus, modes, etc. Mainly menu switching stuff
 	switch key {
 	case sdl.K_F1:

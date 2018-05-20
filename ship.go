@@ -63,6 +63,7 @@ func NewShip(n string, g *Galaxy) *Ship {
 	s.Systems[SYS_COMMS] = s.Comms
 
 	s.Fuel = burl.NewStat(1000000)
+	s.Hull = burl.NewStat(100)
 
 	s.shipMap = burl.NewMap(100, 100)
 
@@ -171,8 +172,8 @@ func (s *Ship) RemoveRoom(r *Room) {
 //in the ship. If there is no collision at all, still reports true
 func (s *Ship) CheckRoomValidAdd(r *Room, x, y int) bool {
 	for _, room := range s.Rooms {
-		_, _, w, h := burl.FindIntersectionRect(r, room)
-		if w >= 2 && h >= 2 {
+		i := burl.FindIntersectionRect(r, room)
+		if i.W >= 2 && i.H >= 2 {
 			return false
 		}
 	}

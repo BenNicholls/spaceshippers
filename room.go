@@ -65,6 +65,10 @@ func (r *Room) Rotate() {
 	r.CreateRoomMap()
 }
 
+func (r *Room) Bounds() burl.Rect {
+	return burl.Rect{r.Width, r.Height, r.X, r.Y}
+}
+
 //Tries to connect room to another. Finds the intersection of the two rooms and puts doors there!
 //If rooms not properly lined up, does nothing.
 func (r *Room) AddConnection(c *Room) {
@@ -81,25 +85,25 @@ func (r *Room) AddConnection(c *Room) {
 	}
 
 	//check if rooms intersect properly
-	x, y, w, h := burl.FindIntersectionRect(c, r)
-	if w != 1 && h != 1 {
+	i := burl.FindIntersectionRect(c, r)
+	if i.W != 1 && i.H != 1 {
 		return
 	}
 
 	//translate coords from shipspace to roomspace
-	x, y = x-r.X, y-r.Y
+	x, y := i.X-r.X, i.Y-r.Y
 
-	if w == 1 && h >= 3 {
-		if h%2 == 0 {
-			r.RoomMap.ChangeTileType(x, y+h/2-1, TILE_DOOR)
+	if i.W == 1 && i.H >= 3 {
+		if i.H%2 == 0 {
+			r.RoomMap.ChangeTileType(x, y+i.H/2-1, TILE_DOOR)
 		}
-		r.RoomMap.ChangeTileType(x, y+h/2, TILE_DOOR)
-	} else if h == 1 && w >= 3 {
+		r.RoomMap.ChangeTileType(x, y+i.H/2, TILE_DOOR)
+	} else if i.H == 1 && i.W >= 3 {
 		//up-down rooms
-		if w%2 == 0 {
-			r.RoomMap.ChangeTileType(x+w/2-1, y, TILE_DOOR)
+		if i.W%2 == 0 {
+			r.RoomMap.ChangeTileType(x+i.W/2-1, y, TILE_DOOR)
 		}
-		r.RoomMap.ChangeTileType(x+w/2, y, TILE_DOOR)
+		r.RoomMap.ChangeTileType(x+i.W/2, y, TILE_DOOR)
 	}
 
 	r.connected = append(r.connected, c)
@@ -111,9 +115,9 @@ func (r *Room) RemoveConnection(c *Room) {
 			r.connected = append(r.connected[:i], r.connected[i+1:]...)
 
 			//redraw walls over now-nonexistent doors
-			x, y, w, h := burl.FindIntersectionRect(r, c)
-			for i := 0; i < w*h; i++ {
-				r.RoomMap.ChangeTileType(x+i%w-r.X, y+i/w-r.Y, TILE_WALL)
+			sect := burl.FindIntersectionRect(r, c)
+			for i := 0; i < sect.W*sect.H; i++ {
+				r.RoomMap.ChangeTileType(sect.X+i%sect.W-r.X, sect.Y+i/sect.W-r.Y, TILE_WALL)
 			}
 		}
 	}

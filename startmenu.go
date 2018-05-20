@@ -6,7 +6,7 @@ import (
 )
 
 type StartMenu struct {
-	burl.BaseState
+	burl.StatePrototype
 
 	menu  *burl.List
 	title *burl.Textbox
@@ -17,6 +17,7 @@ type StartMenu struct {
 
 func NewStartMenu() (sm *StartMenu) {
 	sm = new(StartMenu)
+	sm.InitWindow(false)
 
 	sm.title = burl.NewTextbox(20, 1, 0, 10, 1, true, true, "SPACE SHIPPERS: The Ones Who Space Ship!")
 	sm.title.CenterX(80, 0)
@@ -27,6 +28,8 @@ func NewStartMenu() (sm *StartMenu) {
 
 	sm.background = burl.NewTileView(80, 45, 0, 0, 0, false)
 	sm.stars = NewStarField(25, sm.background)
+
+	sm.Window.Add(sm.title, sm.menu, sm.background)
 	return
 }
 
@@ -69,8 +72,4 @@ func (sm *StartMenu) Update() {
 
 func (sm *StartMenu) Render() {
 	sm.stars.Draw()
-
-	sm.title.Render()
-	sm.menu.Render()
-	sm.background.Render()
 }

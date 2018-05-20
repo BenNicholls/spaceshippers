@@ -13,15 +13,16 @@ type TimeDisplay struct {
 	galaxy *Galaxy
 }
 
-func NewTimeDisplay(g *Galaxy) (td *TimeDisplay) {
+func NewTimeDisplay(x, y int, g *Galaxy) (td *TimeDisplay) {
 	td = new(TimeDisplay)
 
-	td.Container = *burl.NewContainer(26, 1, 1, 43, 10, true)
+	td.Container = *burl.NewContainer(16, 3, x, y, 10, true)
 	td.Container.SetHint("+/-: change speed")
-	td.timeText = burl.NewTextbox(20, 1, 5, 0, 0, false, false, "")
-	td.speedDisplay = burl.NewTileView(4, 1, 0, 0, 0, true)
+	td.speedDisplay = burl.NewTileView(4, 1, 12, 0, 0, true)
+	td.timeText = burl.NewTextbox(16, 1, 0, 2, 0, true, true, "")
 
 	td.Add(td.timeText, td.speedDisplay)
+	td.Add(burl.NewTextbox(11, 1, 0, 0, 0, false, true, "Simulation Speed: "))
 
 	td.galaxy = g
 	td.UpdateTime()

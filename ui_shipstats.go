@@ -3,6 +3,46 @@ package main
 import "github.com/bennicholls/burl-E/burl"
 import "strconv"
 
+type QuickStatsWindow struct {
+	burl.Container
+
+	hullBar   *burl.ProgressBar
+	fuelBar   *burl.ProgressBar
+	energyBar *burl.ProgressBar
+	voyageBar *burl.ProgressBar
+
+	alertText *burl.Textbox
+
+	ship *Ship
+}
+
+func NewQuickStatsWindow(x, y int, s *Ship) (qsw *QuickStatsWindow) {
+	qsw = new(QuickStatsWindow)
+	qsw.Container = *burl.NewContainer(23, 3, x, y, 9, true)
+
+	qsw.alertText = burl.NewTextbox(23, 1, 0, 0, 1, true, true, "All Optimal")
+	qsw.hullBar = burl.NewProgressBar(5, 1, 0, 2, 1, true, true, "HULL", burl.COL_RED)
+	qsw.fuelBar = burl.NewProgressBar(5, 1, 6, 2, 1, true, true, "FUEL", burl.COL_PURPLE)
+	qsw.energyBar = burl.NewProgressBar(5, 1, 12, 2, 1, true, true, "ENERGY", burl.COL_BLUE)
+	qsw.voyageBar = burl.NewProgressBar(5, 1, 18, 2, 1, true, true, "VOYAGE", burl.COL_GREEN)
+
+	qsw.Add(qsw.alertText)
+	qsw.Add(qsw.hullBar, qsw.fuelBar, qsw.energyBar, qsw.voyageBar)
+
+	qsw.ship = s
+
+	qsw.Update()
+
+	return
+}
+
+func (qsw *QuickStatsWindow) Update() {
+	qsw.hullBar.ChangeProgress(qsw.ship.Hull.GetPct())
+	qsw.fuelBar.ChangeProgress(qsw.ship.Fuel.GetPct())
+	//qsw.powerBar.ChangeProgress(qsw.ship.PowerSystem.GetPowerUsagePct())
+	//qsw.powerBar.ChangeProgress(qsw.ship.Navigation.GetCurrentProgress())
+}
+
 type ShipStatsWindow struct {
 	burl.Container
 
@@ -15,11 +55,11 @@ type ShipStatsWindow struct {
 	playerShip *Ship
 }
 
-func NewShipStatsWindow(ship *Ship) *ShipStatsWindow {
+func NewShipStatsWindow(x, y int, ship *Ship) *ShipStatsWindow {
 	ss := new(ShipStatsWindow)
 	ss.playerShip = ship
 
-	ss.Container = *burl.NewContainer(26, 10, 1, 32, 10, true)
+	ss.Container = *burl.NewContainer(26, 10, x, y, 10, true)
 	ss.name = burl.NewTextbox(26, 1, 0, 0, 1, false, true, ss.playerShip.Name)
 	ss.speed = burl.NewTextbox(26, 1, 0, 2, 1, false, false, "Speed: "+strconv.Itoa(ss.playerShip.GetSpeed()))
 	ss.fuel = burl.NewProgressBar(26, 1, 0, 3, 1, false, false, "", burl.COL_GREEN)

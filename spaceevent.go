@@ -28,9 +28,8 @@ type EventChoice struct {
 }
 
 type SpaceEventDialog struct {
-	burl.BaseState
+	burl.StatePrototype
 
-	container       *burl.Container
 	eventPicView    *burl.TileView
 	titleText       *burl.Textbox
 	descriptionText *burl.Textbox
@@ -44,8 +43,8 @@ type SpaceEventDialog struct {
 
 func NewSpaceEventDialog(e SpaceEvent) (sed *SpaceEventDialog) {
 	sed = new(SpaceEventDialog)
-	sed.container = burl.NewContainer(48, 37, 0, 0, 50, true)
-	sed.container.CenterInConsole()
+	sed.Window = burl.NewContainer(48, 37, 0, 0, 50, true)
+	sed.Window.CenterInConsole()
 
 	sed.eventPicView = burl.NewTileView(48, 15, 0, 0, 0, true)
 	sed.eventPicView.LoadImageFromXP(e.Pic)
@@ -59,7 +58,7 @@ func NewSpaceEventDialog(e SpaceEvent) (sed *SpaceEventDialog) {
 		sed.choiceList.Add(sed.choiceButtons[i])
 	}
 
-	sed.container.Add(sed.eventPicView, sed.titleText, sed.descriptionText, sed.choiceList)
+	sed.Window.Add(sed.eventPicView, sed.titleText, sed.descriptionText, sed.choiceList)
 
 	sed.event = e
 
@@ -79,14 +78,9 @@ func (sed *SpaceEventDialog) HandleEvent(event *burl.Event) {
 	case burl.EV_ANIMATION_DONE:
 		if event.Caller == sed.choiceButtons[sed.choiceList.GetSelection()] {
 			sed.event.Choices[sed.choiceList.GetSelection()].Result()
-			sed.container.ToggleVisible()
 			sed.done = true
 		}
 	}
-}
-
-func (sed *SpaceEventDialog) Render() {
-	sed.container.Render()
 }
 
 func (sed *SpaceEventDialog) Done() bool {
@@ -110,7 +104,7 @@ func (sg *SpaceshipGame) LoadSpaceEvents() {
 				Result: func() {
 					sg.AddMission(GenerateGoToMission(sg.playerShip, sg.galaxy.GetEarth(), nil))
 					welcomeMessage := "Hi Captain! Welcome to " + sg.playerShip.GetName() + "! I am the Ship Computer Interactive Parameter-Parsing Intelligence Entity, but you can call me SCIPPIE! "
-					sg.dialog = NewCommDialog("SCIPPIE", sg.player.Name+", Captain of "+sg.playerShip.GetName(), "res/art/scippie.xp", welcomeMessage)
+					sg.OpenDialog(NewCommDialog("SCIPPIE", sg.player.Name+", Captain of "+sg.playerShip.GetName(), "res/art/scippie.xp", welcomeMessage))
 				},
 			},
 		},

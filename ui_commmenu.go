@@ -57,14 +57,14 @@ func (sg *SpaceshipGame) HandleKeypressCommMenu(key sdl.Keycode) {
 		if key == sdl.K_RETURN && len(sg.commMenu.comms.Inbox) > 0 {
 			s := sg.commMenu.inboxList.GetSelection()
 			msg := sg.commMenu.comms.Inbox[s]
-			sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
+			sg.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
 		}
 	case 2: //Transmissions
 		sg.commMenu.transmissionsList.HandleKeypress(key)
 		if key == sdl.K_RETURN && len(sg.commMenu.comms.Transmissions) > 0 {
 			s := sg.commMenu.transmissionsList.GetSelection()
 			msg := sg.commMenu.comms.Transmissions[s]
-			sg.dialog = NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message)
+			sg.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
 		}
 	}
 }
