@@ -24,7 +24,7 @@ type GameMenu struct {
 
 func NewGameMenu(p *Player) (gm *GameMenu) {
 	gm = new(GameMenu)
-	gm.PagedContainer = *burl.NewPagedContainer(40, 28, 39, 3, 10, true)
+	gm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
 	gm.SetVisibility(false)
 	gm.SetHint("TAB to switch submenus")
 	gm.player = p

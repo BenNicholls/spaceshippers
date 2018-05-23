@@ -26,7 +26,7 @@ func NewCommsMenu(comm *CommSystem) (cm *CommMenu) {
 
 	cm.comms = comm
 
-	cm.PagedContainer = *burl.NewPagedContainer(40, 28, 39, 3, 10, true)
+	cm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
 	cm.SetVisibility(false)
 	cm.SetHint("TAB to switch submenus")
 

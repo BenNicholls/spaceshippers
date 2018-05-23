@@ -25,7 +25,7 @@ func NewGalaxyMenu(g *Galaxy, s *Ship) (gm *GalaxyMenu) {
 	gm.galaxy = g
 	gm.playerShip = s
 
-	gm.PagedContainer = *burl.NewPagedContainer(40, 28, 39, 3, 10, true)
+	gm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
 	gm.SetVisibility(false)
 	gm.SetHint("TAB to switch submenus")
 

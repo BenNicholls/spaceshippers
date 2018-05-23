@@ -11,22 +11,19 @@ func main() {
 	//defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	console, err := burl.InitConsole(80, 45, "res/curses24x24.bmp", "res/DelveFont12x24.bmp", "Spaceshippers")
+	_, err := burl.InitConsole(80, 45, "res/curses24x24.bmp", "res/DelveFont12x24.bmp", "Spaceshippers")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	defer console.Cleanup()
 
-	console.SetFullscreen()
-	console.ToggleChanges()
+	//console.SetFullscreen()
+	burl.Debug()
 
 	burl.InitState(NewStartMenu())
 
 	err = burl.GameLoop()
-
 	if err != nil {
 		fmt.Println(err)
-		return
 	}
 }

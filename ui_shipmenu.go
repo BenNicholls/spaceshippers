@@ -19,7 +19,7 @@ type ShipMenu struct {
 
 func NewShipMenu() (sm *ShipMenu) {
 	sm = new(ShipMenu)
-	sm.PagedContainer = *burl.NewPagedContainer(40, 28, 39, 3, 10, true)
+	sm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
 	sm.SetVisibility(false)
 	sm.SetHint("TAB to switch submenus")
 

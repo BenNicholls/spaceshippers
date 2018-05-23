@@ -11,9 +11,10 @@ type CrewMenu struct {
 
 func NewCrewMenu() (cm *CrewMenu) {
 	cm = new(CrewMenu)
-	cm.PagedContainer = *burl.NewPagedContainer(40, 28, 39, 3, 10, true)
+	cm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
 
 	cm.SetVisibility(false)
+	cm.SetTitle("Crew  Menu")
 	cm.SetHint("TAB to switch submenus")
 
 	return
