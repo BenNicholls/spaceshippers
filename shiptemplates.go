@@ -67,12 +67,17 @@ func (s *Ship) SetupFromTemplate(temp ShipTemplate) {
 	for _, r := range temp.Rooms {
 		s.AddRoom(CreateRoomFromTemplate(r.RoomType, r.Rotated, r.Width, r.Height), r.X, r.Y)
 	}
+
+	for i := 0; i < temp.CrewNum; i++ {
+		s.AddCrewman(NewCrewman())
+	}
 }
 
 func (s *Ship) CreateShipTemplate() (st ShipTemplate) {
 	st = ShipTemplate{
 		Name:        s.Name,
 		Description: s.Description,
+		CrewNum:     4,
 	}
 
 	st.Rooms = make([]RoomDef, len(s.Rooms))
@@ -89,8 +94,6 @@ func (s *Ship) CreateShipTemplate() (st ShipTemplate) {
 			st.Rooms[i].Width, st.Rooms[i].Height = st.Rooms[i].Height, st.Rooms[i].Width
 		}
 	}
-
-	st.CrewNum = 4
 
 	return
 }

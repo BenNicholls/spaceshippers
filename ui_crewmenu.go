@@ -7,94 +7,93 @@ import (
 
 type CrewMenu struct {
 	burl.PagedContainer
+
+	detailPage    *burl.Container
+	rolePage      *burl.Container
+	jobPage       *burl.Container
+	passengerPage *burl.Container
+	projectPage   *burl.Container
+
+	//detailPage
+	crewList    *burl.List
+	crewDetails *burl.Container
+
+	ship *Ship
 }
 
-func NewCrewMenu() (cm *CrewMenu) {
+func NewCrewMenu(s *Ship) (cm *CrewMenu) {
 	cm = new(CrewMenu)
+	cm.ship = s
 	cm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
+	_, ph := cm.GetPageDims()
+
+	cm.detailPage = cm.AddPage("Crew Details")
+	cm.rolePage = cm.AddPage("Roles")
+	cm.jobPage = cm.AddPage("Jobs")
+	cm.passengerPage = cm.AddPage("Passengers")
+	cm.projectPage = cm.AddPage("Projects")
+
+	cm.crewList = burl.NewList(12, ph-2, 1, 1, 1, true, "No crew!")
+	cm.crewList.SetHint("PgUp/PgDown to select")
+	cm.crewDetails = burl.NewContainer(26, ph, 14, 0, 0, true)
+
+	cm.detailPage.Add(cm.crewList, cm.crewDetails)
 
 	cm.SetVisibility(false)
-	cm.SetTitle("Crew  Menu")
 	cm.SetHint("TAB to switch submenus")
+
+	cm.UpdateCrewList()
 
 	return
 }
 
-func (sg *SpaceshipGame) HandleKeypressCrewMenu(key sdl.Keycode) {
-	// sg.crewMenu.crewList.HandleKeypress(key)
+func (cm *CrewMenu) UpdateCrewList() {
+	if len(cm.ship.Crew) == 0 {
+		cm.crewList.ClearElements()
+		return
+	}
 
-	// if key == sdl.K_RETURN {
-	// 	sg.crewMenu.ToggleCrewDetails()
-	// }
+	i := cm.crewList.GetSelection()
+	cm.crewList.ClearElements()
+	for _, c := range cm.ship.Crew {
+		cm.crewList.Append(c.Name)
+	}
+	cm.crewList.Select(i)
+
+	cm.UpdateCrewDetails()
 }
 
-// type CrewMenu struct {
-// 	burl.Container
+func (cm *CrewMenu) UpdateCrewDetails() {
+	if len(cm.ship.Crew) == 0 {
+		cm.crewDetails.ClearElements()
+		return
+	}
 
-// 	crewList    *burl.List
-// 	crewDetails *burl.Container
+	c := cm.ship.Crew[cm.crewList.GetSelection()]
+	w, _ := cm.crewDetails.Dims()
 
-// 	ship *Ship
-// }
+	name := burl.NewTextbox(w, 1, 0, 0, 0, false, true, c.Name)
+	hp := burl.NewProgressBar(w, 1, 0, 3, 0, false, true, "HP: Lots", burl.COL_RED)
+	hp.SetProgress(c.HP.GetPct())
+	awake := burl.NewProgressBar(w, 1, 0, 4, 0, false, true, "Awakeness: Lots", burl.COL_GREEN)
+	awake.SetProgress(c.Awakeness.GetPct())
+	status := burl.NewTextbox(w, 1, 0, 6, 0, false, false, c.Name+" is "+c.GetStatus())
+	jobstring := c.Name + " is "
+	if c.CurrentTask != nil {
+		jobstring += c.CurrentTask.GetDescription()
+	} else {
+		jobstring += "idiling."
+	}
+	job := burl.NewTextbox(w, 1, 0, 7, 0, false, false, jobstring)
 
-// func NewCrewMenu(s *Ship) (cm *CrewMenu) {
-// 	cm = new(CrewMenu)
-// 	cm.ship = s
+	cm.crewDetails.Add(name, hp, awake, status, job)
+}
 
-// 	cm.Container = *burl.NewContainer(20, 26, 59, 4, 15, true)
-// 	cm.SetTitle("Crew Roster")
-// 	cm.SetVisibility(false)
-// 	w, _ := cm.Dims()
-// 	cm.crewList = burl.NewList(w, 6, 0, 0, 0, false, "")
-// 	for _, c := range cm.ship.Crew {
-// 		cm.crewList.Append(c.Name)
-// 	}
-// 	cm.crewDetails = burl.NewContainer(w, 19, 0, 7, 0, true)
-// 	cm.crewDetails.SetTitle("Crew Detail")
-// 	cm.crewDetails.SetVisibility(false)
-// 	cm.Add(cm.crewList, cm.crewDetails)
+func (cm *CrewMenu) HandleKeypress(key sdl.Keycode) {
+	cm.PagedContainer.HandleKeypress(key)
 
-// 	return
-// }
-
-// func (cm *CrewMenu) UpdateCrewList() {
-// 	i := cm.crewList.GetSelection()
-// 	cm.crewList.ClearElements()
-// 	for _, c := range cm.ship.Crew {
-// 		cm.crewList.Append(c.Name)
-// 	}
-// 	cm.crewList.Select(i)
-// }
-
-// func (cm *CrewMenu) UpdateCrewDetails() {
-// 	c := cm.ship.Crew[cm.crewList.GetSelection()]
-// 	w, _ := cm.crewDetails.Dims()
-
-// 	name := burl.NewTextbox(w, 1, 0, 0, 0, false, true, c.Name)
-// 	hp := burl.NewProgressBar(w, 1, 0, 3, 0, false, true, "HP: Lots", burl.COL_RED)
-// 	hp.SetProgress(c.HP.GetPct())
-// 	awake := burl.NewProgressBar(w, 1, 0, 4, 0, false, true, "Awakeness: Lots", burl.COL_GREEN)
-// 	awake.SetProgress(c.Awakeness.GetPct())
-// 	status := burl.NewTextbox(w, 1, 0, 6, 0, false, false, c.Name+" is "+c.GetStatus())
-// 	jobstring := c.Name + " is "
-// 	if c.CurrentTask != nil {
-// 		jobstring += c.CurrentTask.GetDescription()
-// 	} else {
-// 		jobstring += "idiling."
-// 	}
-// 	job := burl.NewTextbox(w, 1, 0, 7, 0, false, false, jobstring)
-
-// 	cm.crewDetails.Add(name, hp, awake, status, job)
-// }
-
-// //Toggles the crew detail view
-// //TODO: this needs to reshape the crewlist to be constrained above the detail
-// //view, but we can't do that until we add the ability to reshape ui elements in burl.
-// func (cm *CrewMenu) ToggleCrewDetails() {
-// 	if cm.IsVisible() {
-// 		cm.crewDetails.ToggleVisible()
-// 		if cm.crewDetails.IsVisible() {
-// 			cm.UpdateCrewDetails()
-// 		}
-// 	}
-// }
+	switch cm.CurrentPage() {
+	case cm.detailPage:
+		cm.crewList.HandleKeypress(key)
+	}
+}

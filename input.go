@@ -45,7 +45,7 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 		//Check for active menus. If nothing, apply to base game.
 		switch sg.activeMenu {
 		case sg.crewMenu:
-			sg.HandleKeypressCrewMenu(key)
+			sg.menus[MENU_CREW].HandleKeypress(key)
 		case sg.shipMenu:
 			sg.menus[MENU_SHIP].HandleKeypress(key)
 		case sg.galaxyMenu:

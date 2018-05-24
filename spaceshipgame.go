@@ -133,7 +133,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.gameMenu = NewGameMenu(sg.player)
 	sg.shipMenu = NewShipMenu()
 	sg.galaxyMenu = NewGalaxyMenu(sg.galaxy, sg.player.SpaceShip)
-	sg.crewMenu = NewCrewMenu()
+	sg.crewMenu = NewCrewMenu(sg.playerShip)
 	sg.commMenu = NewCommsMenu(sg.playerShip.Comms)
 	sg.viewMenu = NewViewMenu()
 	sg.mainMenu = NewMainMenu()
@@ -213,14 +213,18 @@ func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 			sg.commMenu.UpdateTransmissions()
 		case "missions":
 			sg.gameMenu.UpdateMissions()
-		// case "crew":
-		// 	if sg.activeMenu == sg.crewMenu {
-		// 		sg.crewMenu.UpdateCrewDetails()
-		// 	}
+		case "crew":
+			if sg.activeMenu == sg.crewMenu {
+				sg.crewMenu.UpdateCrewDetails()
+			}
 		case "ship status":
 			sg.quickstats.Update()
 		}
-
+	case burl.EV_LIST_CYCLE:
+		switch event.Caller {
+		case sg.crewMenu.crewList:
+			sg.crewMenu.UpdateCrewDetails()
+		}
 	case LOG_EVENT:
 		sg.AddMessage(event.Message)
 	}
