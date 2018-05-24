@@ -28,20 +28,20 @@ func NewGameMenu(p *Player) (gm *GameMenu) {
 	gm.SetVisibility(false)
 	gm.SetHint("TAB to switch submenus")
 	gm.player = p
-
+	_, ph := gm.PagedContainer.GetPageDims()
 	gm.playerPage = gm.AddPage("Player")
 
 	gm.missionsPage = gm.AddPage("Missions")
-	gm.missionList = burl.NewList(10, 23, 1, 1, 1, true, "No Missions To Do!")
+	gm.missionList = burl.NewList(10, ph-2, 1, 1, 1, true, "No Missions To Do!")
 	gm.missionList.SetHint("PgUp/PgDown")
 	gm.missionStatusText = burl.NewTextbox(27, 1, 13, 0, 0, true, true, "")
 	gm.missionDescriptionText = burl.NewTextbox(27, 4, 13, 2, 0, true, true, "")
 
-	gm.missionGoalList = burl.NewList(27, 9, 13, 7, 0, true, "Nothing to do???")
+	gm.missionGoalList = burl.NewList(27, 16, 13, 7, 0, true, "Nothing to do???")
 	gm.missionGoalList.SetTitle("TO DO")
 	gm.missionGoalList.ToggleHighlight()
 
-	gm.missionCriteriaList = burl.NewList(27, 8, 13, 17, 0, true, "Nothing to do???")
+	gm.missionCriteriaList = burl.NewList(27, 9, 13, 24, 0, true, "No criteria, do it however you want buddy.")
 	gm.missionCriteriaList.SetTitle("CRITERIA")
 	gm.missionCriteriaList.ToggleHighlight()
 
@@ -90,10 +90,7 @@ func (gm *GameMenu) UpdateMissions() {
 		}
 
 		gm.missionCriteriaList.ClearElements()
-		if len(m.criteria) == 0 {
-			gm.missionCriteriaList.SetVisibility(false)
-		} else {
-			gm.missionCriteriaList.SetVisibility(true)
+		if len(m.criteria) != 0 {
 			for _, c := range m.criteria {
 				criteria := burl.NewContainer(27, 3, 0, 0, 0, false)
 				criteria.Add(burl.NewTextbox(27, 1, 0, 0, 0, false, false, c.GetName()))

@@ -100,13 +100,6 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	return sg
 }
 
-//Adds a mission to the player's list.
-//THINK ABOUT: this could be a method for the player object???
-func (sg *SpaceshipGame) AddMission(m *Mission) {
-	sg.player.MissionLog = append(sg.player.MissionLog, *m)
-	burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "missions"))
-}
-
 //Centers the map of the ship in the main view.
 func (sg *SpaceshipGame) CenterShip() {
 	displayWidth, displayHeight := sg.shipdisplay.Dims()

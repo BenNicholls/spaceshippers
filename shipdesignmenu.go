@@ -54,13 +54,14 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 	sdm.roomColumn = burl.NewContainer(20, 43, 0, 0, 0, true)
 	sdm.roomColumn.Add(burl.NewTextbox(20, 1, 0, 0, 0, false, true, "Modules"))
 	sdm.roomLists = burl.NewPagedContainer(20, 20, 0, 2, 0, true)
-
-	sdm.allRoomList = burl.NewList(20, 18, 0, 0, 0, true, "No modules exist in the whole universe somehow.")
-	sdm.installedRoomList = burl.NewList(20, 18, 0, 0, 0, true, "Ain't got no modules!")
+	pw, ph := sdm.roomLists.GetPageDims()
 
 	all := sdm.roomLists.AddPage("All")
+	sdm.allRoomList = burl.NewList(pw, ph, 0, 0, 0, false, "No modules exist in the whole universe somehow.")
 	all.Add(sdm.allRoomList)
+
 	installed := sdm.roomLists.AddPage("Installed")
+	sdm.installedRoomList = burl.NewList(pw, ph, 0, 0, 0, false, "Ain't got no modules!")
 	installed.Add(sdm.installedRoomList)
 
 	sdm.roomDetails = burl.NewContainer(20, 20, 0, 23, 0, true)

@@ -1,6 +1,5 @@
 package main
 
-//import "strconv"
 import (
 	"github.com/bennicholls/burl-E/burl"
 )
@@ -66,7 +65,7 @@ func (r *Room) Rotate() {
 }
 
 func (r *Room) Bounds() burl.Rect {
-	return burl.Rect{r.Width, r.Height, r.X, r.Y}
+	return burl.Rect{W: r.Width, H: r.Height, X: r.X, Y: r.Y}
 }
 
 //Tries to connect room to another. Finds the intersection of the two rooms and puts doors there!
@@ -152,8 +151,4 @@ func (r *Room) ApplyUpkeep(spaceTime int) {
 
 func (r *Room) Update(spaceTime int) {
 	//r.ApplyUpkeep(spaceTime)
-}
-
-func (r Room) Rect() (int, int, int, int) {
-	return r.X, r.Y, r.Width, r.Height
 }
