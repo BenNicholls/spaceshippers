@@ -102,6 +102,7 @@ type Star struct {
 func NewStar(c Coordinates, name string, radius, mass float64) (s Star) {
 	s.Name = name
 	s.Description = "This is a star. Stars are big hot balls of lava that float in space like magic."
+	s.LocationType = loc_STAR
 	s.Coords = c
 	s.Coords.Resolution = coord_LOCAL
 	s.Coords.Local.Set(coord_LOCAL_MAX/2, coord_LOCAL_MAX/2)

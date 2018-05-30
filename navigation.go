@@ -43,8 +43,6 @@ func (ns *NavigationSystem) Update(tick int) {
 				ns.CurrentCourse.Phase = phase_BRAKE
 			}
 		}
-
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship status"))
 	}
 
 	//If we're moving, we need to check our locations/destinations.
@@ -52,13 +50,11 @@ func (ns *NavigationSystem) Update(tick int) {
 		//change location if we move away,
 		if !ns.ship.Coords.IsIn(ns.ship.currentLocation) {
 			ns.ship.currentLocation = ns.galaxy.GetLocation(ns.ship.Coords)
-			burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship status"))
 		}
 
 		//change destination/location when we arrive!
 		if ns.ship.Coords.IsIn(ns.ship.destination) {
 			ns.ship.currentLocation = ns.ship.destination
-			burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship status"))
 			if ns.ship.Velocity.R < ns.ship.destination.GetVisitSpeed() {
 				//if going slow enough while in range, stop the boat. TODO: put parking orbit code here.
 				ns.ship.destination = nil
@@ -70,6 +66,16 @@ func (ns *NavigationSystem) Update(tick int) {
 			}
 		}
 	}
+}
+
+//returns the pct of our current course that has been completed.
+func (ns NavigationSystem) GetCurrentProgress() int {
+	if ns.ship.destination != nil {
+		d := ns.ship.GetCoords().CalcVector(ns.ship.destination.GetCoords()).Distance * METERS_PER_LY
+		return burl.RoundFloatToInt((ns.CurrentCourse.Distance - d) / ns.CurrentCourse.Distance * 100)
+	}
+
+	return 0
 }
 
 type CoursePhase int
@@ -91,6 +97,7 @@ type Course struct {
 	AccelTime   int //time to stop accelerating
 	BrakeTime   int //time to start braking
 	Arrivaltime int //time of arrival
+	Distance    float64
 
 	Phase CoursePhase
 	Done  bool
@@ -146,6 +153,7 @@ func (ns NavigationSystem) ComputeCourse(d Locatable, fuelToUse, tick int) (cour
 	course.TotalTime = t_a + t_c + t_d
 	course.FuelUse = (t_a + t_d) * ns.ship.Engine.FuelUse
 	course.Arrivaltime = tick + course.TotalTime
+	course.Distance = D
 
 	return
 }

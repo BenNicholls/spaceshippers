@@ -119,6 +119,16 @@ func (g Galaxy) GetLocation(c Coordinates) Locatable {
 	}
 }
 
+//Retreives a reference to the starsystem, given a local coord. Returns nil if coord is not local,
+//or if coord is not within a starsystem
+func (g Galaxy) GetStarSystem(c Coordinates) (ss *StarSystem) {
+	if c.Resolution == coord_LOCAL {
+		ss = g.GetSector(c.Sector.Get()).GetSubSector(c.SubSector.Get()).starSystem
+	}
+
+	return
+}
+
 func (g Galaxy) GetEarth() Locatable {
 	return g.GetLocation(g.earth)
 }

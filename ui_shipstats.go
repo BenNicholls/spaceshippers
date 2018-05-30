@@ -40,7 +40,7 @@ func (qsw *QuickStatsWindow) Update() {
 	qsw.hullBar.ChangeProgress(qsw.ship.Hull.GetPct())
 	qsw.fuelBar.ChangeProgress(qsw.ship.Fuel.GetPct())
 	//qsw.powerBar.ChangeProgress(qsw.ship.PowerSystem.GetPowerUsagePct())
-	//qsw.powerBar.ChangeProgress(qsw.ship.Navigation.GetCurrentProgress())
+	qsw.voyageBar.ChangeProgress(qsw.ship.Navigation.GetCurrentProgress())
 }
 
 type ShipStatsWindow struct {

@@ -46,7 +46,7 @@ func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 	cgm.generateButton = burl.NewButton(15, 1, 58, 34, 1, true, true, "Generate the Galaxy as Shown!")
 	cgm.cancelButton = burl.NewButton(15, 1, 58, 38, 2, true, true, "Return to Main Menu")
 
-	cgm.galaxyMap = NewGalaxyMapView(25, 25, 53, 0, 0, true, cgm.galaxy)
+	cgm.galaxyMap = NewGalaxyMapView(25, 53, 0, 0, true, cgm.galaxy)
 
 	cgm.Window.Add(cgm.nameInput, cgm.densityChoice, cgm.shapeChoice, cgm.generateButton, cgm.explainText, cgm.cancelButton, cgm.galaxyMap, cgm.randomButton, cgm.sizeChoice)
 
@@ -122,7 +122,7 @@ func (cgm *CreateGalaxyMenu) Generate() {
 
 	cgm.galaxy = NewGalaxy(cgm.nameInput.GetText(), size, densityFactor)
 	cgm.galaxyMap.galaxy = cgm.galaxy
-	cgm.galaxyMap.DrawGalaxy()
+	cgm.galaxyMap.DrawGalaxyMap()
 }
 
 func (cgm *CreateGalaxyMenu) HandleKeypress(key sdl.Keycode) {
@@ -161,7 +161,7 @@ func (cgm *CreateGalaxyMenu) HandleEvent(e *burl.Event) {
 	case burl.EV_ANIMATION_DONE:
 		if e.Caller == cgm.generateButton {
 			if cgm.nameInput.GetText() == "" {
-				cgm.OpenDialog(NewCommDialog("", "", "", "You must give your galaxy a name before you can continue!"))
+				burl.OpenDialog(NewCommDialog("", "", "", "You must give your galaxy a name before you can continue!"))
 			} else {
 				burl.ChangeState(NewShipCreateMenu(cgm.galaxy))
 			}
@@ -171,18 +171,32 @@ func (cgm *CreateGalaxyMenu) HandleEvent(e *burl.Event) {
 	}
 }
 
+type zoomLevel int
+
+const (
+	zoom_GALAXY zoomLevel = iota
+	zoom_LOCAL
+)
+
 type GalaxyMapView struct {
 	burl.TileView
 
 	galaxy *Galaxy
 
-	Cursor    burl.Coord
+	cursor    burl.Coord
 	highlight *burl.PulseAnimation
+
+	zoom zoomLevel
+
+	//for local map drawing
+	localZoom   int
+	localFocus  Locatable
+	systemFocus *StarSystem
 }
 
-func NewGalaxyMapView(w, h, x, y, z int, bord bool, g *Galaxy) (gmv *GalaxyMapView) {
+func NewGalaxyMapView(w, x, y, z int, bord bool, g *Galaxy) (gmv *GalaxyMapView) {
 	gmv = new(GalaxyMapView)
-	gmv.TileView = *burl.NewTileView(w, h, x, y, z, bord)
+	gmv.TileView = *burl.NewTileView(w, w, x, y, z, bord)
 	gmv.galaxy = g
 
 	gmv.highlight = burl.NewPulseAnimation(1, 1, 0, 1, 1, 100, 10, true)
@@ -191,7 +205,44 @@ func NewGalaxyMapView(w, h, x, y, z int, bord bool, g *Galaxy) (gmv *GalaxyMapVi
 	return
 }
 
-func (gmv *GalaxyMapView) DrawGalaxy() {
+func (gmv *GalaxyMapView) ZoomIn() {
+	if gmv.zoom == zoom_GALAXY {
+		gmv.zoom = zoom_LOCAL
+		gmv.DrawLocalMap()
+		gmv.ToggleHighlight()
+	} else if gmv.zoom == zoom_LOCAL {
+		if gmv.localZoom < 7 {
+			gmv.localZoom += 1
+			gmv.DrawLocalMap()
+		}
+	}
+}
+
+func (gmv *GalaxyMapView) ZoomOut() {
+	if gmv.zoom == zoom_LOCAL {
+		if gmv.localZoom == 0 {
+			gmv.zoom = zoom_GALAXY
+			gmv.DrawGalaxyMap()
+			gmv.ToggleHighlight()
+		} else {
+			gmv.localZoom -= 1
+			gmv.DrawLocalMap()
+		}
+	}
+}
+
+func (gmv *GalaxyMapView) DrawMap() {
+	switch gmv.zoom {
+	case zoom_GALAXY:
+		gmv.DrawGalaxyMap()
+	case zoom_LOCAL:
+		gmv.DrawLocalMap()
+	default:
+		burl.LogError("No draw function for selected zoom level.")
+	}
+}
+
+func (gmv *GalaxyMapView) DrawGalaxyMap() {
 	if gmv.galaxy != nil {
 		w, h := gmv.galaxy.Dims()
 		for i := 0; i < w*h; i++ {
@@ -207,28 +258,90 @@ func (gmv *GalaxyMapView) DrawGalaxy() {
 	}
 }
 
+func (gmv *GalaxyMapView) calcLocalMapCoord(c Coordinates) (mc burl.Coord) {
+	w, h := gmv.Dims()
+	gFactor := gmv.localZoomFactor()
+
+	//camera computation
+	cX := gmv.localFocus.GetCoords().Local.X - (gFactor * float64(w) / 2)
+	cY := gmv.localFocus.GetCoords().Local.Y - (gFactor * float64(h) / 2)
+
+	mc.X = int((c.Local.X - cX) / gFactor)
+	mc.Y = int((c.Local.Y - cY) / gFactor)
+
+	return
+}
+
+func (gmv *GalaxyMapView) localZoomFactor() float64 {
+	w, _ := gmv.Dims()
+	return coord_LOCAL_MAX / float64(w) / float64(burl.Pow(2, gmv.localZoom))
+}
+
+func (gmv *GalaxyMapView) DrawLocalMap() {
+	gmv.Reset()
+	smc := gmv.calcLocalMapCoord(gmv.systemFocus.Star.GetCoords())
+
+	//draw system things!
+	for _, p := range gmv.systemFocus.Planets {
+		//draw orbits. TODO: some way of culling orbit drawing. currently drawing all of them
+		gmv.DrawCircle(smc.X, smc.Y, burl.RoundFloatToInt(p.oDistance/gmv.localZoomFactor()), burl.GLYPH_PERIOD, 0xFF114411, burl.COL_BLACK)
+		gmv.DrawObject(p, burl.Visuals{int(rune(p.Name[0])), 0xFF825814, burl.COL_BLACK})
+	}
+
+	gmv.DrawObject(gmv.systemFocus.Star, burl.Visuals{burl.GLYPH_STAR, burl.COL_YELLOW, burl.COL_BLACK})
+}
+
+func (gmv *GalaxyMapView) DrawObject(l Locatable, v burl.Visuals) {
+	var c burl.Coord
+
+	switch gmv.zoom {
+	case zoom_GALAXY:
+		c = l.GetCoords().Sector
+	case zoom_LOCAL:
+		c = gmv.calcLocalMapCoord(l.GetCoords())
+	}
+
+	w, h := gmv.Dims()
+
+	if burl.IsInside(c.X, c.Y, 0, 0, w, h) {
+		gmv.Draw(c.X, c.Y, v.Glyph, v.ForeColour, v.BackColour)
+	}
+}
+
 func (gmv *GalaxyMapView) ToggleHighlight() {
-	gmv.highlight.MoveTo(gmv.Cursor.X, gmv.Cursor.Y)
-	gmv.highlight.Activate()
+	gmv.highlight.MoveTo(gmv.cursor.X, gmv.cursor.Y)
+	gmv.highlight.Toggle()
 }
 
 func (gmv *GalaxyMapView) HandleKeypress(key sdl.Keycode) {
+	//generic
 	switch key {
-	case sdl.K_UP:
-		gmv.MoveCursor(0, -1)
-	case sdl.K_DOWN:
-		gmv.MoveCursor(0, 1)
-	case sdl.K_LEFT:
-		gmv.MoveCursor(-1, 0)
-	case sdl.K_RIGHT:
-		gmv.MoveCursor(1, 0)
+	case sdl.K_PAGEUP:
+		gmv.ZoomIn()
+	case sdl.K_PAGEDOWN:
+		gmv.ZoomOut()
+	}
+
+	//zoom-level specific
+	switch gmv.zoom {
+	case zoom_GALAXY:
+		switch key {
+		case sdl.K_UP:
+			gmv.MoveCursor(0, -1)
+		case sdl.K_DOWN:
+			gmv.MoveCursor(0, 1)
+		case sdl.K_LEFT:
+			gmv.MoveCursor(-1, 0)
+		case sdl.K_RIGHT:
+			gmv.MoveCursor(1, 0)
+		}
 	}
 }
 
 func (gmv *GalaxyMapView) MoveCursor(dx, dy int) {
 	w, h := gmv.Dims()
-	if burl.CheckBounds(gmv.Cursor.X+dx, gmv.Cursor.Y+dy, w, h) {
-		gmv.Cursor.Move(dx, dy)
+	if burl.CheckBounds(gmv.cursor.X+dx, gmv.cursor.Y+dy, w, h) {
+		gmv.cursor.Move(dx, dy)
 		gmv.highlight.Move(dx, dy, 0)
 	}
 }

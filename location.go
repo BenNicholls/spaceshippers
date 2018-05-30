@@ -29,11 +29,35 @@ const (
 	loc_NONE LocationType = iota
 	loc_SECTOR
 	loc_STARSYSTEM
+	loc_STAR
 	loc_PLANET
 	loc_MOON
 	loc_ANOMALY
 	loc_SHIP
 )
+
+func (l LocationType) String() string {
+	switch l {
+	case loc_NONE:
+		return "No location!"
+	case loc_SECTOR:
+		return "Sector"
+	case loc_STARSYSTEM:
+		return "Star System"
+	case loc_STAR:
+		return "Star"
+	case loc_PLANET:
+		return "Planet"
+	case loc_MOON:
+		return "Moon"
+	case loc_ANOMALY:
+		return "Anomaly"
+	case loc_SHIP:
+		return "Ship"
+	default:
+		return "How did you do this."
+	}
+}
 
 type Location struct {
 	Name          string

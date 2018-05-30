@@ -168,8 +168,6 @@ func (sg *SpaceshipGame) SetupUI() {
 }
 
 func (sg *SpaceshipGame) Update() {
-	//startCoords := sg.playerShip.Coords
-
 	//simulation!
 	for i := 0; i < sg.GetIncrement(); i++ {
 		sg.galaxy.spaceTime++
@@ -189,17 +187,6 @@ func (sg *SpaceshipGame) Update() {
 		}
 	}
 
-	//update starchart if ship has moved
-	// if sg.activeMenu == sg.starchartMenu && sg.playerShip.GetSpeed() != 0 {
-	// 	sg.starchartMenu.Update()
-	// 	delta := startCoords.CalcVector(sg.playerShip.Coords)
-	// 	if sec := delta.Sector; sg.starchartMenu.mapMode == coord_SECTOR && (sec.X != 0 || sec.Y != 0) {
-	// 		sg.starchartMenu.DrawMap()
-	// 	} else if sg.starchartMenu.mapMode == coord_LOCAL {
-	// 		sg.starchartMenu.DrawSystem() //should we really do this every update tick??? ugh.
-	// 	}
-	// }
-
 	sg.timeDisplay.UpdateTime()
 }
 
@@ -218,6 +205,11 @@ func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 				sg.crewMenu.UpdateCrewDetails()
 			}
 		case "ship status":
+			sg.quickstats.Update()
+		case "ship move":
+			if sg.activeMenu == sg.galaxyMenu {
+				sg.galaxyMenu.Update()
+			}
 			sg.quickstats.Update()
 		}
 	case burl.EV_LIST_CYCLE:
