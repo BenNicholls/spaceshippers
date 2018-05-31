@@ -89,13 +89,21 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	sg.playerShip = sg.player.SpaceShip
 
 	sg.playerShip.SetLocation(sg.galaxy.GenerateStart())
-	//sg.playerShip.SetLocation(sg.galaxy.GetEarth())
 
 	sg.SetupUI() //must be done after ship setup
 
 	sg.LoadSpaceEvents()
 
 	sg.OpenDialog(NewSpaceEventDialog(spaceEvents[1]))
+
+	burl.RegisterDebugCommand("fuel", func() {
+		sg.playerShip.Fuel.Set(sg.playerShip.Fuel.Max())
+	})
+
+	burl.RegisterDebugCommand("earth", func() {
+		sg.playerShip.SetLocation(sg.galaxy.GetEarth())
+		sg.galaxyMenu.starchartMapView.systemFocus = sg.galaxy.GetStarSystem(sg.playerShip.GetCoords()) //this is messy.
+	})
 
 	return sg
 }

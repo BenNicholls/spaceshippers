@@ -9,7 +9,7 @@ type QuickStatsWindow struct {
 	hullBar   *burl.ProgressBar
 	fuelBar   *burl.ProgressBar
 	energyBar *burl.ProgressBar
-	voyageBar *burl.ProgressBar
+	courseBar *burl.ProgressBar
 
 	alertText *burl.Textbox
 
@@ -24,10 +24,10 @@ func NewQuickStatsWindow(x, y int, s *Ship) (qsw *QuickStatsWindow) {
 	qsw.hullBar = burl.NewProgressBar(5, 1, 0, 2, 1, true, true, "HULL", burl.COL_RED)
 	qsw.fuelBar = burl.NewProgressBar(5, 1, 6, 2, 1, true, true, "FUEL", burl.COL_PURPLE)
 	qsw.energyBar = burl.NewProgressBar(5, 1, 12, 2, 1, true, true, "ENERGY", burl.COL_BLUE)
-	qsw.voyageBar = burl.NewProgressBar(5, 1, 18, 2, 1, true, true, "VOYAGE", burl.COL_GREEN)
+	qsw.courseBar = burl.NewProgressBar(5, 1, 18, 2, 1, true, true, "COURSE", burl.COL_GREEN)
 
 	qsw.Add(qsw.alertText)
-	qsw.Add(qsw.hullBar, qsw.fuelBar, qsw.energyBar, qsw.voyageBar)
+	qsw.Add(qsw.hullBar, qsw.fuelBar, qsw.energyBar, qsw.courseBar)
 
 	qsw.ship = s
 
@@ -40,7 +40,7 @@ func (qsw *QuickStatsWindow) Update() {
 	qsw.hullBar.SetProgress(qsw.ship.Hull.GetPct())
 	qsw.fuelBar.SetProgress(qsw.ship.Fuel.GetPct())
 	//qsw.powerBar.ChangeProgress(qsw.ship.PowerSystem.GetPowerUsagePct())
-	qsw.voyageBar.SetProgress(qsw.ship.Navigation.GetCurrentProgress())
+	qsw.courseBar.SetProgress(qsw.ship.Navigation.GetCurrentProgress())
 }
 
 type ShipStatsWindow struct {

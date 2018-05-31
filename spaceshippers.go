@@ -17,7 +17,6 @@ func main() {
 		return
 	}
 
-	//console.SetFullscreen()
 	burl.Debug()
 
 	burl.InitState(NewStartMenu())

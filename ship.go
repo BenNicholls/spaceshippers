@@ -67,9 +67,6 @@ func NewShip(n string, g *Galaxy) *Ship {
 
 	s.shipMap = burl.NewMap(100, 100)
 
-	burl.RegisterWatch("Speed", &s.Velocity.R)
-	burl.RegisterWatch("Heading", &s.Velocity.Phi)
-
 	return s
 }
 
