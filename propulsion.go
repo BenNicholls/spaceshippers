@@ -45,10 +45,7 @@ func (ps *PropulsionSystem) Update(tick int) {
 				ps.ship.Velocity.R -= ps.Thrust
 				ps.ship.Fuel.Mod(-ps.FuelUse)
 			case phase_COAST:
-				return
 			}
-
-			burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship status"))
 		}
 	}
 
@@ -56,5 +53,6 @@ func (ps *PropulsionSystem) Update(tick int) {
 	if x != 0 || y != 0 {
 		ps.ship.Coords.moveLocal(x, y)
 		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship move"))
+		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship status"))
 	}
 }
