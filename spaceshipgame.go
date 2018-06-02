@@ -181,10 +181,6 @@ func (sg *SpaceshipGame) Update() {
 		sg.galaxy.spaceTime++
 		sg.playerShip.Update(sg.GetTime())
 
-		for i := range sg.playerShip.Crew {
-			sg.playerShip.Crew[i].Update()
-		}
-
 		//need starfield shift speed controlled here (currently hardcoded to shift every 100 seconds as long as the ship is moving)
 		if sg.playerShip.GetSpeed() != 0 && sg.GetTick()%100 == 0 {
 			sg.Stars.Shift()
