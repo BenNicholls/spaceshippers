@@ -185,8 +185,8 @@ func (s *Ship) AddCrewman(c *Crewman) {
 	s.Crew = append(s.Crew, c)
 
 	//place randomly in ship
-	start := s.Rooms[rand.Intn(len(s.Rooms))]
 	for {
+		start := s.Rooms[rand.Intn(len(s.Rooms))]
 		rx, ry := burl.GenerateCoord(start.X, start.Y, start.Width, start.Height)
 		if s.shipMap.GetTile(rx, ry).Empty() {
 			s.shipMap.AddEntity(rx, ry, c)
