@@ -11,7 +11,7 @@ func main() {
 	//defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	_, err := burl.InitConsole(80, 45, "res/curses24x24.bmp", "res/DelveFont12x24.bmp", "Spaceshippers")
+	_, err := burl.InitConsole(96, 54, "res/cp437_20x20.bmp", "res/DelveFont10x20.bmp", "Spaceshippers")
 	if err != nil {
 		fmt.Println(err)
 		return

@@ -18,13 +18,13 @@ type QuickStatsWindow struct {
 
 func NewQuickStatsWindow(x, y int, s *Ship) (qsw *QuickStatsWindow) {
 	qsw = new(QuickStatsWindow)
-	qsw.Container = *burl.NewContainer(23, 3, x, y, 9, true)
+	qsw.Container = *burl.NewContainer(39, 3, x, y, 9, true)
 
-	qsw.alertText = burl.NewTextbox(23, 1, 0, 0, 1, true, true, "All Optimal")
-	qsw.hullBar = burl.NewProgressBar(5, 1, 0, 2, 1, true, true, "HULL", burl.COL_RED)
-	qsw.fuelBar = burl.NewProgressBar(5, 1, 6, 2, 1, true, true, "FUEL", burl.COL_PURPLE)
-	qsw.energyBar = burl.NewProgressBar(5, 1, 12, 2, 1, true, true, "ENERGY", burl.COL_BLUE)
-	qsw.courseBar = burl.NewProgressBar(5, 1, 18, 2, 1, true, true, "COURSE", burl.COL_GREEN)
+	qsw.alertText = burl.NewTextbox(39, 1, 0, 0, 1, true, true, "All Optimal")
+	qsw.hullBar = burl.NewProgressBar(9, 1, 0, 2, 1, true, true, "HULL", burl.COL_RED)
+	qsw.fuelBar = burl.NewProgressBar(9, 1, 10, 2, 1, true, true, "FUEL", burl.COL_PURPLE)
+	qsw.energyBar = burl.NewProgressBar(9, 1, 20, 2, 1, true, true, "ENERGY", burl.COL_BLUE)
+	qsw.courseBar = burl.NewProgressBar(9, 1, 30, 2, 1, true, true, "COURSE", burl.COL_GREEN)
 
 	qsw.Add(qsw.alertText)
 	qsw.Add(qsw.hullBar, qsw.fuelBar, qsw.energyBar, qsw.courseBar)

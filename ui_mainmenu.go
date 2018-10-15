@@ -8,7 +8,7 @@ type MainMenu struct {
 
 func NewMainMenu() (mm *MainMenu) {
 	mm = new(MainMenu)
-	mm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
+	mm.PagedContainer = *burl.NewPagedContainer(56, 45, 39, 4, 10, true)
 
 	mm.SetVisibility(false)
 

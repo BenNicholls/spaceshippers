@@ -31,7 +31,7 @@ func NewGalaxyMenu(g *Galaxy, s *Ship) (gm *GalaxyMenu) {
 	gm.galaxy = g
 	gm.playerShip = s
 
-	gm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
+	gm.PagedContainer = *burl.NewPagedContainer(56, 45, 39, 4, 10, true)
 	gm.SetVisibility(false)
 
 	pw, ph := gm.GetPageDims()
@@ -45,11 +45,12 @@ func NewGalaxyMenu(g *Galaxy, s *Ship) (gm *GalaxyMenu) {
 	gm.starchartTitleText = burl.NewTextbox(25, 1, 0, 26, 0, true, true, "")
 	gm.localInfo = burl.NewContainer(25, ph-28, 0, 28, 0, false)
 	gm.localInfo.SetVisibility(false)
-	gm.localLocationList = burl.NewList(25, ph-28, 0, 0, 0, true, "No Locations in this system.")
+	gm.localLocationList = burl.NewList(24, ph-29, 1, 1, 0, false, "No Locations in this system.")
+	gm.localInfo.Add(burl.NewTextbox(25, 1, 0, 0, 0, false, false, "Locations:"))
 	gm.localInfo.Add(gm.localLocationList)
 	gm.galaxyInfo = burl.NewContainer(25, ph-28, 0, 28, 0, false)
-	gm.selectedInfo = burl.NewContainer(pw-26, ph-3, 26, 0, 0, true)
-	gm.selectedSetCourseButton = burl.NewButton(pw-26, 2, 26, ph-2, 0, true, true, "[S]et Course for this location!")
+	gm.selectedInfo = burl.NewContainer(pw-26, ph-2, 26, 0, 0, true)
+	gm.selectedSetCourseButton = burl.NewButton(pw-26, 1, 26, ph-1, 0, true, true, "[S]et Course for this location!")
 
 	gm.Update()
 
@@ -96,11 +97,17 @@ func (gm *GalaxyMenu) DrawMap() {
 	switch gm.starchartMapView.zoom {
 	case zoom_GALAXY:
 		//TODO: make it so this is only drawn if you've scanned/discovered the location of earth
-		gm.starchartMapView.DrawObject(gm.galaxy.GetEarth(), burl.Visuals{burl.GLYPH_DONUT, burl.COL_BLUE, burl.COL_BLACK})
+		gm.starchartMapView.DrawObject(gm.galaxy.GetEarth(), burl.Visuals{
+			Glyph:      burl.GLYPH_DONUT,
+			ForeColour: burl.COL_BLUE,
+			BackColour: burl.COL_BLACK})
 	case zoom_LOCAL:
 	}
 
-	gm.starchartMapView.DrawObject(gm.playerShip, burl.Visuals{burl.GLYPH_FACE2, burl.COL_WHITE, burl.COL_BLACK})
+	gm.starchartMapView.DrawObject(gm.playerShip, burl.Visuals{
+		Glyph:      burl.GLYPH_FACE2,
+		ForeColour: burl.COL_WHITE,
+		BackColour: burl.COL_BLACK})
 }
 
 func (gm *GalaxyMenu) Update() {
@@ -142,19 +149,19 @@ func (gm *GalaxyMenu) UpdateLocalInfo() {
 func (gm *GalaxyMenu) UpdateSelectedInfo() {
 	gm.selectedInfo.ClearElements()
 
-	gm.selectedInfo.Add(burl.NewTextbox(14, 1, 0, 0, 0, true, true, "Selection Info"))
+	gm.selectedInfo.Add(burl.NewTextbox(30, 1, 0, 0, 0, true, true, "Selection Info"))
 
 	switch gm.starchartMapView.zoom {
 	case zoom_GALAXY:
 		s := gm.galaxy.GetSector(gm.starchartMapView.cursor.Get())
-		gm.selectedInfo.Add(burl.NewTextbox(14, 1, 0, 2, 0, false, true, "Sector ("+s.ProperName()+")"))
-		gm.selectedInfo.Add(burl.NewTextbox(14, 1, 0, 3, 0, false, true, s.Name))
-		gm.selectedInfo.Add(burl.NewTextbox(14, 2, 0, 5, 0, false, true, s.Description))
-		gm.selectedInfo.Add(burl.NewTextbox(14, 2, 0, 8, 0, false, false, "Star Density: "+strconv.Itoa(s.Density)+"%"))
+		gm.selectedInfo.Add(burl.NewTextbox(30, 1, 0, 2, 0, false, true, "Sector ("+s.ProperName()+")"))
+		gm.selectedInfo.Add(burl.NewTextbox(30, 1, 0, 3, 0, false, true, s.Name))
+		gm.selectedInfo.Add(burl.NewTextbox(30, 2, 0, 5, 0, false, true, s.Description))
+		gm.selectedInfo.Add(burl.NewTextbox(30, 2, 0, 8, 0, false, false, "Star Density: "+strconv.Itoa(s.Density)+"%"))
 		if s.Explored {
-			gm.selectedInfo.Add(burl.NewTextbox(14, 2, 0, 9, 0, false, false, "SECTOR EXPLORED"))
+			gm.selectedInfo.Add(burl.NewTextbox(30, 2, 0, 9, 0, false, false, "SECTOR EXPLORED"))
 		} else {
-			gm.selectedInfo.Add(burl.NewTextbox(14, 2, 0, 9, 0, false, false, "SECTOR UNEXPLORED"))
+			gm.selectedInfo.Add(burl.NewTextbox(30, 2, 0, 9, 0, false, false, "SECTOR UNEXPLORED"))
 		}
 
 		if gm.playerShip.GetCoords().IsIn(s) {
@@ -165,11 +172,11 @@ func (gm *GalaxyMenu) UpdateSelectedInfo() {
 
 	case zoom_LOCAL:
 		s := gm.starchartMapView.localFocus
-		gm.selectedInfo.Add(burl.NewTextbox(14, 1, 0, 2, 0, false, false, "Name: "+s.GetName()))
-		gm.selectedInfo.Add(burl.NewTextbox(14, 1, 0, 3, 0, false, false, "Type: "+s.GetLocationType().String()))
+		gm.selectedInfo.Add(burl.NewTextbox(30, 1, 0, 2, 0, false, false, "Name: "+s.GetName()))
+		gm.selectedInfo.Add(burl.NewTextbox(30, 1, 0, 3, 0, false, false, "Type: "+s.GetLocationType().String()))
 		dist := int(gm.playerShip.GetCoords().CalcVector(s.GetCoords()).Distance * METERS_PER_LY / 1000)
-		gm.selectedInfo.Add(burl.NewTextbox(14, 1, 0, 4, 0, false, false, "Distance: "+strconv.Itoa(dist)+"km"))
-		gm.selectedInfo.Add(burl.NewTextbox(14, 4, 0, 6, 0, false, false, s.GetDescription()))
+		gm.selectedInfo.Add(burl.NewTextbox(30, 1, 0, 4, 0, false, false, "Distance: "+strconv.Itoa(dist)+"km"))
+		gm.selectedInfo.Add(burl.NewTextbox(30, 4, 0, 6, 0, false, false, s.GetDescription()))
 
 		var explored string
 		if s.IsExplored() {
@@ -177,7 +184,7 @@ func (gm *GalaxyMenu) UpdateSelectedInfo() {
 		} else {
 			explored = "We have not explored this location."
 		}
-		gm.selectedInfo.Add(burl.NewTextbox(14, 2, 0, 11, 0, false, false, explored))
+		gm.selectedInfo.Add(burl.NewTextbox(30, 2, 0, 11, 0, false, false, explored))
 
 		gm.selectedSetCourseButton.SetVisibility(true)
 		if !gm.playerShip.GetCoords().IsIn(s) {

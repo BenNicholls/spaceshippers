@@ -20,13 +20,13 @@ func NewStartMenu() (sm *StartMenu) {
 	sm.InitWindow(false)
 
 	sm.title = burl.NewTextbox(20, 1, 0, 10, 1, true, true, "SPACE SHIPPERS: The Ones Who Space Ship!")
-	sm.title.CenterX(80, 0)
+	sm.title.CenterX(96, 0)
 
-	sm.menu = burl.NewList(10, 5, 10, 10, 1, true, "")
+	sm.menu = burl.NewList(15, 5, 10, 10, 1, true, "")
 	sm.menu.CenterInConsole()
 	sm.menu.Append("New Game", "Load Game", "Ship Designer", "Options", "Quit")
 
-	sm.background = burl.NewTileView(80, 45, 0, 0, 0, false)
+	sm.background = burl.NewTileView(96, 54, 0, 0, 0, false)
 	sm.stars = NewStarField(25, sm.background)
 
 	sm.Window.Add(sm.title, sm.menu, sm.background)

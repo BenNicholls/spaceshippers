@@ -8,7 +8,7 @@ type ViewMenu struct {
 
 func NewViewMenu() (vm *ViewMenu) {
 	vm = new(ViewMenu)
-	vm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
+	vm.PagedContainer = *burl.NewPagedContainer(56, 45, 39, 4, 10, true)
 
 	vm.SetVisibility(false)
 

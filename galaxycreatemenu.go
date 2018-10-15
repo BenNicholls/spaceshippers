@@ -32,21 +32,21 @@ func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 	cgm.Window.SetTitle("CREATE A WHOLE GALAXY WHY NOT")
 
 	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 2, 1, false, false, "Name:"))
-	cgm.nameInput = burl.NewInputbox(20, 1, 10, 2, 1, true)
+	cgm.nameInput = burl.NewInputbox(20, 1, 9, 2, 1, true)
 	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 5, 1, false, false, "Density:"))
-	cgm.densityChoice = burl.NewChoiceBox(20, 1, 10, 5, 2, true, burl.CHOICE_HORIZONTAL, "Sparse", "Normal", "Dense")
+	cgm.densityChoice = burl.NewChoiceBox(20, 1, 9, 5, 2, true, burl.CHOICE_HORIZONTAL, "Sparse", "Normal", "Dense")
 	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 8, 1, false, false, "Shape:"))
-	cgm.shapeChoice = burl.NewChoiceBox(20, 1, 10, 8, 1, true, burl.CHOICE_HORIZONTAL, "Disk", "Spiral")
+	cgm.shapeChoice = burl.NewChoiceBox(20, 1, 9, 8, 1, true, burl.CHOICE_HORIZONTAL, "Disk", "Spiral")
 	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 11, 1, false, false, "Size:"))
-	cgm.sizeChoice = burl.NewChoiceBox(20, 1, 10, 11, 2, true, burl.CHOICE_HORIZONTAL, "Small", "Medium", "Large")
+	cgm.sizeChoice = burl.NewChoiceBox(20, 1, 9, 11, 2, true, burl.CHOICE_HORIZONTAL, "Small", "Medium", "Large")
 
-	cgm.explainText = burl.NewTextbox(30, 10, 2, 28, 1, true, false, "explanations")
+	cgm.explainText = burl.NewTextbox(40, 15, 2, 35, 1, true, false, "explanations")
 
-	cgm.randomButton = burl.NewButton(15, 1, 58, 30, 2, true, true, "Randomize Galaxy")
-	cgm.generateButton = burl.NewButton(15, 1, 58, 34, 1, true, true, "Generate the Galaxy as Shown!")
-	cgm.cancelButton = burl.NewButton(15, 1, 58, 38, 2, true, true, "Return to Main Menu")
+	cgm.randomButton = burl.NewButton(15, 1, 74, 30, 2, true, true, "Randomize Galaxy")
+	cgm.generateButton = burl.NewButton(15, 1, 74, 34, 1, true, true, "Generate the Galaxy as Shown!")
+	cgm.cancelButton = burl.NewButton(15, 1, 74, 38, 2, true, true, "Return to Main Menu")
 
-	cgm.galaxyMap = NewGalaxyMapView(25, 53, 0, 0, true, cgm.galaxy)
+	cgm.galaxyMap = NewGalaxyMapView(25, 69, 0, 0, true, cgm.galaxy)
 
 	cgm.Window.Add(cgm.nameInput, cgm.densityChoice, cgm.shapeChoice, cgm.generateButton, cgm.explainText, cgm.cancelButton, cgm.galaxyMap, cgm.randomButton, cgm.sizeChoice)
 
@@ -70,7 +70,7 @@ func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 func (cgm *CreateGalaxyMenu) UpdateExplanation() {
 	switch cgm.focusedField {
 	case cgm.nameInput:
-		cgm.explainText.ChangeText("GALAXY NAME:/n/nIt is believed that one of the main ways in which all sentient races of the galaxy are similar is a universal desire to name and label the universe. No Galaxy is complete without a name!")
+		cgm.explainText.ChangeText("GALAXY NAME:/n/nIt is believed that one of the main ways in which all sentient races of the galaxy are similar is a common desire to name and label the universe. No Galaxy is complete without a name!")
 	case cgm.densityChoice:
 		cgm.explainText.ChangeText("GALAXY DENSITY:/n/nGalaxies come in all shapes, sizes and consistencies. Some are small and dense, with stars but a stone's throw away from each. Others have stars so spread out that many sentient species decide to never even attempt inter-system travel, instead deciding to focus efforts on art and philosophy and creating better and better tofu-based meat substitutes.")
 	case cgm.shapeChoice:

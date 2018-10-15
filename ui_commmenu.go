@@ -26,12 +26,14 @@ func NewCommsMenu(comm *CommSystem) (cm *CommMenu) {
 
 	cm.comms = comm
 
-	cm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
+	cm.PagedContainer = *burl.NewPagedContainer(56, 45, 39, 4, 10, true)
 	cm.SetVisibility(false)
 	cm.SetHint("TAB to switch submenus")
 
+	_, ph := cm.GetPageDims()
+
 	cm.inboxPage = cm.AddPage("Messages")
-	cm.inboxList = burl.NewList(38, 21, 0, 0, 2, false, "NO INBOX MESSAGES")
+	cm.inboxList = burl.NewList(56, ph-2, 0, 0, 2, false, "NO INBOX MESSAGES")
 	cm.inboxPage.Add(cm.inboxList)
 	cm.UpdateInbox()
 
@@ -39,7 +41,7 @@ func NewCommsMenu(comm *CommSystem) (cm *CommMenu) {
 	cm.contactsPage.Add(burl.NewTextbox(10, 1, 2, 2, 1, true, true, "contacts page"))
 
 	cm.transmissionsPage = cm.AddPage("Radios")
-	cm.transmissionsList = burl.NewList(37, 12, 0, 11, 0, false, "NO TRANSMISSIONS")
+	cm.transmissionsList = burl.NewList(56, 32, 0, 10, 0, true, "NO TRANSMISSIONS")
 	cm.transmissionsPage.Add(cm.transmissionsList)
 
 	cm.logsPage = cm.AddPage("Logs")

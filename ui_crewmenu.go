@@ -24,7 +24,7 @@ type CrewMenu struct {
 func NewCrewMenu(s *Ship) (cm *CrewMenu) {
 	cm = new(CrewMenu)
 	cm.ship = s
-	cm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
+	cm.PagedContainer = *burl.NewPagedContainer(56, 45, 39, 4, 10, true)
 	_, ph := cm.GetPageDims()
 
 	cm.detailPage = cm.AddPage("Crew Details")
@@ -33,9 +33,9 @@ func NewCrewMenu(s *Ship) (cm *CrewMenu) {
 	cm.passengerPage = cm.AddPage("Passengers")
 	cm.projectPage = cm.AddPage("Projects")
 
-	cm.crewList = burl.NewList(12, ph-2, 1, 1, 1, true, "No crew!")
+	cm.crewList = burl.NewList(18, ph-2, 1, 1, 1, true, "No crew!")
 	cm.crewList.SetHint("PgUp/PgDown to select")
-	cm.crewDetails = burl.NewContainer(26, ph, 14, 0, 0, true)
+	cm.crewDetails = burl.NewContainer(36, ph, 20, 0, 0, true)
 
 	cm.detailPage.Add(cm.crewList, cm.crewDetails)
 

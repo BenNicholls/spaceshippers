@@ -24,7 +24,7 @@ type GameMenu struct {
 
 func NewGameMenu(p *Player) (gm *GameMenu) {
 	gm = new(GameMenu)
-	gm.PagedContainer = *burl.NewPagedContainer(40, 36, 39, 4, 10, true)
+	gm.PagedContainer = *burl.NewPagedContainer(56, 45, 39, 4, 10, true)
 	gm.SetVisibility(false)
 	gm.SetHint("TAB to switch submenus")
 	gm.player = p
@@ -32,16 +32,16 @@ func NewGameMenu(p *Player) (gm *GameMenu) {
 	gm.playerPage = gm.AddPage("Player")
 
 	gm.missionsPage = gm.AddPage("Missions")
-	gm.missionList = burl.NewList(10, ph-2, 1, 1, 1, true, "No Missions To Do!")
+	gm.missionList = burl.NewList(16, ph-2, 1, 1, 1, true, "No Missions To Do!")
 	gm.missionList.SetHint("PgUp/PgDown")
-	gm.missionStatusText = burl.NewTextbox(27, 1, 13, 0, 0, true, true, "")
-	gm.missionDescriptionText = burl.NewTextbox(27, 4, 13, 2, 0, true, true, "")
+	gm.missionStatusText = burl.NewTextbox(37, 1, 19, 0, 0, true, true, "")
+	gm.missionDescriptionText = burl.NewTextbox(37, 4, 19, 2, 0, true, true, "")
 
-	gm.missionGoalList = burl.NewList(27, 16, 13, 7, 0, true, "Nothing to do???")
+	gm.missionGoalList = burl.NewList(37, 21, 19, 7, 0, true, "Nothing to do???")
 	gm.missionGoalList.SetTitle("TO DO")
 	gm.missionGoalList.ToggleHighlight()
 
-	gm.missionCriteriaList = burl.NewList(27, 9, 13, 24, 0, true, "No criteria, do it however you want buddy.")
+	gm.missionCriteriaList = burl.NewList(37, 13, 19, 29, 0, true, "No criteria, do it however you want buddy.")
 	gm.missionCriteriaList.SetTitle("CRITERIA")
 	gm.missionCriteriaList.ToggleHighlight()
 

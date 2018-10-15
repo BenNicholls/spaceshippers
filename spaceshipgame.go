@@ -125,13 +125,14 @@ func (sg *SpaceshipGame) CenterShip() {
 func (sg *SpaceshipGame) SetupUI() {
 	sg.InitWindow(false)
 
-	sg.shipdisplay = burl.NewTileView(80, 37, 0, 3, 1, false)
+	sg.shipdisplay = burl.NewTileView(96, 46, 0, 3, 1, false)
 	sg.Stars = NewStarField(20, sg.shipdisplay)
 
-	sg.output = burl.NewList(37, 8, 1, 36, 10, true, "Nothing to report, Captain!")
+	sg.output = burl.NewList(37, 8, 1, 45, 10, true, "Nothing to report, Captain!")
 	sg.output.SetHint("PgUp/PgDown to scroll")
-	sg.quickstats = NewQuickStatsWindow(39, 41, sg.playerShip)
-	sg.timeDisplay = NewTimeDisplay(63, 41, sg.galaxy)
+	sg.quickstats = NewQuickStatsWindow(39, 50, sg.playerShip)
+
+	sg.timeDisplay = NewTimeDisplay(79, 50, sg.galaxy)
 	sg.timeDisplay.UpdateSpeed(sg.simSpeed)
 
 	sg.Window.Add(sg.output, sg.shipdisplay, sg.timeDisplay, sg.quickstats)
@@ -151,19 +152,19 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.menuButtons = make([]*burl.Button, 0, MAX_MENUS)
 
-	sg.gameMenuButton = burl.NewButton(8, 1, 3, 1, 12, true, true, "Game")
+	sg.gameMenuButton = burl.NewButton(10, 1, 4, 1, 12, true, true, "Game")
 	sg.gameMenuButton.SetHint("F1")
-	sg.shipMenuButton = burl.NewButton(8, 1, 14, 1, 12, true, true, "Ship")
+	sg.shipMenuButton = burl.NewButton(10, 1, 17, 1, 12, true, true, "Ship")
 	sg.shipMenuButton.SetHint("F2")
-	sg.galaxyMenuButton = burl.NewButton(8, 1, 25, 1, 12, true, true, "Galaxy")
+	sg.galaxyMenuButton = burl.NewButton(10, 1, 30, 1, 12, true, true, "Galaxy")
 	sg.galaxyMenuButton.SetHint("F3")
-	sg.crewMenuButton = burl.NewButton(8, 1, 36, 1, 12, true, true, "Crew")
+	sg.crewMenuButton = burl.NewButton(10, 1, 43, 1, 12, true, true, "Crew")
 	sg.crewMenuButton.SetHint("F4")
-	sg.commMenuButton = burl.NewButton(8, 1, 47, 1, 12, true, true, "Communications")
+	sg.commMenuButton = burl.NewButton(10, 1, 56, 1, 12, true, true, "Communications")
 	sg.commMenuButton.SetHint("F5")
-	sg.viewMenuButton = burl.NewButton(8, 1, 58, 1, 12, true, true, "View  Mode")
+	sg.viewMenuButton = burl.NewButton(10, 1, 69, 1, 12, true, true, "View  Mode")
 	sg.viewMenuButton.SetHint("F6")
-	sg.mainMenuButton = burl.NewButton(8, 1, 69, 1, 12, true, true, "Main  Menu")
+	sg.mainMenuButton = burl.NewButton(10, 1, 82, 1, 12, true, true, "Main  Menu")
 	sg.mainMenuButton.SetHint("ESC")
 
 	sg.menuButtons = append(sg.menuButtons, sg.gameMenuButton, sg.shipMenuButton, sg.galaxyMenuButton, sg.crewMenuButton, sg.commMenuButton, sg.viewMenuButton, sg.mainMenuButton)

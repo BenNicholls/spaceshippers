@@ -12,7 +12,7 @@ func init() {
 }
 
 type Crewman struct {
-	burl.BurlEntity
+	burl.EntityPrototype
 	Person
 
 	//defining characteristics of various types

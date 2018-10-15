@@ -29,21 +29,21 @@ func NewShipCreateMenu(g *Galaxy) (scm *ShipCreateMenu) {
 	scm.InitWindow(true)
 	scm.Window.SetTitle("YOUR SHIP IS YOUR WHOLE WORLD")
 
-	scm.shipView = burl.NewTileView(78, 21, 0, 0, 0, true)
+	scm.shipView = burl.NewTileView(94, 30, 0, 0, 0, true)
 
 	scm.stars = NewStarField(20, scm.shipView)
 
-	scm.shipNameInput = burl.NewInputbox(20, 1, 0, 22, 0, true)
+	scm.shipNameInput = burl.NewInputbox(20, 1, 0, 31, 0, true)
 	scm.shipNameInput.SetTitle("Ship Name")
-	scm.shipNameInput.CenterX(78, 1)
+	scm.shipNameInput.CenterX(94, 1)
 
-	scm.shipTypeList = burl.NewList(15, 19, 2, 23, 1, true, "No Ships! How'd this happen?")
+	scm.shipTypeList = burl.NewList(15, 19, 2, 32, 1, true, "No Ships! How'd this happen?")
 	scm.shipTypeList.SetTitle("Ships!")
 
-	scm.shipDescriptionText = burl.NewTextbox(38, 17, 20, 25, 1, true, false, "DESCRIPTIOS")
+	scm.shipDescriptionText = burl.NewTextbox(52, 17, 20, 34, 1, true, false, "DESCRIPTIOS")
 
-	scm.generateButton = burl.NewButton(15, 1, 61, 30, 1, true, true, "Confirm Ship Selection!")
-	scm.cancelButton = burl.NewButton(15, 1, 61, 35, 1, true, true, "Return to Galaxy Creation")
+	scm.generateButton = burl.NewButton(15, 1, 76, 39, 1, true, true, "Confirm Ship Selection!")
+	scm.cancelButton = burl.NewButton(15, 1, 76, 44, 1, true, true, "Return to Galaxy Creation")
 
 	scm.Window.Add(scm.shipView, scm.shipNameInput, scm.shipTypeList, scm.shipDescriptionText, scm.generateButton, scm.cancelButton)
 
