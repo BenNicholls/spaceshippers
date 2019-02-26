@@ -16,7 +16,7 @@ func NewLifeSupportSystem(s *Ship) *LifeSupportSystem {
 	lss.ship = s
 
 	lss.targetPressure = 101
-	lss.targetO2 = .2095
+	lss.targetO2 = 21
 	lss.targetTemp = 288
 
 	return lss
@@ -34,47 +34,74 @@ func (lss *LifeSupportSystem) Update(tick int) {
 }
 
 type Atmosphere struct {
-	o2       float64 //
-	co2      float64 // these are all percentages.
-	n2       float64 //
-	pressure float64 // kPa
-	volume   float64 // L
-	temp     float64 // K
+	O2     float64 //
+	CO2    float64 // kpa
+	N2     float64 //
+	Volume float64 // L
+	Temp   float64 // K
+
+	pressure float64 // derived value
 }
 
-//Earth's atmosphere at sea level. v is volume in L
-func (a *Atmosphere) InitBreathable(v int) {
-	a.o2 = .2095
-	a.co2 = .0005
-	a.n2 = 1 - a.o2 - a.co2
+//Inits atmosphere to the target parameters. v is volume in L
+func (a *Atmosphere) Init(v, o2, p, t float64) {
+	a.O2 = o2
+	a.CO2 = 0
+	a.N2 = p - a.O2
+	a.Temp = t
+	a.Volume = v
+
+	a.CalcPressure()
+}
+
+func (a *Atmosphere) CalcPressure() {
+	a.pressure = a.O2 + a.CO2 + a.N2
+}
+
+//removes all gas from the atmosphere, leaving a vaccuum.
+func (a *Atmosphere) InitVaccuum(v float64) {
+	a.O2 = 0
+	a.CO2 = 0
+	a.N2 = 0
+	a.Volume = v
+	a.pressure = 0
+}
+
+//Initializes atmosphere to standard Earth sea-level values.
+func (a *Atmosphere) InitStandard(v float64) {
+	a.O2 = 21
+	a.CO2 = 0
+	a.N2 = 80
+	a.Volume = v
+	a.Temp = 288
 	a.pressure = 101
-	a.temp = 288 //15 degrees celsius approx
-	a.volume = float64(v)
 }
 
 //Removes a volume of air v (L) from the atmosphere. Returns the volume of gas removed.
 func (a *Atmosphere) RemoveVolume(v float64) (removed Atmosphere) {
 	removed = *a
 
-	if v >= a.volume {
-		removed.volume = a.volume
-		a.pressure = 0
+	if v >= a.Volume {
+		removed.Volume = a.Volume
+		a.InitVaccuum(a.Volume)
 		return
 	}
 
-	removed.volume = v
-	a.pressure = ((a.volume - v) / a.volume) * a.pressure
+	removed.Volume = v
+
+	v_ratio := 1 - (v / a.Volume)
+	a.O2 *= v_ratio
+	a.CO2 *= v_ratio
+	a.N2 *= v_ratio
+	a.CalcPressure()
 
 	return
 }
 
 func (a *Atmosphere) Add(a2 Atmosphere) {
-	v_ratio := a2.volume / a.volume
-	new_pressure := a.pressure + (a2.pressure * v_ratio)
+	a.O2 = ((a.O2 * a.Volume) + (a2.O2 * a2.Volume)) / a.Volume
+	a.CO2 = ((a.CO2 * a.Volume) + (a2.CO2 * a2.Volume)) / a.Volume
+	a.N2 = ((a.N2 * a.Volume) + (a2.N2 * a2.Volume)) / a.Volume
 
-	a.o2 = ((a.o2 * a.pressure) + (a2.o2 * a2.pressure * v_ratio)) / new_pressure
-	a.co2 = ((a.co2 * a.pressure) + (a2.co2 * a2.pressure * v_ratio)) / new_pressure
-	a.n2 = 1 - a.o2 - a.co2 //nitrogen is just a buffer gas, it is what the other two isn't.
-
-	a.pressure = new_pressure
+	a.CalcPressure()
 }

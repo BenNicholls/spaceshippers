@@ -55,15 +55,15 @@ func init() {
 		name:        "Atmospheric Pressure",
 		description: "/nPressure, in kPa, of the internal atmosphere. Too low, everyone dies. Too high, ship blows up. Also everyone dies./n/nSee Life Support System to fanagle with the pressure settings. If you dare.",
 		min:         0,
-		max:         500,
 		target:      100, //approximate default. overwritten on ship setup
+		max:         500,
 		cmin:        burl.COL_BLACK,
 		ctarget:     burl.COL_GREEN,
 		cmax:        burl.COL_RED,
 		labels: map[float64]string{
 			0:   "0 kPa: Total vaccuum. Very bad for your skin.",
 			34:  "34 kPa: Pressure at the top of Mt. Everest.",
-			100: "100 kPa: Approximate air pressue at sea level on our beloved Earth.",
+			101: "100 kPa: Approximate air pressue at sea level on our beloved Earth.",
 			500: "500 kPa: The pressure of a very strong fist punch. Good for Mike Tyson, bad for air that you want to breathe.",
 		},
 	}
@@ -71,8 +71,8 @@ func init() {
 		name:        "Oxygen Level",
 		description: "/nPercentage of internal atmosphere occupied by Oxygen. Oxygen is important for breathing./n/nSee Life Support System to fanagle with desired oxygen level.",
 		min:         0,
-		target:      0.22, //approximate default. overwritten on ship setup
-		max:         1,
+		target:      22, //approximate default. overwritten on ship setup
+		max:         50,
 		cmin:        burl.COL_NAVY,
 		ctarget:     burl.COL_GREEN,
 		cmax:        burl.COL_RED,

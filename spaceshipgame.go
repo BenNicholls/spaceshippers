@@ -107,8 +107,8 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	})
 
 	for _, r := range sg.playerShip.Rooms {
-		burl.RegisterWatch(r.Name+" %o2", &r.atmo.o2)
-		burl.RegisterWatch(r.Name+" %co2", &r.atmo.co2)
+		burl.RegisterWatch(r.Name+" %o2", &r.atmo.O2)
+		burl.RegisterWatch(r.Name+" %co2", &r.atmo.CO2)
 		burl.RegisterWatch(r.Name+" pressure", &r.atmo.pressure)
 	}
 

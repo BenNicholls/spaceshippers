@@ -30,7 +30,7 @@ func NewRoom(name string, t RoomType, w, h int) *Room {
 
 	r.CreateRoomMap()
 	r.connected = make([]*Room, 0, 10)
-	r.atmo.InitBreathable(r.Volume() * 1000) //conversion to litres
+	r.atmo.InitStandard(float64(r.Volume() * 1000)) //conversion to litres
 
 	return r
 }
