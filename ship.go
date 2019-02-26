@@ -12,12 +12,12 @@ type Ship struct {
 	Crew  []*Crewman
 	Rooms []*Room
 
-	Engine     *PropulsionSystem
-	Navigation *NavigationSystem
-	Comms      *CommSystem
+	Engine      *PropulsionSystem
+	Navigation  *NavigationSystem
+	Comms       *CommSystem
+	LifeSupport *LifeSupportSystem
 	//Power *PowerSystem
 	//Computer *ComputerSystem
-	//LifeSupport *LifeSupportSystem
 	//Storage *StorageSystem
 	//Weapons *WeaponSystem
 	//Shields *ShieldSystem
@@ -61,6 +61,8 @@ func NewShip(n string, g *Galaxy) *Ship {
 	s.Systems[SYS_NAVIGATION] = s.Navigation
 	s.Comms = NewCommSystem()
 	s.Systems[SYS_COMMS] = s.Comms
+	s.LifeSupport = NewLifeSupportSystem(s)
+	s.Systems[SYS_LIFESUPPORT] = s.LifeSupport
 
 	s.Fuel = burl.NewStat(1000000)
 	s.Hull = burl.NewStat(100)
@@ -183,6 +185,7 @@ func (s *Ship) CheckRoomValidAdd(r *Room, x, y int) bool {
 
 func (s *Ship) AddCrewman(c *Crewman) {
 	s.Crew = append(s.Crew, c)
+	c.ship = s
 
 	//place randomly in ship
 	for {
@@ -249,7 +252,7 @@ func (s *Ship) Update(spaceTime int) {
 	}
 
 	for i := range s.Crew {
-		s.Crew[i].Update()
+		s.Crew[i].Update(spaceTime)
 		if spaceTime%20 == 0 && s.Crew[i].IsAwake() {
 			dx, dy := burl.RandomDirection()
 			if s.shipMap.GetTile(s.Crew[i].X+dx, s.Crew[i].Y+dy).Empty() {
@@ -260,8 +263,21 @@ func (s *Ship) Update(spaceTime int) {
 	}
 }
 
-//draws the ship to the provided TileView UI object, offset by (offX, offY)
-func (s *Ship) DrawToTileView(view *burl.TileView, offX, offY int) {
+//Returns the room for a given (x,y) coord on the shipmap. Returns nil if no room found.
+//If multiple rooms occupy a space (ex. shared wall), returns the first one found.
+//TODO: this behaviour could be better. Could return all the valid rooms? ugh.
+func (s *Ship) GetRoom(x, y int) *Room {
+	for _, room := range s.Rooms {
+		if burl.IsInside(x, y, room) {
+			return room
+		}
+	}
+
+	return nil
+}
+
+//draws the ship to the provided TileView UI object, offset by (offX, offY). mode is the VIEWMODE
+func (s *Ship) DrawToTileView(view *burl.TileView, mode, offX, offY int) {
 	x, y := 0, 0
 	displayWidth, displayHeight := view.Dims()
 
@@ -273,11 +289,24 @@ func (s *Ship) DrawToTileView(view *burl.TileView, offX, offY int) {
 		if burl.CheckBounds(x, y, displayWidth, displayHeight) {
 			if t := s.shipMap.GetTile(i%s.width+s.x, i/s.width+s.y); t.TileType != 0 {
 				tv := t.GetVisuals()
-				view.Draw(x, y, tv.Glyph, tv.ForeColour, burl.COL_BLACK)
+
+				if t.TileType != TILE_WALL && t.TileType != TILE_DOOR {
+					r := s.GetRoom(i%s.width+s.x, i/s.width+s.y)
+					switch mode {
+					case VIEW_ATMO_PRESSURE:
+						tv.BackColour = viewModeData[mode].GetColour(r.atmo.pressure)
+					case VIEW_ATMO_O2:
+						tv.BackColour = viewModeData[mode].GetColour(r.atmo.o2)
+					case VIEW_ATMO_TEMP:
+						tv.BackColour = viewModeData[mode].GetColour(r.atmo.temp)
+					}
+				}
+
+				view.Draw(x, y, tv.Glyph, tv.ForeColour, tv.BackColour)
 			}
 
 			if e := s.shipMap.GetEntity(i%s.width+s.x, i/s.width+s.y); e != nil {
-				view.Draw(x, y, e.GetVisuals().Glyph, e.GetVisuals().ForeColour, burl.COL_BLACK)
+				view.Draw(x, y, e.GetVisuals().Glyph, e.GetVisuals().ForeColour, burl.COL_NONE)
 			}
 		}
 	}

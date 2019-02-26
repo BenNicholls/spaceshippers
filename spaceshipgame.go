@@ -106,6 +106,12 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 		sg.galaxyMenu.starchartMapView.systemFocus = sg.galaxy.GetStarSystem(sg.playerShip.GetCoords()) //this is messy.
 	})
 
+	for _, r := range sg.playerShip.Rooms {
+		burl.RegisterWatch(r.Name+" %o2", &r.atmo.o2)
+		burl.RegisterWatch(r.Name+" %co2", &r.atmo.co2)
+		burl.RegisterWatch(r.Name+" pressure", &r.atmo.pressure)
+	}
+
 	return sg
 }
 

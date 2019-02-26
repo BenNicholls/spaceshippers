@@ -340,7 +340,7 @@ func (sdm *ShipDesignMenu) UpdateShipDetails() {
 
 func (sdm *ShipDesignMenu) Render() {
 	sdm.stars.Draw()
-	sdm.ship.DrawToTileView(sdm.shipView, sdm.offX, sdm.offY)
+	sdm.ship.DrawToTileView(sdm.shipView, VIEW_DEFAULT, sdm.offX, sdm.offY)
 
 	if sdm.roomToAdd != nil {
 		for i := 0; i < sdm.roomToAdd.Width*sdm.roomToAdd.Height; i++ {

@@ -20,6 +20,8 @@ type Crewman struct {
 	Awakeness burl.Stat
 
 	CurrentTask Job
+
+	ship *Ship //reference to the ship. THINK: what if a crewman isn't on the ship?
 }
 
 func NewCrewman() *Crewman {
@@ -30,6 +32,7 @@ func NewCrewman() *Crewman {
 	c.Awakeness = burl.NewStat((rand.Intn(4) + 7) * HOUR)
 	c.randomizeName()
 	c.Ptype = PERSON_CREWMAN
+
 	return c
 }
 
@@ -38,24 +41,49 @@ func (c *Crewman) randomizeName() {
 }
 
 //general per-tick update function.
-func (c *Crewman) Update() {
-	//increase sleepy. if too sleepy, drop what your doing and go to sleep.
+func (c *Crewman) Update(spaceTime int) {
+
+	//breath every 5 seconds (average respiratory rate for adult human)
+	//TODO: respiratory rate should change based on exertion/age/physiology/whatever?
+	if spaceTime%5 == 0 {
+		c.Breathe()
+	}
+
+	//increase sleepy. if too sleepy, drop what you're doing and go to sleep.
 	if c.IsAwake() {
 		c.Awakeness.Mod(-1)
 		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "crew"))
-	}
-	if c.Awakeness.Get() == 0 {
-		if c.CurrentTask != nil {
-			c.CurrentTask.OnInterrupt()
+		if c.Awakeness.Get() == 0 {
+			c.ConsumeJob(NewSleepJob())
 		}
-		c.ConsumeJob(NewSleepJob())
 	}
 
+	//do ya damn job
 	if c.CurrentTask != nil {
 		c.CurrentTask.OnTick()
 	} else {
 		//job finding code goes here, write the code why don't you
 	}
+}
+
+func (c *Crewman) Breathe() {
+	if c.ship == nil { //protection against initialized ship? not sure how this would arise.
+		burl.LogError("No ship associated with crewman: ", c.Name)
+		return
+	}
+
+	r := c.ship.GetRoom(c.X, c.Y)
+
+	//inhale 350 mL of air from the atmosphere. 500 mL is the normal Tidal Volume for an adult human, 150 mL of which
+	//is maintained in the nose/bronchial tubes/breathing... hose.
+	//TODO: this volume should change depending on exertion level? should also increase if the
+	//person is oxygen-starved.
+	breath := r.atmo.RemoveVolume(0.35)
+
+	//breathing code goes here. exchange o2 for co2, etc.
+
+	//exhale.
+	r.atmo.Add(breath)
 }
 
 func (c Crewman) GetStatus() string {

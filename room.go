@@ -13,6 +13,7 @@ type Room struct {
 
 	X, Y    int
 	RoomMap *burl.TileMap
+	atmo    Atmosphere
 
 	connected []*Room
 
@@ -23,37 +24,34 @@ func NewRoom(name string, t RoomType, w, h int) *Room {
 	r := new(Room)
 	r.Width, r.Height = w, h
 	r.Name = name
+	r.Roomtype = t
 	r.Stats = make([]RoomStat, 0)
 	r.Description = "a room"
 
 	r.CreateRoomMap()
 	r.connected = make([]*Room, 0, 10)
+	r.atmo.InitBreathable(r.Volume() * 1000) //conversion to litres
 
 	return r
 }
 
 func NewRoomFromTemplate(temp RoomTemplate) (r *Room) {
-	r = new(Room)
-	r.Name = temp.name
+	r = NewRoom(temp.name, temp.roomType, temp.width, temp.height)
 	r.Description = temp.description
-	r.Width = temp.width
-	r.Height = temp.height
-	r.Roomtype = temp.roomType
 	r.Stats = temp.stats
-
-	r.CreateRoomMap()
-	r.connected = make([]*Room, 0, 10)
 
 	return
 }
 
+//Creates the map for the room.
 func (r *Room) CreateRoomMap() {
 	r.RoomMap = burl.NewMap(r.Width, r.Height)
 	for i := 0; i < r.Width*r.Height; i++ {
-		if i < r.Width || i%r.Width == 0 || i%r.Width == r.Width-1 || i/r.Width == r.Height-1 {
-			r.RoomMap.ChangeTileType(i%r.Width, i/r.Width, TILE_WALL)
+		x, y := i%r.Width, i/r.Width
+		if x == 0 || y == 0 || x == r.Width-1 || y == r.Height-1 {
+			r.RoomMap.ChangeTileType(x, y, TILE_WALL)
 		} else {
-			r.RoomMap.ChangeTileType(i%r.Width, i/r.Width, TILE_FLOOR)
+			r.RoomMap.ChangeTileType(x, y, TILE_FLOOR)
 		}
 	}
 }
@@ -151,4 +149,9 @@ func (r *Room) ApplyUpkeep(spaceTime int) {
 
 func (r *Room) Update(spaceTime int) {
 	//r.ApplyUpkeep(spaceTime)
+}
+
+//Volume returns the interior volume of the room in m^3
+func (r Room) Volume() int {
+	return (r.Width - 2) * (r.Height - 2) * 3 //rooms are 3 meters high... right?
 }

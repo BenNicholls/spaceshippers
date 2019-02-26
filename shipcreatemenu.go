@@ -135,7 +135,7 @@ func (scm *ShipCreateMenu) Update() {
 
 	//move around the crew, for fun!
 	for i, _ := range scm.ship.Crew {
-		scm.ship.Crew[i].Update()
+		scm.ship.Crew[i].Update(scm.Tick)
 		if scm.Tick%20 == 0 {
 			dx, dy := burl.RandomDirection()
 			if scm.ship.shipMap.GetTile(scm.ship.Crew[i].X+dx, scm.ship.Crew[i].Y+dy).Empty() {
@@ -154,5 +154,5 @@ func (scm *ShipCreateMenu) Render() {
 	offX := scm.ship.width/2 + scm.ship.x - displayWidth/2
 	offY := scm.ship.height/2 + scm.ship.y - displayHeight/2
 
-	scm.ship.DrawToTileView(scm.shipView, offX, offY)
+	scm.ship.DrawToTileView(scm.shipView, VIEW_DEFAULT, offX, offY)
 }
