@@ -54,6 +54,8 @@ func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
 			sg.menus[MENU_GAME].HandleKeypress(key)
 		case sg.commMenu:
 			sg.HandleKeypressCommMenu(key)
+		case sg.viewMenu:
+			sg.menus[MENU_VIEW].HandleKeypress(key)
 		default:
 			switch key {
 			case sdl.K_PAGEUP:

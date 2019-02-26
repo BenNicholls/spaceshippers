@@ -22,7 +22,7 @@ const (
 var LOG_EVENT = burl.RegisterCustomEvent()
 
 //load some tile data
-var TILE_FLOOR = burl.LoadTileData("Floor", true, true, burl.GLYPH_FILL_SPARSE, burl.COL_DARKGREY)
+var TILE_FLOOR = burl.LoadTileData("Floor", true, true, burl.GLYPH_DOT_SMALL, burl.COL_DARKGREY)
 var TILE_WALL = burl.LoadTileData("Wall", false, false, burl.GLYPH_HASH, burl.COL_GREY)
 var TILE_DOOR = burl.LoadTileData("Door", true, false, burl.GLYPH_IDENTICAL, burl.COL_GREY)
 
@@ -70,6 +70,7 @@ type SpaceshipGame struct {
 	Stars StarField
 
 	viewX, viewY int
+	viewMode     int
 
 	galaxy     *Galaxy
 	player     *Player
@@ -173,6 +174,11 @@ func (sg *SpaceshipGame) SetupUI() {
 		sg.Window.Add(sg.menuButtons[i])
 	}
 
+	//setup view mode colour palettes and other runtime jazz
+	viewModeData[VIEW_ATMO_PRESSURE].SetTarget(sg.playerShip.LifeSupport.targetPressure)
+	viewModeData[VIEW_ATMO_O2].SetTarget(sg.playerShip.LifeSupport.targetO2)
+	viewModeData[VIEW_ATMO_TEMP].SetTarget(sg.playerShip.LifeSupport.targetTemp)
+
 	sg.CenterShip()
 }
 
@@ -229,7 +235,7 @@ func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 
 func (sg *SpaceshipGame) Render() {
 	sg.Stars.Draw()
-	sg.playerShip.DrawToTileView(sg.shipdisplay, sg.viewX, sg.viewY)
+	sg.playerShip.DrawToTileView(sg.shipdisplay, sg.viewMenu.GetViewMode(), sg.viewX, sg.viewY)
 }
 
 //Activates a menu (crew, rooms, systems, etc). Deactivates menu if menu already active.
