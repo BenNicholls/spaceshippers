@@ -34,11 +34,11 @@ func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 2, 1, false, false, "Name:"))
 	cgm.nameInput = burl.NewInputbox(20, 1, 9, 2, 1, true)
 	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 5, 1, false, false, "Density:"))
-	cgm.densityChoice = burl.NewChoiceBox(20, 1, 9, 5, 2, true, burl.CHOICE_HORIZONTAL, "Sparse", "Normal", "Dense")
+	cgm.densityChoice = burl.NewChoiceBox(20, 1, 9, 5, 2, true, burl.HORIZONTAL, "Sparse", "Normal", "Dense")
 	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 8, 1, false, false, "Shape:"))
-	cgm.shapeChoice = burl.NewChoiceBox(20, 1, 9, 8, 1, true, burl.CHOICE_HORIZONTAL, "Disk", "Spiral")
+	cgm.shapeChoice = burl.NewChoiceBox(20, 1, 9, 8, 1, true, burl.HORIZONTAL, "Disk", "Spiral")
 	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 11, 1, false, false, "Size:"))
-	cgm.sizeChoice = burl.NewChoiceBox(20, 1, 9, 11, 2, true, burl.CHOICE_HORIZONTAL, "Small", "Medium", "Large")
+	cgm.sizeChoice = burl.NewChoiceBox(20, 1, 9, 11, 2, true, burl.HORIZONTAL, "Small", "Medium", "Large")
 
 	cgm.explainText = burl.NewTextbox(40, 15, 2, 35, 1, true, false, "explanations")
 
@@ -303,7 +303,7 @@ func (gmv *GalaxyMapView) DrawObject(l Locatable, v burl.Visuals) {
 
 	w, h := gmv.Dims()
 
-	if burl.IsInside(c.X, c.Y, 0, 0, w, h) {
+	if burl.CheckBounds(c.X, c.Y, w, h) {
 		gmv.Draw(c.X, c.Y, v.Glyph, v.ForeColour, v.BackColour)
 	}
 }
