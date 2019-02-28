@@ -253,13 +253,6 @@ func (s *Ship) Update(spaceTime int) {
 
 	for i := range s.Crew {
 		s.Crew[i].Update(spaceTime)
-		if spaceTime%20 == 0 && s.Crew[i].IsAwake() {
-			dx, dy := burl.RandomDirection()
-			if s.shipMap.GetTile(s.Crew[i].X+dx, s.Crew[i].Y+dy).Empty() {
-				s.shipMap.MoveEntity(s.Crew[i].X, s.Crew[i].Y, dx, dy)
-				s.Crew[i].Move(dx, dy)
-			}
-		}
 	}
 }
 
