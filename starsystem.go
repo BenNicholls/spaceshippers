@@ -13,6 +13,7 @@ const GRAVCONST float64 = 6.674e-11
 
 type StarSystem struct {
 	Location
+	burl.Visuals
 
 	Star    Star
 	Planets []Planet
@@ -94,6 +95,8 @@ func (s StarSystem) GetLocations() []Locatable {
 
 type Star struct {
 	Location
+	burl.Visuals
+
 	radius float64
 	mass   float64
 }
@@ -111,6 +114,12 @@ func NewStar(c Coordinates, name string, radius, mass float64) (s Star) {
 	s.VisitDistance = radius * 1.2
 	s.VisitSpeed = math.Sqrt(GRAVCONST * s.mass / s.VisitDistance)
 
+	s.Visuals = burl.Visuals{
+		Glyph:      burl.GLYPH_STAR,
+		ForeColour: burl.COL_YELLOW,
+		BackColour: burl.COL_BLACK,
+	}
+
 	return
 }
 
@@ -124,6 +133,8 @@ const (
 
 type Planet struct {
 	Location
+	burl.Visuals
+
 	oDistance float64 //orbital distance
 	oPosition float64 //orbital position in degrees
 	radius    float64 //radius of planet in meters
@@ -143,6 +154,12 @@ func NewPlanet(c Coordinates, orbit float64, name string, pType PlanetType) (p P
 	p.oPosition = rand.Float64() * 2 * math.Pi
 	p.Coords.Local.X = (coord_LOCAL_MAX / 2) + p.oDistance*math.Cos(p.oPosition)
 	p.Coords.Local.Y = (coord_LOCAL_MAX / 2) + p.oDistance*math.Sin(p.oPosition)
+
+	p.Visuals = burl.Visuals{
+		Glyph:      int(rune(p.Name[0])),
+		ForeColour: 0xFF825814,
+		BackColour: burl.COL_BLACK,
+	}
 
 	p.Generate(pType)
 

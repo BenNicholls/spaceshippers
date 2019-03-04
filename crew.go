@@ -31,8 +31,11 @@ type Crewman struct {
 
 func NewCrewman() *Crewman {
 	c := new(Crewman)
-	c.Vis.Glyph = burl.GLYPH_FACE1
-	c.Vis.ForeColour = burl.COL_WHITE
+	c.Visuals = burl.Visuals{
+		Glyph:      burl.GLYPH_FACE1,
+		ForeColour: burl.COL_WHITE,
+		BackColour: burl.COL_NONE,
+	}
 	c.HP = burl.NewStat(100)
 	c.Awakeness = burl.NewStat((rand.Intn(4) + 7) * HOUR)
 	c.CO2 = burl.NewStat(1000000)
@@ -98,7 +101,7 @@ func (c *Crewman) Update(spaceTime int) {
 
 	if c.HP.Get() == 0 {
 		c.Dead = true
-		c.Vis.ForeColour = burl.COL_RED
+		c.ChangeForeColour(burl.COL_RED)
 		if c.CurrentTask != nil {
 			c.CurrentTask.OnInterrupt()
 		}

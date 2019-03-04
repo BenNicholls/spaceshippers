@@ -7,7 +7,8 @@ import (
 )
 
 type Ship struct {
-	Location //ship is technically a location, but you can't go there... you *are* there!
+	Location     //ship is technically a location, but you can't go there... you *are* there!
+	burl.Visuals //for drawing on the galaxy map
 
 	Crew  []*Crewman
 	Rooms []*Room
@@ -68,6 +69,12 @@ func NewShip(n string, g *Galaxy) *Ship {
 	s.Hull = burl.NewStat(100)
 
 	s.shipMap = burl.NewMap(100, 100)
+
+	s.Visuals = burl.Visuals{
+		Glyph:      burl.GLYPH_FACE2,
+		ForeColour: burl.COL_WHITE,
+		BackColour: burl.COL_BLACK,
+	}
 
 	return s
 }
@@ -295,11 +302,11 @@ func (s *Ship) DrawToTileView(view *burl.TileView, mode, offX, offY int) {
 					}
 				}
 
-				view.Draw(x, y, tv.Glyph, tv.ForeColour, tv.BackColour)
+				view.DrawObject(x, y, tv)
 			}
 
 			if e := s.shipMap.GetEntity(i%s.width+s.x, i/s.width+s.y); e != nil {
-				view.Draw(x, y, e.GetVisuals().Glyph, e.GetVisuals().ForeColour, burl.COL_NONE)
+				view.DrawObject(x, y, e)
 			}
 		}
 	}

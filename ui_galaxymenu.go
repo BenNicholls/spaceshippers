@@ -97,17 +97,14 @@ func (gm *GalaxyMenu) DrawMap() {
 	switch gm.starchartMapView.zoom {
 	case zoom_GALAXY:
 		//TODO: make it so this is only drawn if you've scanned/discovered the location of earth
-		gm.starchartMapView.DrawObject(gm.galaxy.GetEarth(), burl.Visuals{
+		gm.starchartMapView.DrawMapMarker(gm.galaxy.GetEarth().GetCoords().Sector, burl.Visuals{
 			Glyph:      burl.GLYPH_DONUT,
 			ForeColour: burl.COL_BLUE,
 			BackColour: burl.COL_BLACK})
 	case zoom_LOCAL:
 	}
 
-	gm.starchartMapView.DrawObject(gm.playerShip, burl.Visuals{
-		Glyph:      burl.GLYPH_FACE2,
-		ForeColour: burl.COL_WHITE,
-		BackColour: burl.COL_BLACK})
+	gm.starchartMapView.DrawMapObject(gm.playerShip)
 }
 
 func (gm *GalaxyMenu) Update() {
