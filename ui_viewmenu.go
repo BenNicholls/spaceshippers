@@ -77,16 +77,30 @@ func init() {
 		cmin:        burl.COL_NAVY,
 		ctarget:     burl.COL_GREEN,
 		cmax:        burl.COL_RED,
+		labels: map[float64]string{
+			0:  "0 kPa: Zero oxygen. Very very bad.",
+			5:  "5 kPa:  Approximate oxygen you get at extreme elevations on Earth. Lowest non-fatal amount for humans.",
+			15: "15 kPa: Minimum amount required for normal healthy respiration.",
+			21: "21 kPa: Oxygen pressure in a standard Earth atmosphere.",
+			50: "50 kPa: Are you trying to explode the ship? This is too much.",
+		},
 	}
 	viewModeData[VIEW_ATMO_TEMP] = ViewModeData{
 		name:        "Internal Temperature",
-		description: "/nTemperature, in Kelvin (K), of the internal environment. Humans like a temperature around 290 K or so./n/nSee Life Support System to dial up or down the thermostat.",
+		description: "/nTemperature, in Kelvin (K), of the internal environment./n/nSee Life Support System to dial the thermostat up or down .",
 		min:         0,
 		target:      290, //approximate default. overwritten on ship setup
-		max:         1000,
+		max:         500,
 		cmin:        burl.COL_BLUE,
 		ctarget:     burl.COL_GREEN,
 		cmax:        burl.COL_RED,
+		labels: map[float64]string{
+			0:   "0K: Absolute zero. If you have this, you may have destroyed the universe.",
+			273: "273K: Freezing/melting point of water.",
+			288: "288K: Room temperature. Comfortable for most humans.",
+			373: "373K: Boiling point of water. Uncomfortable for humans.",
+			500: "500K: Boiling point of humans (probably). VERY uncomfortable for humans.",
+		},
 	}
 	viewModeData[VIEW_ATMO_CO2] = ViewModeData{
 		name:        "Carbon Dioxide Level",
@@ -103,7 +117,7 @@ func init() {
 			3:  "3 kPa: Start of ill health effects. Prolonged exposure results in CO2 poisoning.",
 			5:  "5 kPa: Highly accelerated CO2 poisoning timeframe.",
 			7:  "7 kPa: WAY too high. CO2 poisoning in mere minutes.",
-			10: "10 kPa: What in gods name are you doing letting people breathe this?!?",
+			10: "10 kPa: What in god's name are you doing letting people breathe this?!?",
 		},
 	}
 }
@@ -123,17 +137,17 @@ func NewViewMenu() (vm *ViewMenu) {
 
 	vm.SetVisibility(false)
 
-	vm.modeList = burl.NewList(25, 32, 1, 1, 1, true, "No Viewmodes Found???")
+	vm.modeList = burl.NewList(18, 30, 1, 1, 1, true, "No Viewmodes Found???")
 	vm.modeList.SetHint("PgUp/PgDown to scroll")
 
-	vm.modeDescriptionText = burl.NewTextbox(25, 10, 1, 34, 1, true, false, "Viewmode Description")
+	vm.modeDescriptionText = burl.NewTextbox(18, 12, 1, 32, 1, true, false, "Viewmode Description")
 
 	for i := 0; i < VIEWMODE_NUM; i++ {
 		vm.modeList.Append(viewModeData[i].name)
 	}
 
-	vm.paletteView = burl.NewTileView(1, 40, 28, 2, 1, false)
-	vm.paletteLabels = burl.NewContainer(25, 42, 30, 2, 1, false)
+	vm.paletteView = burl.NewTileView(1, 40, 21, 2, 1, false)
+	vm.paletteLabels = burl.NewContainer(32, 42, 23, 2, 1, false)
 
 	vm.UpdateViewModeData()
 
@@ -153,12 +167,12 @@ func (vm *ViewMenu) UpdateViewModeData() {
 	vmd := viewModeData[vm.GetViewMode()]
 	for k, v := range vmd.labels {
 		pos := int(40 * (k - vmd.min) / (vmd.max - vmd.min))
-		vm.paletteLabels.Add(burl.NewTextbox(25, burl.CalcWrapHeight("<-- "+v, 25), 0, burl.Min(pos, 39), 0, false, false, "<-- "+v))
+		vm.paletteLabels.Add(burl.NewTextbox(32, burl.CalcWrapHeight("<-- "+v, 32), 0, burl.Min(pos, 39), 0, false, false, "<-- "+v))
 	}
 
-	if vmd.target != vmd.min && vmd.target != vmd.max {
+	if vm.GetViewMode() != VIEW_DEFAULT {
 		pos := int(40 * (vmd.target - vmd.min) / (vmd.max - vmd.min))
-		vm.paletteLabels.Add(burl.NewTextbox(25, 1, 0, burl.Min(pos, 39), 0, false, false, "<-- TARGET"))
+		vm.paletteView.Draw(0, pos, burl.GLYPH_DIAMOND, burl.COL_WHITE, burl.COL_NONE)
 	}
 }
 

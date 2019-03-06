@@ -83,6 +83,10 @@ const (
 	STAT_NAV_POWER
 	STAT_NAV_COMPUTER
 
+	//SYS_LIFESUPPORT
+	STAT_PRESSURIZATION_RATE
+	STAT_LS_MODULE_CAP
+
 	STAT_MAXSTATS
 )
 
@@ -160,5 +164,17 @@ func init() {
 		Description: "Ship power drawn by the module on a regular basis.",
 		System:      SYS_POWER,
 		Stat:        STAT_POWER_DRAW,
+	}
+	statInformation[STAT_LS_MODULE_CAP] = StatInfo{
+		Name:        "Life Support Module Limit",
+		Description: "Number of modules life support system can safely support.",
+		System:      SYS_POWER,
+		Stat:        STAT_POWER_DRAW,
+	}
+	statInformation[STAT_PRESSURIZATION_RATE] = StatInfo{
+		Name:        "Pressurization Rate",
+		Description: "Rate at which life support can repressurize a room.",
+		System:      SYS_LIFESUPPORT,
+		Stat:        STAT_PRESSURIZATION_RATE,
 	}
 }
