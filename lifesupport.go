@@ -6,6 +6,7 @@ type LifeSupportSystem struct {
 	targetPressure float64
 	targetO2       float64
 	targetTemp     float64
+	targetCO2      float64
 
 	ship *Ship
 }
@@ -18,6 +19,7 @@ func NewLifeSupportSystem(s *Ship) *LifeSupportSystem {
 	lss.targetPressure = 101
 	lss.targetO2 = 21
 	lss.targetTemp = 288
+	lss.targetCO2 = 0
 
 	return lss
 }

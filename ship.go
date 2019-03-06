@@ -299,6 +299,8 @@ func (s *Ship) DrawToTileView(view *burl.TileView, mode, offX, offY int) {
 						tv.BackColour = viewModeData[mode].GetColour(r.atmo.O2)
 					case VIEW_ATMO_TEMP:
 						tv.BackColour = viewModeData[mode].GetColour(r.atmo.Temp)
+					case VIEW_ATMO_CO2:
+						tv.BackColour = viewModeData[mode].GetColour(r.atmo.CO2)
 					}
 				}
 

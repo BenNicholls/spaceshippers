@@ -184,6 +184,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	viewModeData[VIEW_ATMO_PRESSURE].SetTarget(sg.playerShip.LifeSupport.targetPressure)
 	viewModeData[VIEW_ATMO_O2].SetTarget(sg.playerShip.LifeSupport.targetO2)
 	viewModeData[VIEW_ATMO_TEMP].SetTarget(sg.playerShip.LifeSupport.targetTemp)
+	viewModeData[VIEW_ATMO_CO2].SetTarget(sg.playerShip.LifeSupport.targetCO2)
 
 	sg.CenterShip()
 }

@@ -11,6 +11,7 @@ const (
 	VIEW_ATMO_PRESSURE
 	VIEW_ATMO_O2
 	VIEW_ATMO_TEMP
+	VIEW_ATMO_CO2
 	VIEWMODE_NUM
 )
 
@@ -69,7 +70,7 @@ func init() {
 	}
 	viewModeData[VIEW_ATMO_O2] = ViewModeData{
 		name:        "Oxygen Level",
-		description: "/nPercentage of internal atmosphere occupied by Oxygen. Oxygen is important for breathing./n/nSee Life Support System to fanagle with desired oxygen level.",
+		description: "/nPressure of internal atmosphere's Oxygen content. Oxygen is important for breathing./n/nSee Life Support System to fanagle with desired oxygen level.",
 		min:         0,
 		target:      22, //approximate default. overwritten on ship setup
 		max:         50,
@@ -86,6 +87,24 @@ func init() {
 		cmin:        burl.COL_BLUE,
 		ctarget:     burl.COL_GREEN,
 		cmax:        burl.COL_RED,
+	}
+	viewModeData[VIEW_ATMO_CO2] = ViewModeData{
+		name:        "Carbon Dioxide Level",
+		description: "/nPressure of internal atmosphere's Carbon Dioxide (CO2). CO2 is exhaled by humans, every time they breathe!. They don't like breathing it back in though. High Levels of CO2 are poisonous./n/nSee Life Support System to manage CO2 elimination.",
+		min:         0,
+		target:      0, //approximate default. overwritten on ship setup
+		max:         10,
+		cmin:        burl.COL_GREEN,
+		ctarget:     burl.COL_GREEN,
+		cmax:        burl.COL_RED,
+		labels: map[float64]string{
+			0:  "0 kPa: No CO2 content. Excellent.",
+			1:  "1 kPa: Starting to get to be a little much. Humans begin getting dizzy.",
+			3:  "3 kPa: Start of ill health effects. Prolonged exposure results in CO2 poisoning.",
+			5:  "5 kPa: Highly accelerated CO2 poisoning timeframe.",
+			7:  "7 kPa: WAY too high. CO2 poisoning in mere minutes.",
+			10: "10 kPa: What in gods name are you doing letting people breathe this?!?",
+		},
 	}
 }
 
