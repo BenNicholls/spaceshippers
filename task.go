@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/bennicholls/burl-E/burl"
+)
+
 type Job interface {
 	OnEnd()
 	OnTick()
@@ -86,6 +90,8 @@ func (sj *SleepJob) OnTick() {
 	sj.Task.OnTick()
 
 	sj.worker.Awakeness.Mod(4)
+	burl.NewEvent(burl.EV_UPDATE_UI, "crew")
+
 	if sj.worker.Awakeness.GetPct() > 80 {
 		sj.worker.RemoveStatus(STATUS_SLEEPY)
 	}

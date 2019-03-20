@@ -14,8 +14,9 @@ const (
 
 //These effect the way the crew act, effects their stats, etc. Think of them like BUFFS and DEBUFFS
 type CrewEffect struct {
-	Name        string
-	Description string
+	Name         string
+	Description  string
+	Abbreviation string
 
 	Sources map[StatusID]int //map value is a count of how many turns this source has been active
 
@@ -26,28 +27,33 @@ func NewCrewEffect(e EffectID) (ce CrewEffect) {
 	switch e {
 	case EFFECT_HEAVYBREATHING:
 		ce = CrewEffect{
-			Name:        "Heavy Breathing",
-			Description: "Crewman is breathing heavily, trying to catch his/her breath.",
+			Name:         "Breathing Heavily",
+			Description:  "Crewman is breathing heavily, trying to catch their breath.",
+			Abbreviation: "BREATHE",
 		}
 	case EFFECT_SUFFOCATING:
 		ce = CrewEffect{
-			Name:        "Suffocating",
-			Description: "Crewman can't breathe! Get them some air!!!.",
+			Name:         "Suffocating",
+			Description:  "Crewman can't breathe! Get them some air!!!.",
+			Abbreviation: "SUFF",
 		}
 	case EFFECT_DISORIENTED:
 		ce = CrewEffect{
-			Name:        "Disoriented",
-			Description: "Crewman feels a bit woozy. It's so hard to focus sometimes, you know?",
+			Name:         "Disoriented",
+			Description:  "Crewman feels a bit woozy. It's so hard to focus sometimes, you know?",
+			Abbreviation: "DIZZY",
 		}
 	case EFFECT_SLOW:
 		ce = CrewEffect{
-			Name:        "Slow",
-			Description: "Crewman is moving slowly, and won't be rushed.",
+			Name:         "Slowed",
+			Description:  "Crewman is moving slowly, and won't be rushed.",
+			Abbreviation: "SLOW",
 		}
 	case EFFECT_POISONED:
 		ce = CrewEffect{
-			Name:        "Poisoned",
-			Description: "Crewman is poisoned, and is losing life.",
+			Name:         "Poisoned",
+			Description:  "Crewman is poisoned, and is losing life.",
+			Abbreviation: "POISON",
 		}
 	}
 
@@ -85,6 +91,7 @@ const (
 	STATUS_HIGHCO2
 	STATUS_CO2_POISONING
 	STATUS_SLEEPY
+	STATUS_MAX
 )
 
 //These are the sources of CREW EFFECTS.

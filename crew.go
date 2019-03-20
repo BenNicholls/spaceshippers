@@ -175,23 +175,6 @@ func (c *Crewman) Breathe() {
 	r.atmo.Add(breath)
 }
 
-func (c Crewman) GetStatus() string {
-
-	if c.Awakeness.GetPct() < 15 {
-		return "Tired"
-	} else if c.HP.GetPct() > 80 {
-		return "Great"
-	} else if c.HP.GetPct() > 50 {
-		return "Fine"
-	} else if c.HP.GetPct() > 20 {
-		return "Struggling"
-	} else if c.HP.GetPct() > 0 {
-		return "Near Death"
-	} else {
-		return "Dead"
-	}
-}
-
 func (c Crewman) IsAwake() bool {
 	if c.CurrentTask != nil && c.CurrentTask.GetName() == "Sleep" {
 		return false
@@ -233,8 +216,6 @@ func (c *Crewman) AddStatus(s StatusID) {
 	for _, id := range status.Replaces {
 		c.RemoveStatus(id)
 	}
-
-	burl.PushEvent(burl.NewEvent(LOG_EVENT, c.Name+" is now affected by "+status.Name))
 }
 
 func (c *Crewman) RemoveStatus(s StatusID) {
