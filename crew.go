@@ -42,6 +42,9 @@ func NewCrewman() *Crewman {
 	c.CO2.Set(0)
 	c.randomizeName()
 	c.Ptype = PERSON_CREWMAN
+	c.Pic = DEFAULT_PIC
+	c.BirthDate = rand.Intn(30 * CYCLE) //born sometime during the first 30 cycles of the digital age. so they'll be at least twenty?
+	c.Race = "Human"
 
 	c.Statuses = make(map[StatusID]CrewStatus)
 	c.Effects = make(map[EffectID]CrewEffect)

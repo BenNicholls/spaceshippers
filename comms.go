@@ -55,7 +55,7 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 	switch {
 	case t < 1:
 		//1% chance to get a birthday message from Mumsy
-		trans.sender = &Person{"Mom", PERSON_CONTACT, DEFAULT_PIC}
+		trans.sender = NewPersonContact("Mom")
 		trans.title = "Happy Birthday"
 		trans.message = "Glad to find you out there, don't know your frequency exactly. Anyways, Happy Birthday son. Love you!"
 		if len(cs.Inbox) != cap(cs.Inbox) {
@@ -65,7 +65,7 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 		burl.PushEvent(burl.NewEvent(LOG_EVENT, "A new message has been received! Check your inbox."))
 	case t < 10:
 		//9% chance to win a radio contest
-		trans.sender = &Person{"1781.2 NOVA-FM", PERSON_CONTACT, DEFAULT_PIC}
+		trans.sender = NewPersonContact("1781.2 NOVA-FM")
 		trans.title = "You have won!"
 		trans.message = "By transdimensional FM radio scanning, we've determined that you are our 10 billionth listener! That is great!"
 		if len(cs.Transmissions) != cap(cs.Transmissions) {
@@ -74,7 +74,7 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "transmissions"))
 		burl.PushEvent(burl.NewEvent(LOG_EVENT, "A transmission has been decoded."))
 	default:
-		trans.sender = &Person{"Unknown", PERSON_CONTACT, DEFAULT_PIC}
+		trans.sender = NewPersonContact("Unknown")
 		trans.title = "--indecipherable--"
 		trans.message = "--there is a message here, but it is too faint or corrupted to decode--"
 		if len(cs.Transmissions) != cap(cs.Transmissions) {
