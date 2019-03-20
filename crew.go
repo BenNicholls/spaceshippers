@@ -69,6 +69,9 @@ func (c *Crewman) Update(spaceTime int) {
 	if c.IsAwake() {
 		c.Awakeness.Mod(-1)
 		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "crew"))
+		if c.Awakeness.GetPct() < 10 {
+			c.AddStatus(STATUS_SLEEPY)
+		}
 		if c.Awakeness.Get() == 0 {
 			c.ConsumeJob(NewSleepJob())
 		}

@@ -86,6 +86,9 @@ func (sj *SleepJob) OnTick() {
 	sj.Task.OnTick()
 
 	sj.worker.Awakeness.Mod(4)
+	if sj.worker.Awakeness.GetPct() > 80 {
+		sj.worker.RemoveStatus(STATUS_SLEEPY)
+	}
 
 	if sj.worker.Awakeness.IsMax() {
 		sj.OnEnd()

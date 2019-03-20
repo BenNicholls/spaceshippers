@@ -84,6 +84,7 @@ const (
 	STATUS_NOOXYGEN
 	STATUS_HIGHCO2
 	STATUS_CO2_POISONING
+	STATUS_SLEEPY
 )
 
 //These are the sources of CREW EFFECTS.
@@ -142,6 +143,15 @@ func NewCrewStatus(s StatusID) (cs CrewStatus) {
 				EFFECT_HEAVYBREATHING,
 				EFFECT_DISORIENTED,
 				EFFECT_POISONED,
+			},
+			Replaces: []StatusID{},
+		}
+	case STATUS_SLEEPY:
+		cs = CrewStatus{
+			Name:        "Sleepy",
+			Description: "The Crewman needs his night-night.",
+			Effects: []EffectID{
+				EFFECT_SLOW,
 			},
 			Replaces: []StatusID{},
 		}
