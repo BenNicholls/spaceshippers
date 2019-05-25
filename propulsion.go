@@ -8,7 +8,7 @@ type PropulsionSystem struct {
 	ship        *Ship
 	RepairState burl.Stat //0 = broken. NOTE: Do systems break, or do rooms break? Think on this.
 	Thrust      float64   //acceleration provided by the engines in m/s^2.
-	FuelUse     int       //fuel used in 1 second while on
+	FuelUse     float64   //fuel used in 1 second while on
 	Firing      bool
 }
 
@@ -25,25 +25,25 @@ func NewPropulsionSystem(s *Ship) *PropulsionSystem {
 }
 
 func (ps *PropulsionSystem) UpdateEngineStats() {
-	ps.Thrust = float64(ps.GetStat(STAT_SUBLIGHT_THRUST)) //TODO: add calculation for ship size here!
-	ps.FuelUse = ps.GetStat(STAT_SUBLIGHT_FUELUSE)        //TODO: afterburner calc here??
+	ps.Thrust = float64(ps.GetStat(STAT_SUBLIGHT_THRUST))   //TODO: add calculation for ship size here!
+	ps.FuelUse = float64(ps.GetStat(STAT_SUBLIGHT_FUELUSE)) //TODO: afterburner calc here??
 }
 
 func (ps *PropulsionSystem) Update(tick int) {
 	ps.UpdateEngineStats()
 
 	if ps.Firing && ps.ship.destination != nil {
-		if ps.ship.Fuel.Get()-ps.FuelUse < 0 {
+		if ps.ship.Storage.GetVolume("Fuel")-ps.FuelUse < 0 {
 			ps.Firing = false
 			burl.PushEvent(burl.NewEvent(LOG_EVENT, "Out of fuel! What a catastrophe!"))
 		} else {
 			switch ps.ship.Navigation.CurrentCourse.Phase {
 			case phase_ACCEL:
 				ps.ship.Velocity.R += ps.Thrust
-				ps.ship.Fuel.Mod(-ps.FuelUse)
+				ps.ship.Storage.RemoveFromStores("Fuel", ps.FuelUse)
 			case phase_BRAKE:
 				ps.ship.Velocity.R -= ps.Thrust
-				ps.ship.Fuel.Mod(-ps.FuelUse)
+				ps.ship.Storage.RemoveFromStores("Fuel", ps.FuelUse)
 			case phase_COAST:
 			}
 		}

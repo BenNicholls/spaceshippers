@@ -3,6 +3,7 @@ package main
 import "github.com/bennicholls/burl-E/burl"
 import "github.com/veandco/go-sdl2/sdl"
 import "strconv"
+import "fmt"
 
 type SetCourseDialog struct {
 	burl.StatePrototype
@@ -44,8 +45,8 @@ func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
 	distanceText := burl.NewTextbox(26, 1, 30, 2, 0, false, false, "Distance: "+strconv.Itoa(int(sc.distance/1000))+" km")
 	orbitText := burl.NewTextbox(26, 1, 30, 3, 3, false, false, "Required Speed to Orbit: "+strconv.Itoa(int(d.GetVisitSpeed()/1000))+" km/s")
 	shipSpeedText := burl.NewTextbox(26, 1, 30, 4, 3, false, false, "Current Ship Speed: "+strconv.Itoa(s.GetSpeed())+" m/s")
-	maxFuelText := burl.NewTextbox(26, 1, 30, 5, 3, false, false, "Fuel Available: "+strconv.Itoa(s.Fuel.Get())+" Litres")
-	fuelUseText := burl.NewTextbox(26, 1, 30, 6, 3, false, false, "Fuel Use Rate: "+strconv.Itoa(s.Engine.FuelUse)+" Litres per second")
+	maxFuelText := burl.NewTextbox(26, 1, 30, 5, 3, false, false, "Fuel Available: "+fmt.Sprint(s.Storage.GetVolume("Fuel"))+" Litres")
+	fuelUseText := burl.NewTextbox(26, 1, 30, 6, 3, false, false, "Fuel Use Rate: "+fmt.Sprint(s.Engine.FuelUse)+" Litres per second")
 	engineThrustText := burl.NewTextbox(26, 1, 30, 7, 3, false, false, "Total Engine Thrust: "+strconv.Itoa(int(s.Engine.Thrust))+" m/s/s")
 
 	sc.Window.Add(distanceText, orbitText, shipSpeedText, maxFuelText, fuelUseText, engineThrustText)
@@ -96,10 +97,10 @@ func (sc *SetCourseDialog) HandleKeypress(key sdl.Keycode) {
 }
 
 func (sc *SetCourseDialog) UpdateCourse() {
-	maxFuel := burl.Min(sc.ship.Fuel.Get(), sc.ship.Engine.FuelUse*int(sc.ship.Navigation.CalcMaxBurnTime(sc.destination.GetVisitSpeed(), sc.distance)))
-	c := sc.ship.Navigation.ComputeCourse(sc.destination, maxFuel*sc.fuelGauge.GetProgress()/100, sc.startTime)
+	maxFuel := burl.MinF(sc.ship.Storage.GetVolume("Fuel"), sc.ship.Engine.FuelUse*(sc.ship.Navigation.CalcMaxBurnTime(sc.destination.GetVisitSpeed(), sc.distance)))
+	c := sc.ship.Navigation.ComputeCourse(sc.destination, maxFuel*float64(sc.fuelGauge.GetProgress())/100, sc.startTime)
 
-	sc.fuelGauge.ChangeText("Fuel to burn: " + strconv.Itoa(maxFuel*sc.fuelGauge.GetProgress()/100))
+	sc.fuelGauge.ChangeText("Fuel to burn: " + fmt.Sprint(maxFuel*float64(sc.fuelGauge.GetProgress())/100))
 	sc.travelTimeText.ChangeText("Travel Time: " + GetDurationString(c.TotalTime))
 
 	speed := sc.ship.GetSpeed() + int(float64(c.AccelTime-c.StartTime)*sc.ship.Engine.Thrust)

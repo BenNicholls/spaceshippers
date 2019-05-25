@@ -17,9 +17,9 @@ type Ship struct {
 	Navigation  *NavigationSystem
 	Comms       *CommSystem
 	LifeSupport *LifeSupportSystem
+	Storage     *StorageSystem
 	//Power *PowerSystem
 	//Computer *ComputerSystem
-	//Storage *StorageSystem
 	//Weapons *WeaponSystem
 	//Shields *ShieldSystem
 
@@ -27,7 +27,6 @@ type Ship struct {
 
 	//status numbers.
 	Hull burl.Stat
-	Fuel burl.Stat
 
 	Velocity burl.Vec2Polar
 
@@ -64,8 +63,9 @@ func NewShip(n string, g *Galaxy) *Ship {
 	s.Systems[SYS_COMMS] = s.Comms
 	s.LifeSupport = NewLifeSupportSystem(s)
 	s.Systems[SYS_LIFESUPPORT] = s.LifeSupport
+	s.Storage = NewStorageSystem(s)
+	s.Systems[SYS_STORAGE] = s.Storage
 
-	s.Fuel = burl.NewStat(1000000)
 	s.Hull = burl.NewStat(100)
 
 	s.shipMap = burl.NewMap(100, 100)

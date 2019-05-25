@@ -89,8 +89,8 @@ const (
 //Plan of action for the nav system
 type Course struct {
 	//precomputed factors, we'll see if they turn out to be right
-	FuelUse   int //amount of fuel the plan uses
-	TotalTime int //time the course takes
+	FuelUse   float64 //amount of fuel the plan uses
+	TotalTime int     //time the course takes
 
 	StartTime   int
 	StartPos    burl.Vec2
@@ -140,10 +140,10 @@ func (ns NavigationSystem) CalcMinBurnTime(V_f float64) float64 {
 }
 
 //Returns a Course based on the parameters.
-func (ns NavigationSystem) ComputeCourse(d Locatable, fuelToUse, tick int) (course Course) {
+func (ns NavigationSystem) ComputeCourse(d Locatable, fuelToUse float64, tick int) (course Course) {
 	course.StartTime = tick
 	V_f := d.GetVisitSpeed()
-	B := float64(fuelToUse) / float64(ns.ship.Engine.FuelUse) //burn time available
+	B := fuelToUse / ns.ship.Engine.FuelUse //burn time available
 	D := ns.ship.Coords.CalcVector(d.GetCoords()).Local.Mag() + d.GetVisitDistance()
 
 	t_a, t_c, t_d := ns.ComputeStraightCourse(V_f, B, D)
@@ -151,7 +151,7 @@ func (ns NavigationSystem) ComputeCourse(d Locatable, fuelToUse, tick int) (cour
 	course.AccelTime = tick + t_a
 	course.BrakeTime = course.AccelTime + t_c
 	course.TotalTime = t_a + t_c + t_d
-	course.FuelUse = (t_a + t_d) * ns.ship.Engine.FuelUse
+	course.FuelUse = float64(t_a+t_d) * ns.ship.Engine.FuelUse
 	course.Arrivaltime = tick + course.TotalTime
 	course.Distance = D
 

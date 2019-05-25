@@ -91,6 +91,13 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 
 	sg.playerShip.SetLocation(sg.galaxy.GenerateStart())
 
+	//fuel up the ship!!!
+	sg.playerShip.Storage.AddToStores(&Item{
+		Name:        "Fuel",
+		Volume:      float64(s.Storage.GetStat(STAT_FUEL_STORAGE)) - sg.playerShip.Storage.GetVolume("Fuel"),
+		StorageType: STAT_FUEL_STORAGE,
+	})
+
 	sg.SetupUI() //must be done after ship setup
 
 	sg.LoadSpaceEvents()
@@ -98,7 +105,11 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	sg.OpenDialog(NewSpaceEventDialog(spaceEvents[1]))
 
 	burl.RegisterDebugCommand("fuel", func() {
-		sg.playerShip.Fuel.Set(sg.playerShip.Fuel.Max())
+		sg.playerShip.Storage.AddToStores(&Item{
+			Name:        "Fuel",
+			Volume:      float64(s.Storage.GetStat(STAT_FUEL_STORAGE)) - sg.playerShip.Storage.GetVolume("Fuel"),
+			StorageType: STAT_FUEL_STORAGE,
+		})
 	})
 
 	burl.RegisterDebugCommand("earth", func() {

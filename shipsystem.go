@@ -88,6 +88,12 @@ const (
 	STAT_LS_MODULE_CAP
 	STAT_CO2_SCRUBRATE
 
+	//SYS_STORAGE
+	STAT_GENERAL_STORAGE
+	STAT_VOLATILE_STORAGE
+	STAT_FUEL_STORAGE
+	STAT_COLD_STORAGE
+
 	STAT_MAXSTATS
 )
 
@@ -183,5 +189,29 @@ func init() {
 		Description: "Rate at which life support can scrub CO2 from atmosphere and ureplace with life giving O2.",
 		System:      SYS_LIFESUPPORT,
 		Stat:        STAT_CO2_SCRUBRATE,
+	}
+	statInformation[STAT_GENERAL_STORAGE] = StatInfo{
+		Name:        "General Storage",
+		Description: "Store all thge things you love.",
+		System:      SYS_STORAGE,
+		Stat:        STAT_GENERAL_STORAGE,
+	}
+	statInformation[STAT_VOLATILE_STORAGE] = StatInfo{
+		Name:        "Volatile Storage",
+		Description: "Storage for volatiles (gasses, water, etc)",
+		System:      SYS_STORAGE,
+		Stat:        STAT_VOLATILE_STORAGE,
+	}
+	statInformation[STAT_FUEL_STORAGE] = StatInfo{
+		Name:        "Fuel Storage",
+		Description: "Storage for fuels.",
+		System:      SYS_STORAGE,
+		Stat:        STAT_FUEL_STORAGE,
+	}
+	statInformation[STAT_COLD_STORAGE] = StatInfo{
+		Name:        "Cold Storage",
+		Description: "Store your coldables.",
+		System:      SYS_STORAGE,
+		Stat:        STAT_COLD_STORAGE,
 	}
 }
