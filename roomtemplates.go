@@ -57,6 +57,10 @@ func init() {
 				Stat:     STAT_POWER_DRAW,
 				Modifier: 10,
 			},
+			RoomStat{
+				Stat:     STAT_CO2_SCRUBRATE,
+				Modifier: 20, //volume of gas (L) that can be purged of CO2 per second
+			},
 		},
 	}
 

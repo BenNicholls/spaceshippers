@@ -25,14 +25,15 @@ func NewLifeSupportSystem(s *Ship) *LifeSupportSystem {
 }
 
 func (lss *LifeSupportSystem) Update(tick int) {
-	//pressurize rooms
-	//for _, r := range lss.ship.Rooms {
-	// if r.atmo.pressure < lss.targetPressure {
-	// 	r.atmo.pressure += 0.01
-	// } else if r.atmo.pressure > lss.targetPressure {
-	// 	r.atmo.pressure -= 0.01
-	// }
-	//}
+	//co2 scrubbing!
+	for _, r := range lss.ship.Rooms {
+		if r.atmo.CO2 > lss.targetCO2 {
+			a := r.atmo.RemoveVolume(float64(lss.GetStat(STAT_CO2_SCRUBRATE)))
+			a.O2 += a.CO2
+			a.CO2 = 0
+			r.atmo.Add(a)
+		}
+	}
 }
 
 type Atmosphere struct {

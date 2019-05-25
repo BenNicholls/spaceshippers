@@ -86,6 +86,7 @@ const (
 	//SYS_LIFESUPPORT
 	STAT_PRESSURIZATION_RATE
 	STAT_LS_MODULE_CAP
+	STAT_CO2_SCRUBRATE
 
 	STAT_MAXSTATS
 )
@@ -176,5 +177,11 @@ func init() {
 		Description: "Rate at which life support can repressurize a room.",
 		System:      SYS_LIFESUPPORT,
 		Stat:        STAT_PRESSURIZATION_RATE,
+	}
+	statInformation[STAT_CO2_SCRUBRATE] = StatInfo{
+		Name:        "CO2 Scrub Rate",
+		Description: "Rate at which life support can scrub CO2 from atmosphere and ureplace with life giving O2.",
+		System:      SYS_LIFESUPPORT,
+		Stat:        STAT_CO2_SCRUBRATE,
 	}
 }
