@@ -37,7 +37,7 @@ func NewQuickStatsWindow(x, y int, s *Ship) (qsw *QuickStatsWindow) {
 
 func (qsw *QuickStatsWindow) Update() {
 	qsw.hullBar.SetProgress(qsw.ship.Hull.GetPct())
-	qsw.fuelBar.SetProgress(int(100 * qsw.ship.Storage.GetVolume("Fuel") / float64(qsw.ship.Storage.GetStat(STAT_FUEL_STORAGE))))
+	qsw.fuelBar.SetProgress(int(100 * qsw.ship.Storage.GetItemVolume("Fuel") / float64(qsw.ship.Storage.GetStat(STAT_FUEL_STORAGE))))
 	//qsw.powerBar.ChangeProgress(qsw.ship.PowerSystem.GetPowerUsagePct())
 	qsw.courseBar.SetProgress(qsw.ship.Navigation.GetCurrentProgress())
 }

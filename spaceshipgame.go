@@ -94,8 +94,14 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	//fuel up the ship!!!
 	sg.playerShip.Storage.AddToStores(&Item{
 		Name:        "Fuel",
-		Volume:      float64(s.Storage.GetStat(STAT_FUEL_STORAGE)) - sg.playerShip.Storage.GetVolume("Fuel"),
+		Volume:      float64(s.Storage.GetStat(STAT_FUEL_STORAGE)) - sg.playerShip.Storage.GetItemVolume("Fuel"),
 		StorageType: STAT_FUEL_STORAGE,
+	})
+
+	sg.playerShip.Storage.AddToStores(&Item{
+		Name:        "Candy",
+		Volume:      50,
+		StorageType: STAT_GENERAL_STORAGE,
 	})
 
 	sg.SetupUI() //must be done after ship setup
@@ -107,7 +113,7 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	burl.RegisterDebugCommand("fuel", func() {
 		sg.playerShip.Storage.AddToStores(&Item{
 			Name:        "Fuel",
-			Volume:      float64(s.Storage.GetStat(STAT_FUEL_STORAGE)) - sg.playerShip.Storage.GetVolume("Fuel"),
+			Volume:      float64(s.Storage.GetStat(STAT_FUEL_STORAGE)) - sg.playerShip.Storage.GetItemVolume("Fuel"),
 			StorageType: STAT_FUEL_STORAGE,
 		})
 	})
@@ -158,7 +164,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.menus = make([]burl.UIElem, 0, MAX_MENUS)
 
 	sg.gameMenu = NewGameMenu(sg.player)
-	sg.shipMenu = NewShipMenu()
+	sg.shipMenu = NewShipMenu(sg.playerShip)
 	sg.galaxyMenu = NewGalaxyMenu(sg.galaxy, sg.player.SpaceShip)
 	sg.crewMenu = NewCrewMenu(sg.playerShip)
 	sg.commMenu = NewCommsMenu(sg.playerShip.Comms)
@@ -233,6 +239,8 @@ func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 			if sg.activeMenu == sg.crewMenu {
 				sg.crewMenu.UpdateCrewDetails()
 			}
+		case "stores":
+			sg.shipMenu.UpdateStoreMenu()
 		case "ship status":
 			sg.quickstats.Update()
 		case "ship move":

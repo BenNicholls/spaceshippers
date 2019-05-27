@@ -33,7 +33,7 @@ func (ps *PropulsionSystem) Update(tick int) {
 	ps.UpdateEngineStats()
 
 	if ps.Firing && ps.ship.destination != nil {
-		if ps.ship.Storage.GetVolume("Fuel")-ps.FuelUse < 0 {
+		if ps.ship.Storage.GetItemVolume("Fuel")-ps.FuelUse < 0 {
 			ps.Firing = false
 			burl.PushEvent(burl.NewEvent(LOG_EVENT, "Out of fuel! What a catastrophe!"))
 		} else {

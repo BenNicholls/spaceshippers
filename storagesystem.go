@@ -1,11 +1,13 @@
 package main
 
 import "errors"
+import "github.com/bennicholls/burl-E/burl"
 
 type Storable interface {
 	GetName() string
 	GetVolume() float64
 	GetStorageType() StatType //determins which kind fo storage needs to be used
+	GetDescription() string
 	ChangeVolume(d float64)
 	SetVolume(v float64)
 }
@@ -39,12 +41,13 @@ func (ss *StorageSystem) Update(tick int) {
 }
 
 func (ss *StorageSystem) AddToStores(item Storable) error {
-
 	if float64(ss.SystemStats.GetStat(item.GetStorageType()))-ss.volume[item.GetStorageType()] < item.GetVolume() {
 		return errors.New("Not enough space")
 	} else {
 		ss.volume[item.GetStorageType()] += item.GetVolume()
 	}
+
+	burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
 
 	for _, i := range ss.items {
 		if i.GetName() == item.GetName() {
@@ -78,6 +81,8 @@ func (ss *StorageSystem) RemoveFromStores(name string, v float64) (item Storable
 				err = errors.New("Insufficient amount in stores")
 
 			}
+
+			burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
 		}
 
 		ss.volume[item.GetStorageType()] -= item.GetVolume()
@@ -87,7 +92,7 @@ func (ss *StorageSystem) RemoveFromStores(name string, v float64) (item Storable
 	return
 }
 
-func (ss *StorageSystem) GetVolume(name string) float64 {
+func (ss *StorageSystem) GetItemVolume(name string) float64 {
 	for _, i := range ss.items {
 		if i.GetName() == name {
 			return i.GetVolume()
@@ -95,4 +100,16 @@ func (ss *StorageSystem) GetVolume(name string) float64 {
 	}
 
 	return 0
+}
+
+func (ss *StorageSystem) GetStorageVolume(storageType StatType) float64 {
+	if v, ok := ss.volume[storageType]; ok {
+		return v
+	} else {
+		return 0
+	}
+}
+
+func (ss *StorageSystem) GetStorageCapacity(storageType StatType) float64 {
+	return float64(ss.GetStat(storageType))
 }
