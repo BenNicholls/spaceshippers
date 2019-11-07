@@ -40,10 +40,18 @@ func (ps *PropulsionSystem) Update(tick int) {
 			switch ps.ship.Navigation.CurrentCourse.Phase {
 			case phase_ACCEL:
 				ps.ship.Velocity.R += ps.Thrust
-				ps.ship.Storage.RemoveFromStores("Fuel", ps.FuelUse)
+				ps.ship.Storage.Remove(&Item{
+					Name:        "Fuel",
+					StorageType: STORE_LIQUID,
+					Volume:      ps.FuelUse,
+				})
 			case phase_BRAKE:
 				ps.ship.Velocity.R -= ps.Thrust
-				ps.ship.Storage.RemoveFromStores("Fuel", ps.FuelUse)
+				ps.ship.Storage.Remove(&Item{
+					Name:        "Fuel",
+					StorageType: STORE_LIQUID,
+					Volume:      ps.FuelUse,
+				})
 			case phase_COAST:
 			}
 		}

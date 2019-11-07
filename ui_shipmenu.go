@@ -5,6 +5,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 
 	"fmt"
+	"sort"
 )
 
 type ShipMenu struct {
@@ -27,6 +28,7 @@ type ShipMenu struct {
 	storesItemDescriptionText *burl.Textbox
 	storesItemStorageTypeText *burl.Textbox
 	storesItemVolumeText      *burl.Textbox
+	inventory                 []string
 
 	ship *Ship
 }
@@ -60,6 +62,8 @@ func NewShipMenu(s *Ship) (sm *ShipMenu) {
 	sm.storesItemVolumeText = burl.NewTextbox(itemw, 1, 0, 8, 0, false, false, "")
 	sm.storesItemDetails.Add(sm.storesItemNameText, sm.storesItemDescriptionText, sm.storesItemVolumeText, sm.storesItemStorageTypeText)
 
+	sm.CompileInventoryList()
+
 	sm.storesPage.Add(sm.storesStats, sm.storesInventoryList, sm.storesItemDetails)
 
 	sm.UpdateStoreMenu()
@@ -67,39 +71,50 @@ func NewShipMenu(s *Ship) (sm *ShipMenu) {
 	return
 }
 
+func (sm *ShipMenu) CompileInventoryList() {
+	sm.inventory = make([]string, 0)
+
+	for item := range sm.ship.Storage.items {
+		sm.inventory = append(sm.inventory, item)
+	}
+
+	sort.Strings(sm.inventory)
+}
+
 func (sm *ShipMenu) UpdateStoreMenu() {
 	var capacities string
-	capacities += fmt.Sprint("General Storage: ", sm.ship.Storage.GetStorageVolume(STAT_GENERAL_STORAGE), "/", sm.ship.Storage.GetStorageCapacity(STAT_GENERAL_STORAGE), "/n")
-	capacities += fmt.Sprint("Volatile Storage: ", sm.ship.Storage.GetStorageVolume(STAT_VOLATILE_STORAGE), "/", sm.ship.Storage.GetStorageCapacity(STAT_VOLATILE_STORAGE), "/n")
-	capacities += fmt.Sprint("Cold Storage: ", sm.ship.Storage.GetStorageVolume(STAT_COLD_STORAGE), "/", sm.ship.Storage.GetStorageCapacity(STAT_COLD_STORAGE), "/n")
-	capacities += fmt.Sprint("Fuel Storage: ", sm.ship.Storage.GetStorageVolume(STAT_FUEL_STORAGE), "/", sm.ship.Storage.GetStorageCapacity(STAT_FUEL_STORAGE), "/n")
+	capacities += fmt.Sprint("General Storage: ", sm.ship.Storage.GetFilledVolume(STORE_GENERAL), "/", sm.ship.Storage.GetCapacity(STORE_GENERAL), "/n")
+	capacities += fmt.Sprint("Liquid Storage: ", sm.ship.Storage.GetFilledVolume(STORE_LIQUID), "/", sm.ship.Storage.GetCapacity(STORE_LIQUID), "/n")
+	capacities += fmt.Sprint("Gas Storage: ", sm.ship.Storage.GetFillPct(STORE_GAS), "% full/n")
 	sm.storesStatsCapacities.ChangeText(capacities)
 
-	i := sm.storesInventoryList.GetSelection()
+	selectedItem := sm.inventory[sm.storesInventoryList.GetSelection()]
 	sm.storesInventoryList.ClearElements()
-	for _, item := range sm.ship.Storage.items {
-		sm.storesInventoryList.Append(fmt.Sprint(item.GetVolume()) + " - " + item.GetName())
+	for i, item := range sm.inventory {
+		sm.storesInventoryList.Append(fmt.Sprint(sm.ship.Storage.GetItemVolume(item)) + " - " + item)
+		if item == selectedItem {
+			sm.storesInventoryList.Select(i)
+		}
+
 	}
-	sm.storesInventoryList.Select(i)
 
 	sm.UpdateStoreItemDescription()
 }
 
 func (sm *ShipMenu) UpdateStoreItemDescription() {
-	item := sm.ship.Storage.items[sm.storesInventoryList.GetSelection()]
+	itemName := sm.inventory[sm.storesInventoryList.GetSelection()]
+	item := sm.ship.Storage.items[itemName]
 
 	sm.storesItemNameText.ChangeText(item.GetName())
 	sm.storesItemDescriptionText.ChangeText(item.GetDescription())
-	sm.storesItemVolumeText.ChangeText("Volume: " + fmt.Sprint(item.GetVolume()))
+	sm.storesItemVolumeText.ChangeText("Amount: " + fmt.Sprint(item.GetAmount()))
 	switch item.GetStorageType() {
-	case STAT_GENERAL_STORAGE:
+	case STORE_GENERAL:
 		sm.storesItemStorageTypeText.ChangeText("Stored in: General Storage")
-	case STAT_VOLATILE_STORAGE:
-		sm.storesItemStorageTypeText.ChangeText("Stored in: Volatile Storage")
-	case STAT_COLD_STORAGE:
-		sm.storesItemStorageTypeText.ChangeText("Stored in: Cold Storage")
-	case STAT_FUEL_STORAGE:
-		sm.storesItemStorageTypeText.ChangeText("Stored in: Fuel Storage")
+	case STORE_LIQUID:
+		sm.storesItemStorageTypeText.ChangeText("Stored in: Liquid Storage")
+	case STORE_GAS:
+		sm.storesItemStorageTypeText.ChangeText("Stored in: Gas Storage")
 	}
 }
 

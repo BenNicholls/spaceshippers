@@ -142,37 +142,39 @@ func (c *Crewman) Breathe() {
 
 	//check CO2 levels. Modify crewman CO2 poisoning counter. TODO: crewman should just straight up suffocate at some point.
 	switch {
-	case breath.CO2 > 7: //WAY too high. CO2 poisoning in 5-10 mins
+	case breath.PartialPressure(GAS_CO2) > 7: //WAY too high. CO2 poisoning in 5-10 mins
 		c.CO2.Mod(10000)
-	case breath.CO2 > 5: //Very high. CO2 poisoning in around a day
+	case breath.PartialPressure(GAS_CO2) > 5: //Very high. CO2 poisoning in around a day
 		c.CO2.Mod(55)
-	case breath.CO2 > 3: //High. CO2 poisoning in a couple weeks
+	case breath.PartialPressure(GAS_CO2) > 3: //High. CO2 poisoning in a couple weeks
 		c.CO2.Mod(4)
-	case breath.CO2 > 1: //A little too much. Get dizzy if breathed for a while. Can't give you CO2 poisoning.
+	case breath.PartialPressure(GAS_CO2) > 1: //A little too much. Get dizzy if breathed for a while. Can't give you CO2 poisoning.
 		if c.CO2.GetPct() < 50 {
 			c.CO2.Mod(1)
 		}
-	case breath.CO2 <= 1: //low-ish CO2, slowly brings crewman's CO2 levels back to normal.
+	case breath.PartialPressure(GAS_CO2) <= 1: //low-ish CO2, slowly brings crewman's CO2 levels back to normal.
 		c.CO2.Mod(-10)
 	}
 
-	//Check oxygen levels. Gas exchange.
+	//Check oxygen levels.
+	var oxygenIntake float64
 	switch {
-	case breath.O2 < 5: //O2 dangerously low
-		breath.CO2 += breath.O2
-		breath.O2 = 0
+	case breath.PartialPressure(GAS_O2) < 5: //O2 dangerously low
+		oxygenIntake = breath.GetMolarValue(GAS_O2)
 		c.AddStatus(STATUS_NOOXYGEN)
-	case breath.O2 < 15: //O2 content between 5 - 15 kpa. bad, but not fatal.
-		breath.O2 -= 4 //THINK: maybe people can get acclimated to this level of O2? Like sherpas and Joe Sakic do.
-		breath.CO2 += 4
+	case breath.PartialPressure(GAS_O2) < 15: //O2 content between 5 - 15 kpa. bad, but not fatal.
+		oxygenIntake = 4 * breath.Volume //THINK: maybe people can get acclimated to this level of O2? Like sherpas and Joe Sakic do.
 		c.AddStatus(STATUS_LOWOXYGEN)
 	default:
-		breath.O2 -= 6
-		breath.CO2 += 6
+		oxygenIntake = 6 * breath.Volume
 	}
 
+	//gas exchange
+	breath.RemoveGas(GAS_O2, oxygenIntake)
+	breath.AddGas(GAS_CO2, oxygenIntake)
+
 	//exhale.
-	r.atmo.Add(breath)
+	r.atmo.AddGasMixture(breath)
 }
 
 func (c Crewman) IsAwake() bool {

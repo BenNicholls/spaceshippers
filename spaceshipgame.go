@@ -91,17 +91,22 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 
 	sg.playerShip.SetLocation(sg.galaxy.GenerateStart())
 
-	//fuel up the ship!!!
-	sg.playerShip.Storage.AddToStores(&Item{
+	//fuel up the ship!!! Take up 50% of liquid storage.
+	sg.playerShip.Storage.Store(&Item{
 		Name:        "Fuel",
-		Volume:      float64(s.Storage.GetStat(STAT_FUEL_STORAGE)) - sg.playerShip.Storage.GetItemVolume("Fuel"),
-		StorageType: STAT_FUEL_STORAGE,
+		Volume:      s.Storage.GetCapacity(STORE_LIQUID)/2 - sg.playerShip.Storage.GetItemVolume("Fuel"),
+		StorageType: STORE_LIQUID,
 	})
 
-	sg.playerShip.Storage.AddToStores(&Item{
+	sg.playerShip.Storage.Store(&Item{
 		Name:        "Candy",
 		Volume:      50,
-		StorageType: STAT_GENERAL_STORAGE,
+		StorageType: STORE_GENERAL,
+	})
+
+	sg.playerShip.Storage.Store(&Gas{
+		gasType: GAS_O2,
+		molar:   s.Storage.GetCapacity(STORE_GAS),
 	})
 
 	sg.SetupUI() //must be done after ship setup
@@ -111,10 +116,10 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	sg.OpenDialog(NewSpaceEventDialog(spaceEvents[1]))
 
 	burl.RegisterDebugCommand("fuel", func() {
-		sg.playerShip.Storage.AddToStores(&Item{
+		sg.playerShip.Storage.Store(&Item{
 			Name:        "Fuel",
-			Volume:      float64(s.Storage.GetStat(STAT_FUEL_STORAGE)) - sg.playerShip.Storage.GetItemVolume("Fuel"),
-			StorageType: STAT_FUEL_STORAGE,
+			Volume:      s.Storage.GetCapacity(STORE_LIQUID)/2 - sg.playerShip.Storage.GetItemVolume("Fuel"),
+			StorageType: STORE_LIQUID,
 		})
 	})
 
@@ -123,11 +128,11 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 		sg.galaxyMenu.starchartMapView.systemFocus = sg.galaxy.GetStarSystem(sg.playerShip.GetCoords()) //this is messy.
 	})
 
-	for _, r := range sg.playerShip.Rooms {
-		burl.RegisterWatch(r.Name+" %o2", &r.atmo.O2)
-		burl.RegisterWatch(r.Name+" %co2", &r.atmo.CO2)
-		burl.RegisterWatch(r.Name+" pressure", &r.atmo.pressure)
-	}
+	// for _, r := range sg.playerShip.Rooms {
+	// 	burl.RegisterWatch(r.Name+" o2", &r.atmo.gasses)
+	// 	burl.RegisterWatch(r.Name+" co2", &r.atmo.CO2)
+	// 	burl.RegisterWatch(r.Name+" total", &r.atmo.pressure)
+	// }
 
 	return sg
 }

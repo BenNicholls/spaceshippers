@@ -59,11 +59,15 @@ func init() {
 			},
 			RoomStat{
 				Stat:     STAT_CO2_SCRUBRATE,
-				Modifier: 20, //volume of gas (L) that can be purged of CO2 per second
+				Modifier: 500, //volume of gas (L) that can be purged of CO2 per second
 			},
 			RoomStat{
 				Stat:     STAT_GENERAL_STORAGE,
-				Modifier: 10,
+				Modifier: 100,
+			},
+			RoomStat{
+				Stat:     STAT_GAS_STORAGE,
+				Modifier: 1000,
 			},
 		},
 	}
@@ -81,7 +85,11 @@ func init() {
 			},
 			RoomStat{
 				Stat:     STAT_GENERAL_STORAGE,
-				Modifier: 5,
+				Modifier: 50,
+			},
+			RoomStat{
+				Stat:     STAT_GAS_STORAGE,
+				Modifier: 250,
 			},
 		},
 	}
@@ -124,10 +132,10 @@ func init() {
 			},
 			RoomStat{
 				Stat:     STAT_GENERAL_STORAGE,
-				Modifier: 10,
+				Modifier: 1000,
 			},
 			RoomStat{
-				Stat:     STAT_FUEL_STORAGE,
+				Stat:     STAT_LIQUID_STORAGE,
 				Modifier: 1000,
 			},
 		},
@@ -158,10 +166,10 @@ func init() {
 			},
 			RoomStat{
 				Stat:     STAT_GENERAL_STORAGE,
-				Modifier: 15,
+				Modifier: 150,
 			},
 			RoomStat{
-				Stat:     STAT_FUEL_STORAGE,
+				Stat:     STAT_LIQUID_STORAGE,
 				Modifier: 15000,
 			},
 		},
@@ -207,7 +215,7 @@ func init() {
 				Modifier: 20,
 			},
 			RoomStat{
-				Stat:     STAT_FUEL_STORAGE,
+				Stat:     STAT_LIQUID_STORAGE,
 				Modifier: 20000,
 			},
 		},
@@ -229,11 +237,11 @@ func init() {
 				Modifier: 40,
 			},
 			RoomStat{
-				Stat:     STAT_VOLATILE_STORAGE,
-				Modifier: 40,
+				Stat:     STAT_GAS_STORAGE,
+				Modifier: 5000,
 			},
 			RoomStat{
-				Stat:     STAT_FUEL_STORAGE,
+				Stat:     STAT_LIQUID_STORAGE,
 				Modifier: 40000,
 			},
 		},
@@ -252,7 +260,7 @@ func init() {
 			},
 			RoomStat{
 				Stat:     STAT_GENERAL_STORAGE,
-				Modifier: 10,
+				Modifier: 25,
 			},
 		},
 	}
@@ -270,7 +278,7 @@ func init() {
 			},
 			RoomStat{
 				Stat:     STAT_GENERAL_STORAGE,
-				Modifier: 15,
+				Modifier: 40,
 			},
 		},
 	}
@@ -288,11 +296,11 @@ func init() {
 			},
 			RoomStat{
 				Stat:     STAT_GENERAL_STORAGE,
-				Modifier: 10,
+				Modifier: 50,
 			},
 			RoomStat{
-				Stat:     STAT_VOLATILE_STORAGE,
-				Modifier: 20,
+				Stat:     STAT_GAS_STORAGE,
+				Modifier: 1000,
 			},
 		},
 	}
@@ -310,7 +318,7 @@ func init() {
 			},
 			RoomStat{
 				Stat:     STAT_GENERAL_STORAGE,
-				Modifier: 10,
+				Modifier: 100,
 			},
 		},
 	}

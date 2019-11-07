@@ -39,7 +39,7 @@ type Ship struct {
 	destination     Locatable //where we're going
 }
 
-//Inits a new Ship. For now, starts with a bridge and 6 crew.
+//Inits a new Ship. Ship systems but no modules or crew. Add those yourself you lazy bum.
 func NewShip(n string, g *Galaxy) *Ship {
 	s := new(Ship)
 	s.Name = n
@@ -119,6 +119,10 @@ func (s *Ship) CompileStats() {
 				s.Systems[stat.GetSystem()].AddStat(stat)
 			}
 		}
+	}
+
+	for i := range s.Systems {
+		s.Systems[i].OnStatUpdate()
 	}
 }
 
@@ -294,13 +298,13 @@ func (s *Ship) DrawToTileView(view *burl.TileView, mode, offX, offY int) {
 					r := s.GetRoom(i%s.width+s.x, i/s.width+s.y)
 					switch mode {
 					case VIEW_ATMO_PRESSURE:
-						tv.BackColour = viewModeData[mode].GetColour(r.atmo.pressure)
+						tv.BackColour = viewModeData[mode].GetColour(r.atmo.Pressure())
 					case VIEW_ATMO_O2:
-						tv.BackColour = viewModeData[mode].GetColour(r.atmo.O2)
+						tv.BackColour = viewModeData[mode].GetColour(r.atmo.PartialPressure(GAS_O2))
 					case VIEW_ATMO_TEMP:
 						tv.BackColour = viewModeData[mode].GetColour(r.atmo.Temp)
 					case VIEW_ATMO_CO2:
-						tv.BackColour = viewModeData[mode].GetColour(r.atmo.CO2)
+						tv.BackColour = viewModeData[mode].GetColour(r.atmo.PartialPressure(GAS_CO2))
 					}
 				}
 

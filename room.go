@@ -13,7 +13,7 @@ type Room struct {
 
 	X, Y    int
 	RoomMap *burl.TileMap
-	atmo    Atmosphere
+	atmo    GasMixture
 
 	connected []*Room
 
@@ -30,7 +30,7 @@ func NewRoom(name string, t RoomType, w, h int) *Room {
 
 	r.CreateRoomMap()
 	r.connected = make([]*Room, 0, 10)
-	r.atmo.InitStandard(float64(r.Volume() * 1000)) //conversion to litres
+	r.atmo.InitStandardAtmosphere(float64(r.Volume() * 1000)) //conversion to litres
 
 	return r
 }

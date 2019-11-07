@@ -1,33 +1,33 @@
 package main
 
-//Items are things can be stored in the storage system
+//Items are things that can be stored in the storage system
 type Item struct {
 	Name        string
 	Description string
-	Volume      float64  // (L)
-	StorageType StatType //which type of storage is used ex. Cold, volatile, etc
+	Volume      float64     // (L)
+	StorageType StorageType //which type of storage is used ex. General, liquid, gas, etc.
 }
 
 func (i Item) GetName() string {
 	return i.Name
 }
 
-func (i Item) GetVolume() float64 {
+func (i Item) GetAmount() float64 {
 	return i.Volume
 }
 
-func (i Item) GetStorageType() StatType {
+func (i Item) GetStorageType() StorageType {
 	return i.StorageType
 }
 
-func (i *Item) ChangeVolume(d float64) {
+func (i *Item) ChangeAmount(d float64) {
 	i.Volume += d
 	if i.Volume < 0 {
 		i.Volume = 0
 	}
 }
 
-func (i *Item) SetVolume(v float64) {
+func (i *Item) SetAmount(v float64) {
 	i.Volume = v
 }
 

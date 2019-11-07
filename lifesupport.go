@@ -25,86 +25,13 @@ func NewLifeSupportSystem(s *Ship) *LifeSupportSystem {
 }
 
 func (lss *LifeSupportSystem) Update(tick int) {
-	//co2 scrubbing!
+
+	//co2 scrubbing! for each room, remove CO2 and replace with O2 from stores
 	for _, r := range lss.ship.Rooms {
-		if r.atmo.CO2 > lss.targetCO2 {
-			a := r.atmo.RemoveVolume(float64(lss.GetStat(STAT_CO2_SCRUBRATE)))
-			a.O2 += a.CO2
-			a.CO2 = 0
-			r.atmo.Add(a)
+		if r.atmo.PartialPressure(GAS_CO2) > lss.targetCO2 {
+			//co2 scub goes here.
 		}
 	}
-}
 
-type Atmosphere struct {
-	O2     float64 //
-	CO2    float64 // kpa
-	N2     float64 //
-	Volume float64 // L
-	Temp   float64 // K
-
-	pressure float64 // derived value
-}
-
-//Inits atmosphere to the target parameters. v is volume in L
-func (a *Atmosphere) Init(v, o2, p, t float64) {
-	a.O2 = o2
-	a.CO2 = 0
-	a.N2 = p - a.O2
-	a.Temp = t
-	a.Volume = v
-
-	a.CalcPressure()
-}
-
-func (a *Atmosphere) CalcPressure() {
-	a.pressure = a.O2 + a.CO2 + a.N2
-}
-
-//removes all gas from the atmosphere, leaving a vaccuum.
-func (a *Atmosphere) InitVaccuum(v float64) {
-	a.O2 = 0
-	a.CO2 = 0
-	a.N2 = 0
-	a.Volume = v
-	a.pressure = 0
-}
-
-//Initializes atmosphere to standard Earth sea-level values.
-func (a *Atmosphere) InitStandard(v float64) {
-	a.O2 = 21
-	a.CO2 = 0
-	a.N2 = 80
-	a.Volume = v
-	a.Temp = 288
-	a.pressure = 101
-}
-
-//Removes a volume of air v (L) from the atmosphere. Returns the volume of gas removed.
-func (a *Atmosphere) RemoveVolume(v float64) (removed Atmosphere) {
-	removed = *a
-
-	if v >= a.Volume {
-		removed.Volume = a.Volume
-		a.InitVaccuum(a.Volume)
-		return
-	}
-
-	removed.Volume = v
-
-	v_ratio := 1 - (v / a.Volume)
-	a.O2 *= v_ratio
-	a.CO2 *= v_ratio
-	a.N2 *= v_ratio
-	a.CalcPressure()
-
-	return
-}
-
-func (a *Atmosphere) Add(a2 Atmosphere) {
-	a.O2 = ((a.O2 * a.Volume) + (a2.O2 * a2.Volume)) / a.Volume
-	a.CO2 = ((a.CO2 * a.Volume) + (a2.CO2 * a2.Volume)) / a.Volume
-	a.N2 = ((a.N2 * a.Volume) + (a2.N2 * a2.Volume)) / a.Volume
-
-	a.CalcPressure()
+	//uses some system to convert stored CO2 back into O2.
 }

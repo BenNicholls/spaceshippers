@@ -1,37 +1,45 @@
 package main
 
-import "errors"
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"errors"
+
+	"github.com/bennicholls/burl-E/burl"
+)
 
 type Storable interface {
 	GetName() string
-	GetVolume() float64
-	GetStorageType() StatType //determins which kind fo storage needs to be used
 	GetDescription() string
-	ChangeVolume(d float64)
-	SetVolume(v float64)
+	GetAmount() float64 //returns amount of item in (L) for items and liquid, or in molar value for gasses
+	ChangeAmount(d float64)
+	SetAmount(v float64)
+	GetStorageType() StorageType //which kind of storage needs to be used
 }
 
 type StorageSystem struct {
 	SystemStats
 
-	items []Storable
+	items map[string]Storable
 
-	volume map[StatType]float64
+	volume   [STORE_MAXTYPES]float64 //General and liquid storage volume/capacity is in litres, gas is in molar value (pressure*volume)
+	capacity [STORE_MAXTYPES]float64
 
 	ship *Ship
 }
 
+type StorageType int
+
+const (
+	STORE_GENERAL StorageType = iota
+	STORE_LIQUID
+	STORE_GAS
+
+	STORE_MAXTYPES
+)
+
 func NewStorageSystem(s *Ship) *StorageSystem {
 	ss := new(StorageSystem)
-
+	ss.items = make(map[string]Storable)
 	ss.ship = s
-
-	ss.volume = make(map[StatType]float64)
-	ss.volume[STAT_GENERAL_STORAGE] = 0
-	ss.volume[STAT_VOLATILE_STORAGE] = 0
-	ss.volume[STAT_FUEL_STORAGE] = 0
-	ss.volume[STAT_COLD_STORAGE] = 0
 
 	return ss
 }
@@ -40,76 +48,69 @@ func (ss *StorageSystem) Update(tick int) {
 	//put love here
 }
 
-func (ss *StorageSystem) AddToStores(item Storable) error {
-	if float64(ss.SystemStats.GetStat(item.GetStorageType()))-ss.volume[item.GetStorageType()] < item.GetVolume() {
+//ensure storage capacities are updated if stats change
+func (ss *StorageSystem) OnStatUpdate() {
+	ss.capacity[STORE_GENERAL] = float64(ss.GetStat(STAT_GENERAL_STORAGE))
+	ss.capacity[STORE_LIQUID] = float64(ss.GetStat(STAT_LIQUID_STORAGE))
+	ss.capacity[STORE_GAS] = float64(ss.GetStat(STAT_GAS_STORAGE) * 50000) //NOTE: currently limiting gas storage to 50000 kPa
+	burl.LogInfo("updated capacties")
+	burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
+}
+
+func (ss *StorageSystem) Store(item Storable) error {
+	if ss.capacity[item.GetStorageType()]-ss.volume[item.GetStorageType()] < item.GetAmount() {
 		return errors.New("Not enough space")
+	}
+
+	ss.volume[item.GetStorageType()] += item.GetAmount()
+
+	if i, ok := ss.items[item.GetName()]; ok {
+		i.ChangeAmount(item.GetAmount())
 	} else {
-		ss.volume[item.GetStorageType()] += item.GetVolume()
+		ss.items[item.GetName()] = item
 	}
 
 	burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
 
-	for _, i := range ss.items {
-		if i.GetName() == item.GetName() {
-			i.ChangeVolume(item.GetVolume())
-			return nil
-		}
-	}
-
-	ss.items = append(ss.items, item)
-
 	return nil
 }
 
-func (ss *StorageSystem) RemoveFromStores(name string, v float64) (item Storable, err error) {
-	for n, i := range ss.items {
-		if i.GetName() == name { //item found
-			if i.GetVolume() >= v { //enough is there
-				item = &Item{
-					Name:        i.GetName(),
-					Volume:      v,
-					StorageType: i.GetStorageType(),
-				}
-				i.ChangeVolume(-item.GetVolume())
-			} else { //not enough there. return what we got
-				item = &Item{
-					Name:        i.GetName(),
-					Volume:      i.GetVolume(),
-					StorageType: i.GetStorageType(),
-				}
-				ss.items = append(ss.items[:n], ss.items[n+1:]...)
-				err = errors.New("Insufficient amount in stores")
-
-			}
-
-			burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
+//Attempts to remove item from stores. Returns the amount of item removed, or returns 0 if no item is found.
+//If less than volume v is present in stores, returns just what was there and removes the item from the
+//ship's inventory entirely. Check err to see what the deal is.
+func (ss *StorageSystem) Remove(item Storable) (amount float64, err error) {
+	if i, ok := ss.items[item.GetName()]; !ok {
+		return 0, errors.New("Item not found.")
+	} else if i.GetAmount() <= item.GetAmount() {
+		if i.GetAmount() != item.GetAmount() {
+			err = errors.New("Insufficient amount of item in stores")
 		}
-
-		ss.volume[item.GetStorageType()] -= item.GetVolume()
-		err = errors.New("No item found")
+		delete(ss.items, i.GetName())
+		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
+		return i.GetAmount(), err
+	} else {
+		i.ChangeAmount(-item.GetAmount())
+		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
+		return item.GetAmount(), nil
 	}
-
-	return
 }
 
 func (ss *StorageSystem) GetItemVolume(name string) float64 {
-	for _, i := range ss.items {
-		if i.GetName() == name {
-			return i.GetVolume()
-		}
-	}
-
-	return 0
-}
-
-func (ss *StorageSystem) GetStorageVolume(storageType StatType) float64 {
-	if v, ok := ss.volume[storageType]; ok {
-		return v
-	} else {
+	if i, ok := ss.items[name]; !ok {
 		return 0
+	} else {
+		return i.GetAmount()
 	}
 }
 
-func (ss *StorageSystem) GetStorageCapacity(storageType StatType) float64 {
-	return float64(ss.GetStat(storageType))
+func (ss *StorageSystem) GetFilledVolume(storageType StorageType) float64 {
+	return ss.volume[storageType]
+}
+
+func (ss *StorageSystem) GetCapacity(storageType StorageType) float64 {
+	return ss.capacity[storageType]
+}
+
+func (ss *StorageSystem) GetFillPct(st StorageType) float64 {
+	return 100 * ss.volume[st] / ss.capacity[st]
 }

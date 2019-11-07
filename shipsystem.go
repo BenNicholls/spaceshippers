@@ -25,6 +25,7 @@ type ShipSystem interface {
 	RemoveStat(RoomStat)
 	InitStats()
 	Update(int)
+	OnStatUpdate()
 }
 
 type SystemStats struct {
@@ -64,6 +65,10 @@ func (ss *SystemStats) InitStats() {
 	ss.Stats = make(map[StatType]RoomStat)
 }
 
+func (ss *SystemStats) OnStatUpdate() {
+	//no op for now.
+}
+
 type StatType int
 
 const (
@@ -89,10 +94,9 @@ const (
 	STAT_CO2_SCRUBRATE
 
 	//SYS_STORAGE
-	STAT_GENERAL_STORAGE
-	STAT_VOLATILE_STORAGE
-	STAT_FUEL_STORAGE
-	STAT_COLD_STORAGE
+	STAT_GENERAL_STORAGE //total volume for general item storage (L)
+	STAT_LIQUID_STORAGE  //total volume for liquid storage (L)
+	STAT_GAS_STORAGE     //total volume for gas storage (L)
 
 	STAT_MAXSTATS
 )
@@ -186,32 +190,26 @@ func init() {
 	}
 	statInformation[STAT_CO2_SCRUBRATE] = StatInfo{
 		Name:        "CO2 Scrub Rate",
-		Description: "Rate at which life support can scrub CO2 from atmosphere and ureplace with life giving O2.",
+		Description: "Rate at which life support can scrub CO2 from atmosphere and replace with life giving O2.",
 		System:      SYS_LIFESUPPORT,
 		Stat:        STAT_CO2_SCRUBRATE,
 	}
 	statInformation[STAT_GENERAL_STORAGE] = StatInfo{
 		Name:        "General Storage",
-		Description: "Store all thge things you love.",
+		Description: "Store all the things you love, in Litres.",
 		System:      SYS_STORAGE,
 		Stat:        STAT_GENERAL_STORAGE,
 	}
-	statInformation[STAT_VOLATILE_STORAGE] = StatInfo{
-		Name:        "Volatile Storage",
-		Description: "Storage for volatiles (gasses, water, etc)",
+	statInformation[STAT_LIQUID_STORAGE] = StatInfo{
+		Name:        "Liquid Storage",
+		Description: "Storage for liquids (water, fuel, etc.), in Litres ",
 		System:      SYS_STORAGE,
-		Stat:        STAT_VOLATILE_STORAGE,
+		Stat:        STAT_LIQUID_STORAGE,
 	}
-	statInformation[STAT_FUEL_STORAGE] = StatInfo{
+	statInformation[STAT_GAS_STORAGE] = StatInfo{
 		Name:        "Fuel Storage",
-		Description: "Storage for fuels.",
+		Description: "Storage for gasses, in Litres.",
 		System:      SYS_STORAGE,
-		Stat:        STAT_FUEL_STORAGE,
-	}
-	statInformation[STAT_COLD_STORAGE] = StatInfo{
-		Name:        "Cold Storage",
-		Description: "Store your coldables.",
-		System:      SYS_STORAGE,
-		Stat:        STAT_COLD_STORAGE,
+		Stat:        STAT_GAS_STORAGE,
 	}
 }
