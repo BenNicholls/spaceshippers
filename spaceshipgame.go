@@ -245,7 +245,7 @@ func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 				sg.crewMenu.UpdateCrewDetails()
 			}
 		case "stores":
-			sg.shipMenu.UpdateStoreMenu()
+			sg.shipMenu.storesMenu.Update()
 		case "ship status":
 			sg.quickstats.Update()
 		case "ship move":

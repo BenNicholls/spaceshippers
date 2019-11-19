@@ -16,19 +16,8 @@ type ShipMenu struct {
 	enginePage      *burl.Container
 	combatPage      *burl.Container
 	lifeSupportPage *burl.Container
-	storesPage      *burl.Container
+	storesMenu      StorageSubmenu
 	modulesPage     *burl.Container
-
-	//stores page
-	storesStats               *burl.Container
-	storesStatsCapacities     *burl.Textbox
-	storesInventoryList       *burl.List
-	storesItemDetails         *burl.Container
-	storesItemNameText        *burl.Textbox
-	storesItemDescriptionText *burl.Textbox
-	storesItemStorageTypeText *burl.Textbox
-	storesItemVolumeText      *burl.Textbox
-	inventory                 []string
 
 	ship *Ship
 }
@@ -45,77 +34,12 @@ func NewShipMenu(s *Ship) (sm *ShipMenu) {
 	sm.enginePage = sm.AddPage("Propulsion")
 	sm.combatPage = sm.AddPage("Combat/Shields")
 	sm.lifeSupportPage = sm.AddPage("Life Support")
-	sm.storesPage = sm.AddPage("Stores")
+	sm.storesMenu.window = sm.AddPage("Stores")
 	sm.modulesPage = sm.AddPage("Module")
 
-	w, h := sm.GetPageDims()
-	sm.storesStats = burl.NewContainer(w, 6, 0, 0, 0, false)
-	sm.storesStatsCapacities = burl.NewTextbox(20, 6, 0, 0, 0, false, false, "No Capacities????")
-	sm.storesStats.Add(sm.storesStatsCapacities)
-	sm.storesInventoryList = burl.NewList((w-4)/2, h-8, 1, 7, 1, true, "No Items in Stores!")
-	sm.storesInventoryList.SetHint("PgUp/PgDown to Scroll")
-	sm.storesItemDetails = burl.NewContainer((w-4)/2, h-8, (w-4)/2+3, 7, 2, true)
-	itemw, _ := sm.storesItemDetails.Dims()
-	sm.storesItemNameText = burl.NewTextbox(itemw, 1, 0, 0, 0, true, true, "")
-	sm.storesItemDescriptionText = burl.NewTextbox(itemw, 3, 0, 3, 0, false, false, "")
-	sm.storesItemStorageTypeText = burl.NewTextbox(itemw, 1, 0, 7, 0, false, false, "")
-	sm.storesItemVolumeText = burl.NewTextbox(itemw, 1, 0, 8, 0, false, false, "")
-	sm.storesItemDetails.Add(sm.storesItemNameText, sm.storesItemDescriptionText, sm.storesItemVolumeText, sm.storesItemStorageTypeText)
-
-	sm.CompileInventoryList()
-
-	sm.storesPage.Add(sm.storesStats, sm.storesInventoryList, sm.storesItemDetails)
-
-	sm.UpdateStoreMenu()
+	sm.storesMenu.Init(sm.ship)
 
 	return
-}
-
-func (sm *ShipMenu) CompileInventoryList() {
-	sm.inventory = make([]string, 0)
-
-	for item := range sm.ship.Storage.items {
-		sm.inventory = append(sm.inventory, item)
-	}
-
-	sort.Strings(sm.inventory)
-}
-
-func (sm *ShipMenu) UpdateStoreMenu() {
-	var capacities string
-	capacities += fmt.Sprint("General Storage: ", sm.ship.Storage.GetFilledVolume(STORE_GENERAL), "/", sm.ship.Storage.GetCapacity(STORE_GENERAL), "/n")
-	capacities += fmt.Sprint("Liquid Storage: ", sm.ship.Storage.GetFilledVolume(STORE_LIQUID), "/", sm.ship.Storage.GetCapacity(STORE_LIQUID), "/n")
-	capacities += fmt.Sprint("Gas Storage: ", sm.ship.Storage.GetFillPct(STORE_GAS), "% full/n")
-	sm.storesStatsCapacities.ChangeText(capacities)
-
-	selectedItem := sm.inventory[sm.storesInventoryList.GetSelection()]
-	sm.storesInventoryList.ClearElements()
-	for i, item := range sm.inventory {
-		sm.storesInventoryList.Append(fmt.Sprint(sm.ship.Storage.GetItemVolume(item)) + " - " + item)
-		if item == selectedItem {
-			sm.storesInventoryList.Select(i)
-		}
-
-	}
-
-	sm.UpdateStoreItemDescription()
-}
-
-func (sm *ShipMenu) UpdateStoreItemDescription() {
-	itemName := sm.inventory[sm.storesInventoryList.GetSelection()]
-	item := sm.ship.Storage.items[itemName]
-
-	sm.storesItemNameText.ChangeText(item.GetName())
-	sm.storesItemDescriptionText.ChangeText(item.GetDescription())
-	sm.storesItemVolumeText.ChangeText("Amount: " + fmt.Sprint(item.GetAmount()))
-	switch item.GetStorageType() {
-	case STORE_GENERAL:
-		sm.storesItemStorageTypeText.ChangeText("Stored in: General Storage")
-	case STORE_LIQUID:
-		sm.storesItemStorageTypeText.ChangeText("Stored in: Liquid Storage")
-	case STORE_GAS:
-		sm.storesItemStorageTypeText.ChangeText("Stored in: Gas Storage")
-	}
 }
 
 func (sm *ShipMenu) HandleKeypress(key sdl.Keycode) {
@@ -123,7 +47,100 @@ func (sm *ShipMenu) HandleKeypress(key sdl.Keycode) {
 
 	switch sm.PagedContainer.CurrentIndex() {
 	case 5: //stores page
-		sm.storesInventoryList.HandleKeypress(key)
-		sm.UpdateStoreItemDescription()
+		sm.storesMenu.HandleKeypress(key)
+	}
+}
+
+type StorageSubmenu struct {
+	window *burl.Container
+
+	stats               *burl.Container
+	capacitiesText      *burl.Textbox
+	inventoryList       *burl.List
+	itemDetails         *burl.Container
+	itemNameText        *burl.Textbox
+	itemDescriptionText *burl.Textbox
+	itemStorageTypeText *burl.Textbox
+	itemVolumeText      *burl.Textbox
+
+	inventory []string
+	ship      *Ship
+}
+
+func (ss *StorageSubmenu) Init(s *Ship) {
+	ss.ship = s
+
+	w, h := ss.window.Dims()
+	ss.stats = burl.NewContainer(w, 6, 0, 0, 0, false)
+	ss.capacitiesText = burl.NewTextbox(20, 6, 0, 0, 0, false, false, "No Capacities????")
+	ss.stats.Add(ss.capacitiesText)
+	ss.inventoryList = burl.NewList((w-4)/2, h-8, 1, 7, 1, true, "No Items in Stores!")
+	ss.inventoryList.SetHint("PgUp/PgDown to Scroll")
+	ss.itemDetails = burl.NewContainer((w-4)/2, h-8, (w-4)/2+3, 7, 2, true)
+	itemw, _ := ss.itemDetails.Dims()
+	ss.itemNameText = burl.NewTextbox(itemw, 1, 0, 0, 0, true, true, "")
+	ss.itemDescriptionText = burl.NewTextbox(itemw, 3, 0, 3, 0, false, false, "")
+	ss.itemStorageTypeText = burl.NewTextbox(itemw, 1, 0, 7, 0, false, false, "")
+	ss.itemVolumeText = burl.NewTextbox(itemw, 1, 0, 8, 0, false, false, "")
+	ss.itemDetails.Add(ss.itemNameText, ss.itemDescriptionText, ss.itemVolumeText, ss.itemStorageTypeText)
+
+	ss.CompileInventoryList()
+
+	ss.window.Add(ss.stats, ss.inventoryList, ss.itemDetails)
+
+	ss.Update()
+}
+
+func (ss *StorageSubmenu) CompileInventoryList() {
+	ss.inventory = make([]string, 0)
+
+	for item := range ss.ship.Storage.items {
+		ss.inventory = append(ss.inventory, item)
+	}
+
+	sort.Strings(ss.inventory)
+}
+
+func (ss *StorageSubmenu) Update() {
+	var capacities string
+	capacities += fmt.Sprint("General Storage: ", ss.ship.Storage.GetFilledVolume(STORE_GENERAL), "/", ss.ship.Storage.GetCapacity(STORE_GENERAL), "/n")
+	capacities += fmt.Sprint("Liquid Storage: ", ss.ship.Storage.GetFilledVolume(STORE_LIQUID), "/", ss.ship.Storage.GetCapacity(STORE_LIQUID), "/n")
+	capacities += fmt.Sprint("Gas Storage: ", ss.ship.Storage.GetFillPct(STORE_GAS), "% full/n")
+	ss.capacitiesText.ChangeText(capacities)
+
+	selectedItem := ss.inventory[ss.inventoryList.GetSelection()]
+	ss.inventoryList.ClearElements()
+	for i, item := range ss.inventory {
+		ss.inventoryList.Append(fmt.Sprint(ss.ship.Storage.GetItemVolume(item)) + " - " + item)
+		if item == selectedItem {
+			ss.inventoryList.Select(i)
+		}
+	}
+
+	ss.UpdateItemDescription()
+}
+
+func (ss *StorageSubmenu) UpdateItemDescription() {
+	itemName := ss.inventory[ss.inventoryList.GetSelection()]
+	item := ss.ship.Storage.items[itemName]
+
+	ss.itemNameText.ChangeText(item.GetName())
+	ss.itemDescriptionText.ChangeText(item.GetDescription())
+	ss.itemVolumeText.ChangeText("Amount: " + fmt.Sprint(item.GetAmount()))
+	switch item.GetStorageType() {
+	case STORE_GENERAL:
+		ss.itemStorageTypeText.ChangeText("Stored in: General Storage")
+	case STORE_LIQUID:
+		ss.itemStorageTypeText.ChangeText("Stored in: Liquid Storage")
+	case STORE_GAS:
+		ss.itemStorageTypeText.ChangeText("Stored in: Gas Storage")
+	}
+}
+
+func (ss *StorageSubmenu) HandleKeypress(key sdl.Keycode) {
+	selection := ss.inventoryList.GetSelection()
+	ss.inventoryList.HandleKeypress(key)
+	if selection != ss.inventoryList.GetSelection() {
+		ss.UpdateItemDescription() //update if selected item has changed.
 	}
 }
