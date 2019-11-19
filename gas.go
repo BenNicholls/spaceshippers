@@ -63,7 +63,7 @@ func (g *Gas) SetAmount(m float64) {
 
 func (g *Gas) ChangeAmount(d float64) {
 	if g.molar+d < 0 {
-		burl.LogError("Attempt to change molar value to negative for", g.GetName(), ",no change made.")
+		burl.LogError("Attempt to change molar value to negative for", g.GetName(), ", no change made.")
 		return
 	}
 	g.molar += d

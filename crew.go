@@ -110,8 +110,8 @@ func (c *Crewman) Update(spaceTime int) {
 		c.ChangeForeColour(burl.COL_RED)
 		if c.CurrentTask != nil {
 			c.CurrentTask.OnInterrupt()
+			c.CurrentTask = nil
 		}
-		c.CurrentTask = nil
 		burl.PushEvent(burl.NewEvent(LOG_EVENT, c.Name+" has died! :("))
 	}
 }
