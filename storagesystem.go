@@ -62,6 +62,10 @@ func (ss *StorageSystem) Store(item Storable) error {
 		return errors.New("Not enough space")
 	}
 
+	if item.GetAmount() == 0 {
+		return errors.New("Cannot store zero of item.")
+	}
+
 	ss.volume[item.GetStorageType()] += item.GetAmount()
 
 	if i, ok := ss.items[item.GetName()]; ok {

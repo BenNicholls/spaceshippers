@@ -149,9 +149,9 @@ func NewViewMenu() (vm *ViewMenu) {
 	vm.paletteView = burl.NewTileView(1, 40, 21, 2, 1, false)
 	vm.paletteLabels = burl.NewContainer(32, 42, 23, 2, 1, false)
 
-	vm.UpdateViewModeData()
-
 	vm.Add(vm.modeList, vm.modeDescriptionText, vm.paletteView, vm.paletteLabels)
+
+	vm.UpdateViewModeData()
 
 	return
 }

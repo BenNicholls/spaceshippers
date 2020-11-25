@@ -101,12 +101,8 @@ func (ss *StorageSubmenu) CompileInventoryList() {
 	sort.Strings(ss.inventory)
 }
 
-func (ss *StorageSubmenu) Update() {
-	var capacities string
-	capacities += fmt.Sprint("General Storage: ", ss.ship.Storage.GetFilledVolume(STORE_GENERAL), "/", ss.ship.Storage.GetCapacity(STORE_GENERAL), "/n")
-	capacities += fmt.Sprint("Liquid Storage: ", ss.ship.Storage.GetFilledVolume(STORE_LIQUID), "/", ss.ship.Storage.GetCapacity(STORE_LIQUID), "/n")
-	capacities += fmt.Sprint("Gas Storage: ", ss.ship.Storage.GetFillPct(STORE_GAS), "% full/n")
-	ss.capacitiesText.ChangeText(capacities)
+func (ss *StorageSubmenu) UpdateInventoryList() {
+	ss.CompileInventoryList()
 
 	selectedItem := ss.inventory[ss.inventoryList.GetSelection()]
 	ss.inventoryList.ClearElements()
@@ -118,6 +114,16 @@ func (ss *StorageSubmenu) Update() {
 	}
 
 	ss.UpdateItemDescription()
+}
+
+func (ss *StorageSubmenu) Update() {
+	var capacities string
+	capacities += fmt.Sprint("General Storage: ", ss.ship.Storage.GetFilledVolume(STORE_GENERAL), "/", ss.ship.Storage.GetCapacity(STORE_GENERAL), "/n")
+	capacities += fmt.Sprint("Liquid Storage: ", ss.ship.Storage.GetFilledVolume(STORE_LIQUID), "/", ss.ship.Storage.GetCapacity(STORE_LIQUID), "/n")
+	capacities += fmt.Sprint("Gas Storage: ", ss.ship.Storage.GetFillPct(STORE_GAS), "% full/n")
+	ss.capacitiesText.ChangeText(capacities)
+
+	ss.UpdateInventoryList()
 }
 
 func (ss *StorageSubmenu) UpdateItemDescription() {

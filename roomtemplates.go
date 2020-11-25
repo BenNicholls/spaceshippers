@@ -59,7 +59,11 @@ func init() {
 			},
 			RoomStat{
 				Stat:     STAT_CO2_SCRUBRATE,
-				Modifier: 500, //volume of gas (L) that can be purged of CO2 per second
+				Modifier: 5,
+			},
+			RoomStat{
+				Stat:     STAT_LS_MODULE_CAP,
+				Modifier: 10,
 			},
 			RoomStat{
 				Stat:     STAT_GENERAL_STORAGE,

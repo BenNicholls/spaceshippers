@@ -178,9 +178,9 @@ func init() {
 	}
 	statInformation[STAT_LS_MODULE_CAP] = StatInfo{
 		Name:        "Life Support Module Limit",
-		Description: "Number of modules life support system can safely support.",
-		System:      SYS_POWER,
-		Stat:        STAT_POWER_DRAW,
+		Description: "Number of modules life support system can safely support. Trying to support mode modules than this cap will affect efficiency and performance of all life support systems.",
+		System:      SYS_LIFESUPPORT,
+		Stat:        STAT_LS_MODULE_CAP,
 	}
 	statInformation[STAT_PRESSURIZATION_RATE] = StatInfo{
 		Name:        "Pressurization Rate",
@@ -207,7 +207,7 @@ func init() {
 		Stat:        STAT_LIQUID_STORAGE,
 	}
 	statInformation[STAT_GAS_STORAGE] = StatInfo{
-		Name:        "Fuel Storage",
+		Name:        "Gas Storage",
 		Description: "Storage for gasses, in Litres.",
 		System:      SYS_STORAGE,
 		Stat:        STAT_GAS_STORAGE,
