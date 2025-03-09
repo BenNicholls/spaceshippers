@@ -1,48 +1,55 @@
 package main
 
-import "math/rand"
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"math/rand"
+
+	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/gfx"
+	"github.com/bennicholls/tyumi/gfx/col"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/util"
+	"github.com/bennicholls/tyumi/vec"
+)
 
 type StarField struct {
-	field         []int
-	starFrequency int
-	starShift     int
-	view          *burl.TileView
-	dirty         bool
+	ui.Element
+
+	field          []bool
+	offset         int
+	shiftFrequency int // number of game ticks between shifts
 }
 
-//initializes a starfield twice the width of the screen
-func NewStarField(starFrequency int, v *burl.TileView) (sf StarField) {
-	sf.view = v
-	w, h := v.Dims()
-	sf.field = make([]int, w*h*2)
-	sf.starFrequency = starFrequency
-	sf.dirty = true
-	for i := 0; i < len(sf.field); i++ {
-		if rand.Intn(sf.starFrequency) == 0 {
-			sf.field[i] = 1
+func (sf *StarField) Init(size vec.Dims, pos vec.Coord, depth, starFrequency, shiftFrequency int) {
+	sf.Element.Init(size, pos, depth)
+	sf.shiftFrequency = shiftFrequency
+
+	sf.field = make([]bool, size.Area()*2)
+	for i := range sf.field {
+		if rand.Intn(starFrequency) == 0 {
+			sf.field[i] = true
 		}
 	}
-	return
 }
 
-//moves the "camera" on the stars.
-func (sf *StarField) Shift() {
-	w, _ := sf.view.Dims()
-	sf.starShift, _ = burl.ModularClamp(sf.starShift+1, 0, (w*2)-1)
-	sf.dirty = true
+func (sf *StarField) Update() {
+	// moves the "camera" on the stars.
+	if tyumi.GetTick()%sf.shiftFrequency != 0 {
+		return
+	}
+
+	sf.offset = util.CycleClamp(sf.offset+1, 0, (sf.Size().W*2)-1)
+	sf.Updated = true
 }
 
-//Draws the starfield, offset by the current starShift value.
-func (sf *StarField) Draw() {
-	if sf.dirty {
-		sf.view.Reset()
-		w, h := sf.view.Dims()
-		for i := 0; i < w*h; i++ {
-			if sf.field[(i/w)*w*2+(i%w+sf.starShift)%(w*2)] != 0 {
-				sf.view.Draw(i%w, i/w, burl.GLYPH_ASTERISK, burl.COL_DARKGREY, burl.COL_BLACK)
-			}
+// Draws the starfield, offset by the current starShift value.
+func (sf *StarField) Render() {
+	w := sf.Size().W
+	star := gfx.NewGlyphVisuals(gfx.GLYPH_ASTERISK, col.Pair{col.DARKGREY, col.NONE})
+	for cursor := range vec.EachCoordInArea(sf.DrawableArea()) {
+		if sf.field[(cursor.Y)*w*2+(cursor.X+sf.offset)%(w*2)] {
+			sf.DrawVisuals(cursor, 0, star)
+		} else {
+			sf.DrawGlyph(cursor, 0, gfx.GLYPH_SPACE)
 		}
-		sf.dirty = false
 	}
 }
