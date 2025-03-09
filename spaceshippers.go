@@ -1,29 +1,29 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/log"
+	"github.com/bennicholls/tyumi/platform/sdl"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 //import "github.com/pkg/profile"
 
 func main() {
 	//defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
+	log.EnableConsoleOutput()
+	log.SetMinimumLogLevel(log.LVL_DEBUG)
+	defer log.WriteToDisk()
 
-	_, err := burl.InitConsole(96, 54, "res/cp437_20x20.bmp", "res/DelveFont10x20.bmp", "Spaceshippers")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	tyumi.SetPlatform(sdl.NewPlatform())
+	tyumi.InitConsole("Spaceshippers", vec.Dims{96, 54}, "res/cp437_20x20.bmp", "res/DelveFont10x20.bmp")
 
 	//console.SetFullscreen(true)
-	burl.Debug()
+	//burl.Debug()
 
-	burl.InitState(NewStartMenu())
+	startMenu := StartMenu{}
+	startMenu.Init()
+	tyumi.SetInitialMainState(&startMenu)
 
-	err = burl.GameLoop()
-	if err != nil {
-		fmt.Println(err)
-	}
+	tyumi.Run()
 }
