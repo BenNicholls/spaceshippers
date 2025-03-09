@@ -1,75 +1,71 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/event"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/input"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 type StartMenu struct {
-	burl.StatePrototype
+	tyumi.State
 
-	menu  *burl.List
-	title *burl.Textbox
-
-	background *burl.TileView
-	stars      StarField
+	menu  ui.List
+	stars StarField
 }
 
-func NewStartMenu() (sm *StartMenu) {
-	sm = new(StartMenu)
-	sm.InitWindow(false)
+func (sm *StartMenu) Init() {
+	sm.State.Init(vec.Dims{tyumi.FIT_CONSOLE, tyumi.FIT_CONSOLE})
 
-	sm.title = burl.NewTextbox(20, 1, 0, 10, 1, true, true, "SPACE SHIPPERS: The Ones Who Space Ship!")
-	sm.title.CenterX(96, 0)
+	title := ui.Textbox{}
+	title.Init(vec.Dims{ui.FIT_TEXT, 1}, vec.Coord{0, 10}, 1, "SPACE SHIPPERS: The Ones Who Space Ship!", ui.JUSTIFY_CENTER)
+	title.EnableBorder()
+	sm.Window().AddChild(&title)
+	title.CenterHorizontal()
 
-	sm.menu = burl.NewList(15, 5, 10, 10, 1, true, "")
-	sm.menu.CenterInConsole()
-	sm.menu.Append("New Game", "Load Game", "Ship Designer", "Options", "Quit")
+	sm.menu.Init(vec.Dims{16, 5}, vec.Coord{0, 0}, 1)
+	sm.menu.EnableBorder()
+	sm.Window().AddChild(&sm.menu)
+	sm.menu.Center()
+	sm.menu.AddTextItems(ui.JUSTIFY_CENTER, "New Game", "Load Game", "Ship Designer", "Options", "Quit")
+	sm.menu.EnableHighlight()
 
-	sm.background = burl.NewTileView(96, 54, 0, 0, 0, false)
-	sm.stars = NewStarField(25, sm.background)
+	sm.stars.Init(vec.Dims{96, 54}, vec.ZERO_COORD, 0, 25, 10)
+	sm.Window().AddChildren(&sm.stars)
 
-	sm.Window.Add(sm.title, sm.menu, sm.background)
-	return
+	sm.SetInputHandler(sm.HandleInput)
 }
 
-func (sm *StartMenu) HandleKeypress(key sdl.Keycode) {
-	switch key {
-	case sdl.K_UP:
-		sm.menu.Prev()
-	case sdl.K_DOWN:
-		sm.menu.Next()
-	case sdl.K_RETURN:
-		switch sm.menu.GetSelection() {
-		case 0: //New Game
-			burl.ChangeState(NewCreateGalaxyMenu())
-		case 1: //Load Game
-			//Load Game dialog
-		case 2: //Ship Designer
-			burl.ChangeState(NewShipDesignMenu())
-		case 3: //Options
-			//Options Dialog
-		case 4: //Quit
-			burl.PushEvent(burl.NewEvent(burl.EV_QUIT, ""))
+func (sm *StartMenu) HandleInput(input_event event.Event) (event_handled bool) {
+	if input_event.Handled() {
+		return
+	}
+
+	if input_event.ID() == input.EV_KEYBOARD {
+		key_event := input_event.(*input.KeyboardEvent)
+		switch key_event.Key {
+		case input.K_RETURN:
+			switch sm.menu.GetSelectionIndex() {
+			case 0: //New Game
+				//burl.ChangeState(NewCreateGalaxyMenu())
+			case 1: //Load Game
+				//Load Game dialog
+			case 2: //Ship Designer
+				//burl.ChangeState(NewShipDesignMenu())
+			case 3: //Options
+				//Options Dialog
+			case 4: //Quit
+				event.Fire(event.New(tyumi.EV_QUIT))
+			}
+		case input.K_SPACE: //FOR TESTING PURPOSES ONLY DAMMIT
+			// g := NewGalaxy("Test Galaxy", GAL_MAX_RADIUS, GAL_DENSE)
+			// s := NewShip("The Greatest Spaceship There Is", g)
+			// temp, _ := LoadShipTemplate("raws/ship/Transport Ship.shp")
+			// s.SetupFromTemplate(temp)
+			// burl.ChangeState(NewSpaceshipGame(g, s))
 		}
-	case sdl.K_SPACE: //FOR TESTING PURPOSES ONLY DAMMIT
-		g := NewGalaxy("Test Galaxy", GAL_MAX_RADIUS, GAL_DENSE)
-		s := NewShip("The Greatest Spaceship There Is", g)
-		temp, _ := LoadShipTemplate("raws/ship/Transport Ship.shp")
-		s.SetupFromTemplate(temp)
-		burl.ChangeState(NewSpaceshipGame(g, s))
-	}
-}
-
-func (sm *StartMenu) Update() {
-	sm.Tick++
-
-	if sm.Tick%10 == 0 {
-		sm.stars.Shift()
 	}
 
-}
-
-func (sm *StartMenu) Render() {
-	sm.stars.Draw()
+	return
 }
