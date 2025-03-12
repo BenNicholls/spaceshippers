@@ -57,16 +57,16 @@ func (sg *SpaceshipGame) HandleKeypressCommMenu(key sdl.Keycode) {
 	case 0: //Inbox
 		sg.commMenu.inboxList.HandleKeypress(key)
 		if key == sdl.K_RETURN && len(sg.commMenu.comms.Inbox) > 0 {
-			s := sg.commMenu.inboxList.GetSelection()
-			msg := sg.commMenu.comms.Inbox[s]
-			burl.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
+			//s := sg.commMenu.inboxList.GetSelection()
+			//msg := sg.commMenu.comms.Inbox[s]
+			//burl.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
 		}
 	case 2: //Transmissions
 		sg.commMenu.transmissionsList.HandleKeypress(key)
 		if key == sdl.K_RETURN && len(sg.commMenu.comms.Transmissions) > 0 {
-			s := sg.commMenu.transmissionsList.GetSelection()
-			msg := sg.commMenu.comms.Transmissions[s]
-			burl.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
+			//s := sg.commMenu.transmissionsList.GetSelection()
+			//msg := sg.commMenu.comms.Transmissions[s]
+			//burl.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
 		}
 	}
 }

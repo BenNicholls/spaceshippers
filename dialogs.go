@@ -2,6 +2,11 @@ package main
 
 import (
 	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/event"
+	"github.com/bennicholls/tyumi/gfx"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/vec"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -156,47 +161,59 @@ func (sd *SaveDialog) Done() bool {
 }
 
 type CommDialog struct {
-	burl.StatePrototype
+	tyumi.State
 
-	senderText    *burl.Textbox
-	recipientText *burl.Textbox
-	senderPic     *burl.TileView
-	messageText   *burl.Textbox
-	okayButton    *burl.Button
+	okayButton ui.Button
+	done       bool
 }
 
 func NewCommDialog(from, to, picFile, message string) (cd *CommDialog) {
 	cd = new(CommDialog)
-	cd.Window = burl.NewContainer(48, 12, 1, 1, 50, true)
-	cd.Window.CenterInConsole()
+	cd.Init()
 
-	cd.okayButton = burl.NewButton(6, 1, 0, 10, 1, true, true, "Sounds Good!")
-	cd.okayButton.ToggleFocus()
-	w, _ := cd.Window.Dims()
-
-	if from == "" && to == "" && picFile == "" {
-		//special dialog version with just a message.
-		cd.messageText = burl.NewTextbox(48, 5, 0, 1, 0, false, true, message)
-		cd.okayButton.CenterX(w, 0)
-	} else {
-		cd.senderPic = burl.NewTileView(12, 12, 0, 0, 0, false)
-		cd.senderPic.LoadImageFromXP(picFile)
-		cd.messageText = burl.NewTextbox(35, 5, 13, 3, 0, false, false, message)
-		cd.senderText = burl.NewTextbox(35, 1, 13, 0, 0, false, false, "FROM: "+from)
-		cd.recipientText = burl.NewTextbox(35, 1, 13, 1, 0, false, false, "TO: "+to)
-		cd.Window.Add(cd.senderPic, cd.senderText, cd.recipientText)
-		cd.okayButton.CenterX(w, 12)
-	}
-
-	cd.Window.Add(cd.messageText, cd.okayButton)
+	cd.Window().AddChild(ui.NewImage(vec.ZERO_COORD, 0, picFile))
+	cd.Window().AddChild(ui.NewTextbox(vec.Dims{35, 5}, vec.Coord{13, 3}, 0, message, ui.JUSTIFY_LEFT))
+	cd.Window().AddChild(ui.NewTextbox(vec.Dims{35, 1}, vec.Coord{13, 0}, 0, "FROM: "+from, ui.JUSTIFY_LEFT))
+	cd.Window().AddChild(ui.NewTextbox(vec.Dims{35, 1}, vec.Coord{13, 1}, 0, "TO: "+to, ui.JUSTIFY_LEFT))
+	cd.okayButton.MoveTo(vec.Coord{12 + (36-cd.okayButton.Size().W)/2, 10})
 
 	return
 }
 
-func (cd *CommDialog) HandleKeypress(key sdl.Keycode) {
-	cd.okayButton.HandleKeypress(key)
+func NewSimpleCommDialog(message string) (cd *CommDialog) {
+	cd = new(CommDialog)
+	cd.Init()
+
+	cd.Window().AddChild(ui.NewTextbox(vec.Dims{48, 5}, vec.Coord{0, 1}, 0, message, ui.JUSTIFY_CENTER))
+	cd.okayButton.CenterHorizontal()
+
+	return
+}
+
+func (cd *CommDialog) Init() {
+	cd.State.InitCentered(vec.Dims{48, 12})
+	cd.Window().EnableBorder()
+
+	cd.okayButton.Init(vec.Dims{6, 1}, vec.Coord{0, 10}, 1, "Sounds Good!", nil)
+	cd.okayButton.EnableBorder()
+	cd.okayButton.Focus()
+	//cd.okayButton.OnPressAnimation.(*gfx.PulseAnimation).Blocking = true
+
+	cd.Window().AddChild(&cd.okayButton)
+
+	cd.Events().Listen(gfx.EV_ANIMATION_COMPLETE)
+	cd.SetEventHandler(cd.HandleEvent)
+}
+
+func (cd *CommDialog) HandleEvent(game_event event.Event) (event_handled bool) {
+	if game_event.ID() == gfx.EV_ANIMATION_COMPLETE {
+		cd.done = true
+		return true
+	}
+
+	return
 }
 
 func (cd CommDialog) Done() bool {
-	return cd.okayButton.PressPulse.IsFinished()
+	return cd.done
 }

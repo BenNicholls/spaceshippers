@@ -1,6 +1,9 @@
 package main
 
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/log"
+)
 
 type Player struct {
 	Person
@@ -26,9 +29,9 @@ func NewPlayer(n string) (p *Player) {
 	return
 }
 
-//Adds a mission to the player's missionlog.
+// Adds a mission to the player's missionlog.
 func (p *Player) AddMission(m *Mission) {
 	p.MissionLog = append(p.MissionLog, m)
-	burl.LogInfo("Added Mission: ", m.name)
+	log.Info("Added Mission: ", m.name)
 	burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "missions"))
 }

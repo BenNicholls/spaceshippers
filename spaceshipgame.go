@@ -123,10 +123,10 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 		})
 	})
 
-	burl.RegisterDebugCommand("earth", func() {
-		sg.playerShip.SetLocation(sg.galaxy.GetEarth())
-		sg.galaxyMenu.starchartMapView.systemFocus = sg.galaxy.GetStarSystem(sg.playerShip.GetCoords()) //this is messy.
-	})
+	// burl.RegisterDebugCommand("earth", func() {
+	// 	sg.playerShip.SetLocation(sg.galaxy.GetEarth())
+	// 	sg.galaxyMenu.starchartMapView.systemFocus = sg.galaxy.GetStarSystem(sg.playerShip.GetCoords()) //this is messy.
+	// })
 
 	// for _, r := range sg.playerShip.Rooms {
 	// 	burl.RegisterWatch(r.Name+" o2", &r.atmo.gasses)
@@ -155,7 +155,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.InitWindow(false)
 
 	sg.shipdisplay = burl.NewTileView(96, 46, 0, 3, 1, false)
-	sg.Stars = NewStarField(20, sg.shipdisplay)
+	//sg.Stars = NewStarField(20, sg.shipdisplay)
 
 	sg.output = burl.NewList(37, 8, 1, 45, 10, true, "Nothing to report, Captain!")
 	sg.output.SetHint("PgUp/PgDown to scroll")
@@ -219,7 +219,7 @@ func (sg *SpaceshipGame) Update() {
 
 		//need starfield shift speed controlled here (currently hardcoded to shift every 100 seconds as long as the ship is moving)
 		if sg.playerShip.GetSpeed() != 0 && sg.GetTick()%100 == 0 {
-			sg.Stars.Shift()
+			//sg.Stars.Shift()
 		}
 
 		for i := range sg.player.MissionLog {
@@ -265,7 +265,7 @@ func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
 }
 
 func (sg *SpaceshipGame) Render() {
-	sg.Stars.Draw()
+	//sg.Stars.Draw()
 	sg.playerShip.DrawToTileView(sg.shipdisplay, sg.viewMenu.GetViewMode(), sg.viewX, sg.viewY)
 }
 
@@ -310,7 +310,7 @@ func (sg *SpaceshipGame) MoveShipCamera(dx, dy int) {
 
 func (sg *SpaceshipGame) ResetShipView() {
 	sg.shipdisplay.Reset()
-	sg.Stars.dirty = true
+	//sg.Stars.dirty = true
 }
 
 func (sg SpaceshipGame) GetIncrement() int {

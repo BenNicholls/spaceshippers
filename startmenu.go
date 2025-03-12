@@ -16,7 +16,7 @@ type StartMenu struct {
 }
 
 func (sm *StartMenu) Init() {
-	sm.State.Init(vec.Dims{tyumi.FIT_CONSOLE, tyumi.FIT_CONSOLE})
+	sm.State.Init()
 
 	title := ui.Textbox{}
 	title.Init(vec.Dims{ui.FIT_TEXT, 1}, vec.Coord{0, 10}, 1, "SPACE SHIPPERS: The Ones Who Space Ship!", ui.JUSTIFY_CENTER)
@@ -30,6 +30,7 @@ func (sm *StartMenu) Init() {
 	sm.menu.Center()
 	sm.menu.AddTextItems(ui.JUSTIFY_CENTER, "New Game", "Load Game", "Ship Designer", "Options", "Quit")
 	sm.menu.EnableHighlight()
+	sm.menu.Focus()
 
 	sm.stars.Init(vec.Dims{96, 54}, vec.ZERO_COORD, 0, 25, 10)
 	sm.Window().AddChildren(&sm.stars)
@@ -44,11 +45,15 @@ func (sm *StartMenu) HandleInput(input_event event.Event) (event_handled bool) {
 
 	if input_event.ID() == input.EV_KEYBOARD {
 		key_event := input_event.(*input.KeyboardEvent)
+		if key_event.PressType == input.KEY_RELEASED {
+			return
+		}
+
 		switch key_event.Key {
 		case input.K_RETURN:
 			switch sm.menu.GetSelectionIndex() {
 			case 0: //New Game
-				//burl.ChangeState(NewCreateGalaxyMenu())
+				tyumi.ChangeState(NewCreateGalaxyMenu())
 			case 1: //Load Game
 				//Load Game dialog
 			case 2: //Ship Designer
@@ -56,7 +61,7 @@ func (sm *StartMenu) HandleInput(input_event event.Event) (event_handled bool) {
 			case 3: //Options
 				//Options Dialog
 			case 4: //Quit
-				event.Fire(event.New(tyumi.EV_QUIT))
+				event.FireSimple(tyumi.EV_QUIT)
 			}
 		case input.K_SPACE: //FOR TESTING PURPOSES ONLY DAMMIT
 			// g := NewGalaxy("Test Galaxy", GAL_MAX_RADIUS, GAL_DENSE)

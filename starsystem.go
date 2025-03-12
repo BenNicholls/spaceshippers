@@ -7,6 +7,9 @@ import (
 	"strconv"
 
 	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/gfx"
+	"github.com/bennicholls/tyumi/gfx/col"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 const GRAVCONST float64 = 6.674e-11
@@ -24,7 +27,7 @@ func NewStarSystem(c Coordinates) (s *StarSystem) {
 	s.LocationType = loc_STARSYSTEM
 	s.Coords = c
 	s.Coords.Resolution = coord_STARSYSTEM
-	s.Coords.StarCoord = burl.Coord{X: rand.Intn(coord_STARSYSTEM_MAX), Y: rand.Intn(coord_STARSYSTEM_MAX)}
+	s.Coords.StarCoord = vec.Coord{X: rand.Intn(coord_STARSYSTEM_MAX), Y: rand.Intn(coord_STARSYSTEM_MAX)}
 	s.Planets = make([]Planet, 0, 10) //Starsystems have max 10 planets, right? Yeah sounds about right.
 
 	return
@@ -81,9 +84,9 @@ func (s *StarSystem) GenerateSolSystem() {
 	s.Planets = append(s.Planets, NewUniquePlanet(s.Coords, 4497e9, 24764e3, 1.024e26, "Neptune", PLANET_GASGIANT))
 }
 
-//Returns a list of all locations in the system. Right now that means the star and planets,
-//but it's set up to automatically grab locations in a hierarchy, so if planets get moons
-//at some point it will pick them up.
+// Returns a list of all locations in the system. Right now that means the star and planets,
+// but it's set up to automatically grab locations in a hierarchy, so if planets get moons
+// at some point it will pick them up.
 func (s StarSystem) GetLocations() []Locatable {
 	l := make([]Locatable, 0)
 	l = append(l, s.Star)
@@ -95,13 +98,13 @@ func (s StarSystem) GetLocations() []Locatable {
 
 type Star struct {
 	Location
-	burl.Visuals
+	gfx.Visuals
 
 	radius float64
 	mass   float64
 }
 
-//NewStar creates a star. c is the coordinates of the starsystem. Defaults to center of system.
+// NewStar creates a star. c is the coordinates of the starsystem. Defaults to center of system.
 func NewStar(c Coordinates, name string, radius, mass float64) (s Star) {
 	s.Name = name
 	s.Description = "This is a star. Stars are big hot balls of lava that float in space like magic."
@@ -114,13 +117,13 @@ func NewStar(c Coordinates, name string, radius, mass float64) (s Star) {
 	s.VisitDistance = radius * 1.2
 	s.VisitSpeed = math.Sqrt(GRAVCONST * s.mass / s.VisitDistance)
 
-	s.Visuals = burl.Visuals{
-		Glyph:      burl.GLYPH_STAR,
-		ForeColour: burl.COL_YELLOW,
-		BackColour: burl.COL_BLACK,
-	}
+	s.Visuals = gfx.NewGlyphVisuals(gfx.GLYPH_STAR, col.Pair{col.YELLOW, col.BLACK})
 
 	return
+}
+
+func (s Star) GetVisuals() gfx.Visuals {
+	return s.Visuals
 }
 
 type PlanetType int
@@ -133,7 +136,7 @@ const (
 
 type Planet struct {
 	Location
-	burl.Visuals
+	gfx.Visuals
 
 	oDistance float64 //orbital distance
 	oPosition float64 //orbital position in degrees
@@ -142,7 +145,7 @@ type Planet struct {
 	ptype     PlanetType
 }
 
-//NewPlanet creates a planet. c is the coords of the starsystem. orbit is the distance in meters from the star
+// NewPlanet creates a planet. c is the coords of the starsystem. orbit is the distance in meters from the star
 func NewPlanet(c Coordinates, orbit float64, name string, pType PlanetType) (p Planet) {
 	p.Name = name
 	p.Description = "This is a planet. Planets are rocks that are big enough to be important. Some planets have life on them, but most of them are super boring."
@@ -155,15 +158,14 @@ func NewPlanet(c Coordinates, orbit float64, name string, pType PlanetType) (p P
 	p.Coords.Local.X = (coord_LOCAL_MAX / 2) + p.oDistance*math.Cos(p.oPosition)
 	p.Coords.Local.Y = (coord_LOCAL_MAX / 2) + p.oDistance*math.Sin(p.oPosition)
 
-	p.Visuals = burl.Visuals{
-		Glyph:      int(rune(p.Name[0])),
-		ForeColour: 0xFF825814,
-		BackColour: burl.COL_BLACK,
-	}
+	p.Visuals = gfx.NewGlyphVisuals(gfx.Glyph(rune(p.Name[0])), col.Pair{0xFF825814, col.BLACK})
 
 	p.Generate(pType)
 
 	return
+}
+func (p Planet) GetVisuals() gfx.Visuals {
+	return p.Visuals
 }
 
 func NewUniquePlanet(c Coordinates, orbit, radius, mass float64, name string, pType PlanetType) (p Planet) {
@@ -201,7 +203,7 @@ func (p *Planet) Generate(t PlanetType) {
 
 }
 
-//NOTE: When moons and orbitting stuff gets implemented, be sure to add those here.
+// NOTE: When moons and orbitting stuff gets implemented, be sure to add those here.
 func (p Planet) GetLocations() []Locatable {
 	l := make([]Locatable, 0)
 	l = append(l, p)

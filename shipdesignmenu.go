@@ -88,11 +88,11 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 
 	sdm.Window.Add(sdm.roomColumn, sdm.shipView, sdm.shipColumn, sdm.buttons)
 
-	sdm.stars = NewStarField(20, sdm.shipView)
+	//sdm.stars = NewStarField(20, sdm.shipView)
 	sdm.CenterView()
 
 	sdm.roomTemplateOrder = make([]RoomType, 0)
-	for i, _ := range roomTemplates {
+	for i := range roomTemplates {
 		sdm.roomTemplateOrder = append(sdm.roomTemplateOrder, i)
 	}
 
@@ -236,7 +236,7 @@ func (sdm *ShipDesignMenu) Update() {
 	sdm.Tick++
 
 	if sdm.Tick%10 == 0 {
-		sdm.stars.Shift()
+	//	sdm.stars.Shift()
 	}
 }
 
@@ -339,7 +339,7 @@ func (sdm *ShipDesignMenu) UpdateShipDetails() {
 }
 
 func (sdm *ShipDesignMenu) Render() {
-	sdm.stars.Draw()
+	//sdm.stars.Draw()
 	sdm.ship.DrawToTileView(sdm.shipView, VIEW_DEFAULT, sdm.offX, sdm.offY)
 
 	if sdm.roomToAdd != nil {

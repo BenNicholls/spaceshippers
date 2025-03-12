@@ -76,7 +76,7 @@ func (ce *CrewEffect) RemoveSource(s StatusID) {
 
 //Called once per tick to update durations and such.
 func (ce *CrewEffect) Update() {
-	for s, _ := range ce.Sources {
+	for s := range ce.Sources {
 		ce.Sources[s] += 1
 	}
 

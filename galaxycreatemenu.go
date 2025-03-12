@@ -1,87 +1,102 @@
 package main
 
 import (
-	"math/rand"
-
-	"github.com/bennicholls/burl-E/burl"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/event"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/util"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 type CreateGalaxyMenu struct {
-	burl.StatePrototype
+	tyumi.State
 
-	nameInput      *burl.Inputbox
-	densityChoice  *burl.ChoiceBox //choice between some pre-defined densities
-	shapeChoice    *burl.ChoiceBox //choice between blob, spiral, maybe more esoteric shapes??
-	sizeChoice     *burl.ChoiceBox
-	explainText    *burl.Textbox
-	randomButton   *burl.Button
-	generateButton *burl.Button
-	cancelButton   *burl.Button
+	nameInput      ui.InputBox
+	densityChoice  ui.ChoiceBox //choice between some pre-defined densities
+	shapeChoice    ui.ChoiceBox //choice between blob, spiral, maybe more esoteric shapes??
+	sizeChoice     ui.ChoiceBox
+	explainText    ui.Textbox
+	randomButton   ui.Button
+	generateButton ui.Button
+	cancelButton   ui.Button
 
-	focusedField burl.UIElem
-
-	galaxyMap *GalaxyMapView
-
-	galaxy *Galaxy
+	galaxy    *Galaxy
+	galaxyMap GalaxyMapView
 }
 
 func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 	cgm = new(CreateGalaxyMenu)
-	cgm.InitWindow(true)
-	cgm.Window.SetTitle("CREATE A WHOLE GALAXY WHY NOT")
+	cgm.State.InitBordered()
+	cgm.Events().Listen(ui.EV_FOCUS_CHANGED, ui.EV_CHOICE_CHANGED)
+	cgm.SetEventHandler(cgm.HandleEvent)
 
-	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 2, 1, false, false, "Name:"))
-	cgm.nameInput = burl.NewInputbox(20, 1, 9, 2, 1, true)
-	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 5, 1, false, false, "Density:"))
-	cgm.densityChoice = burl.NewChoiceBox(20, 1, 9, 5, 2, true, burl.HORIZONTAL, "Sparse", "Normal", "Dense")
-	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 8, 1, false, false, "Shape:"))
-	cgm.shapeChoice = burl.NewChoiceBox(20, 1, 9, 8, 1, true, burl.HORIZONTAL, "Disk", "Spiral")
-	cgm.Window.Add(burl.NewTextbox(5, 1, 2, 11, 1, false, false, "Size:"))
-	cgm.sizeChoice = burl.NewChoiceBox(20, 1, 9, 11, 2, true, burl.HORIZONTAL, "Small", "Medium", "Large")
+	cgm.Window().SetupBorder("CREATE A WHOLE GALAXY WHY NOT", "")
+	windowStyle := ui.DefaultBorderStyle
+	windowStyle.TitleJustification = ui.JUSTIFY_CENTER
+	cgm.Window().Border.SetStyle(ui.BORDER_STYLE_CUSTOM, windowStyle)
 
-	cgm.explainText = burl.NewTextbox(40, 15, 2, 35, 1, true, false, "explanations")
+	cgm.Window().AddChild(ui.NewTextbox(vec.Dims{5, 1}, vec.Coord{2, 2}, 1, "Name:", ui.JUSTIFY_LEFT))
+	cgm.nameInput.Init(vec.Dims{20, 1}, vec.Coord{9, 2}, 1, 0)
+	cgm.nameInput.EnableBorder()
 
-	cgm.randomButton = burl.NewButton(15, 1, 74, 30, 2, true, true, "Randomize Galaxy")
-	cgm.generateButton = burl.NewButton(15, 1, 74, 34, 1, true, true, "Generate the Galaxy as Shown!")
-	cgm.cancelButton = burl.NewButton(15, 1, 74, 38, 2, true, true, "Return to Main Menu")
+	cgm.Window().AddChild(ui.NewTextbox(vec.Dims{5, 1}, vec.Coord{2, 5}, 1, "Density:", ui.JUSTIFY_LEFT))
+	cgm.densityChoice.Init(vec.Dims{20, 1}, vec.Coord{9, 5}, 1, "Sparse", "Normal", "Dense")
+	cgm.densityChoice.EnableBorder()
 
-	cgm.galaxyMap = NewGalaxyMapView(25, 69, 0, 0, true, cgm.galaxy)
+	cgm.Window().AddChild(ui.NewTextbox(vec.Dims{5, 1}, vec.Coord{2, 8}, 1, "Shape:", ui.JUSTIFY_LEFT))
+	cgm.shapeChoice.Init(vec.Dims{20, 1}, vec.Coord{9, 8}, 1, "Disk", "Spiral")
+	cgm.shapeChoice.EnableBorder()
 
-	cgm.Window.Add(cgm.nameInput, cgm.densityChoice, cgm.shapeChoice, cgm.generateButton, cgm.explainText, cgm.cancelButton, cgm.galaxyMap, cgm.randomButton, cgm.sizeChoice)
+	cgm.Window().AddChild(ui.NewTextbox(vec.Dims{5, 1}, vec.Coord{2, 11}, 1, "Size:", ui.JUSTIFY_LEFT))
+	cgm.sizeChoice.Init(vec.Dims{20, 1}, vec.Coord{9, 11}, 1, "Small", "Medium", "Large")
+	cgm.sizeChoice.EnableBorder()
 
-	cgm.nameInput.SetTabID(1)
-	cgm.densityChoice.SetTabID(2)
-	cgm.shapeChoice.SetTabID(3)
-	cgm.sizeChoice.SetTabID(4)
-	cgm.randomButton.SetTabID(5)
-	cgm.generateButton.SetTabID(6)
-	cgm.cancelButton.SetTabID(7)
+	cgm.Window().AddChildren(&cgm.nameInput, &cgm.densityChoice, &cgm.shapeChoice, &cgm.sizeChoice)
 
-	cgm.focusedField = cgm.nameInput
-	cgm.focusedField.ToggleFocus()
+	cgm.explainText.Init(vec.Dims{40, 15}, vec.Coord{2, 35}, 1, "explanations", ui.JUSTIFY_LEFT)
+	cgm.explainText.EnableBorder()
+	cgm.Window().AddChild(&cgm.explainText)
+
+	cgm.randomButton.Init(vec.Dims{15, 1}, vec.Coord{74, 30}, 1, "Randomize Galaxy", cgm.Randomize)
+	cgm.randomButton.EnableBorder()
+	cgm.generateButton.Init(vec.Dims{15, 1}, vec.Coord{74, 34}, 1, "Generate the Galaxy as Shown!", cgm.Generate)
+	cgm.generateButton.EnableBorder()
+	cgm.cancelButton.Init(vec.Dims{15, 1}, vec.Coord{74, 38}, 1, "Return to Main Menu", func() {
+		sm := StartMenu{}
+		sm.Init()
+		tyumi.ChangeState(&sm)
+	})
+	cgm.cancelButton.EnableBorder()
+	cgm.Window().AddChildren(&cgm.randomButton, &cgm.generateButton, &cgm.cancelButton)
+
+	cgm.galaxyMap.Init(vec.Dims{25, 25}, vec.Coord{69, 0}, ui.BorderDepth, cgm.galaxy)
+	cgm.galaxyMap.EnableBorder()
+	cgm.Window().AddChild(&cgm.galaxyMap)
+
+	cgm.nameInput.Focus()
+	cgm.Window().SetTabbingOrder(&cgm.nameInput, &cgm.densityChoice, &cgm.shapeChoice, &cgm.sizeChoice, &cgm.randomButton, &cgm.generateButton, &cgm.cancelButton)
+
 	cgm.UpdateExplanation()
-
-	cgm.Generate()
+	cgm.GeneratePreview()
 
 	return
 }
 
 func (cgm *CreateGalaxyMenu) UpdateExplanation() {
-	switch cgm.focusedField {
-	case cgm.nameInput:
+	switch cgm.Window().GetFocusedElementID() {
+	case cgm.nameInput.ID():
 		cgm.explainText.ChangeText("GALAXY NAME:/n/nIt is believed that one of the main ways in which all sentient races of the galaxy are similar is a common desire to name and label the universe. No Galaxy is complete without a name!")
-	case cgm.densityChoice:
+	case cgm.densityChoice.ID():
 		cgm.explainText.ChangeText("GALAXY DENSITY:/n/nGalaxies come in all shapes, sizes and consistencies. Some are small and dense, with stars but a stone's throw away from each. Others have stars so spread out that many sentient species decide to never even attempt inter-system travel, instead deciding to focus efforts on art and philosophy and creating better and better tofu-based meat substitutes.")
-	case cgm.shapeChoice:
+	case cgm.shapeChoice.ID():
 		cgm.explainText.ChangeText("GALAXY SHAPE:/n/nGalaxies, like cookies, come in many different shapes. Some are globular, some are spirals, some are simple disks, and during certain times of year some are shaped like Christmas trees. (Note: currently only disk galaxies are created).")
-	case cgm.sizeChoice:
+	case cgm.sizeChoice.ID():
 		cgm.explainText.ChangeText("GALAXY SIZE:/n/nAll people need to live in a galaxy, even the very tall. Choose the largest galaxy you can afford to.")
-	case cgm.randomButton:
+	case cgm.randomButton.ID():
 		cgm.explainText.ChangeText("RANDOMIZE:/n/nIndecisive? Stunned by the marvelous array of choices before you? Let me do the work!")
-	case cgm.generateButton:
+	case cgm.generateButton.ID():
 		cgm.explainText.ChangeText("GENERATE:/n/n If this galaxy looks good, we can then generate the galaxy and move on to Ship Selection.")
-	case cgm.cancelButton:
+	case cgm.cancelButton.ID():
 		cgm.explainText.ChangeText("CANCEL:/n/n Return to the main menu, discarding everything here.")
 	}
 }
@@ -89,20 +104,19 @@ func (cgm *CreateGalaxyMenu) UpdateExplanation() {
 func (cgm *CreateGalaxyMenu) Randomize() {
 	names := []string{"The Biggest Galaxy", "The Galaxy of Terror", "The Lactose Blob", "The Thing Fulla Stars", "Andromeda 2", "Home"}
 
-	cgm.nameInput.ChangeText(names[rand.Intn(len(names))])
+	cgm.nameInput.ChangeText(util.PickOne(names))
 	cgm.densityChoice.RandomizeChoice()
 	cgm.shapeChoice.RandomizeChoice()
 	cgm.sizeChoice.RandomizeChoice()
 
-	cgm.Generate()
+	cgm.GeneratePreview()
 }
 
-func (cgm *CreateGalaxyMenu) Generate() {
-
+func (cgm *CreateGalaxyMenu) GeneratePreview() {
 	var densityFactor int
 	var size int
 
-	switch cgm.densityChoice.GetChoice() {
+	switch cgm.densityChoice.GetChoiceIndex() {
 	case 0: //Sparse
 		densityFactor = GAL_SPARSE
 	case 1: //Normal
@@ -111,7 +125,7 @@ func (cgm *CreateGalaxyMenu) Generate() {
 		densityFactor = GAL_DENSE
 	}
 
-	switch cgm.sizeChoice.GetChoice() {
+	switch cgm.sizeChoice.GetChoiceIndex() {
 	case 0: //Small
 		size = GAL_MIN_RADIUS
 	case 1: //Normal
@@ -120,53 +134,28 @@ func (cgm *CreateGalaxyMenu) Generate() {
 		size = GAL_MAX_RADIUS
 	}
 
-	cgm.galaxy = NewGalaxy(cgm.nameInput.GetText(), size, densityFactor)
+	cgm.galaxy = NewGalaxy(cgm.nameInput.InputtedText(), size, densityFactor)
 	cgm.galaxyMap.galaxy = cgm.galaxy
 	cgm.galaxyMap.DrawGalaxyMap()
 }
 
-func (cgm *CreateGalaxyMenu) HandleKeypress(key sdl.Keycode) {
-	cgm.focusedField.HandleKeypress(key)
-
-	switch key {
-	case sdl.K_UP:
-		burl.PushEvent(burl.NewEvent(burl.EV_TAB_FIELD, "-"))
-	case sdl.K_DOWN, sdl.K_TAB:
-		burl.PushEvent(burl.NewEvent(burl.EV_TAB_FIELD, "+"))
-	default:
-
+func (cgm *CreateGalaxyMenu) Generate() {
+	if cgm.nameInput.InputtedText() == "" {
+		cgm.OpenDialog(NewSimpleCommDialog("You must give your galaxy a name before you can continue!"))
+	} else {
+		//burl.ChangeState(NewShipCreateMenu(cgm.galaxy))
 	}
 }
 
-func (cgm *CreateGalaxyMenu) HandleEvent(e *burl.Event) {
-	switch e.ID {
-	case burl.EV_TAB_FIELD:
-		cgm.focusedField.ToggleFocus()
-		if e.Message == "+" {
-			cgm.focusedField = cgm.Window.FindNextTab(cgm.focusedField)
-		} else {
-			cgm.focusedField = cgm.Window.FindPrevTab(cgm.focusedField)
-		}
-		cgm.focusedField.ToggleFocus()
+func (cgm *CreateGalaxyMenu) HandleEvent(game_event event.Event) (event_handled bool) {
+	switch game_event.ID() {
+	case ui.EV_FOCUS_CHANGED:
 		cgm.UpdateExplanation()
-	case burl.EV_BUTTON_PRESS:
-		if e.Caller == cgm.randomButton {
-			cgm.Randomize()
-		}
-	case burl.EV_LIST_CYCLE:
-		switch e.Caller {
-		case cgm.shapeChoice, cgm.sizeChoice, cgm.densityChoice:
-			cgm.Generate()
-		}
-	case burl.EV_ANIMATION_DONE:
-		if e.Caller == cgm.generateButton {
-			if cgm.nameInput.GetText() == "" {
-				burl.OpenDialog(NewCommDialog("", "", "", "You must give your galaxy a name before you can continue!"))
-			} else {
-				burl.ChangeState(NewShipCreateMenu(cgm.galaxy))
-			}
-		} else if e.Caller == cgm.cancelButton {
-			burl.ChangeState(NewStartMenu())
-		}
+		event_handled = true
+	case ui.EV_CHOICE_CHANGED:
+		cgm.GeneratePreview()
+		event_handled = true
 	}
+
+	return
 }

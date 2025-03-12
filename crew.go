@@ -274,7 +274,7 @@ func (c *Crewman) HandleEffects(spaceTime int) {
 				c.HP.Mod(-1)
 			}
 		case EFFECT_POISONED:
-			for s, _ := range e.Sources {
+			for s := range e.Sources {
 				switch s {
 				case STATUS_CO2_POISONING:
 					if spaceTime%10 == 0 {

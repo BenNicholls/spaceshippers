@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/gfx/col"
+	"github.com/bennicholls/tyumi/gfx/ui"
 	"github.com/bennicholls/tyumi/log"
 	"github.com/bennicholls/tyumi/platform/sdl"
 	"github.com/bennicholls/tyumi/vec"
@@ -17,6 +19,9 @@ func main() {
 
 	tyumi.SetPlatform(sdl.NewPlatform())
 	tyumi.InitConsole("Spaceshippers", vec.Dims{96, 54}, "res/cp437_20x20.bmp", "res/DelveFont10x20.bmp")
+
+	ui.SetDefaultFocusColour(col.ORANGE)
+	tyumi.EnableCursor()
 
 	//console.SetFullscreen(true)
 	//burl.Debug()

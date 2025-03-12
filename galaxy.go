@@ -1,8 +1,13 @@
 package main
 
-import "math"
-import "math/rand"
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"math"
+	"math/rand"
+
+	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/util"
+	"github.com/bennicholls/tyumi/vec"
+)
 
 const (
 	//density parameters
@@ -14,7 +19,7 @@ const (
 	GAL_MAX_RADIUS int = 12
 )
 
-//oh the places you'll go...
+// oh the places you'll go...
 type Galaxy struct {
 	name          string //all good galaxies have names
 	width, height int
@@ -38,7 +43,7 @@ func NewGalaxy(name string, radius, densityFactor int) (g *Galaxy) {
 	for i := 0; i < cap(g.sectors); i++ {
 		x, y := i%g.width, i/g.width
 		dist := math.Sqrt(float64(burl.Distance(12, 12, x, y))) + rand.Float64()*2
-		density := burl.Clamp(densityFactor-int(float64(densityFactor)*dist/float64(g.radius)), 0, densityFactor)
+		density := util.Clamp(densityFactor-int(float64(densityFactor)*dist/float64(g.radius)), 0, densityFactor)
 		g.sectors = append(g.sectors, NewSector(x, y, density))
 	}
 
@@ -48,8 +53,8 @@ func NewGalaxy(name string, radius, densityFactor int) (g *Galaxy) {
 	return
 }
 
-func (g Galaxy) Dims() (int, int) {
-	return g.width, g.height
+func (g Galaxy) Dims() vec.Dims {
+	return vec.Dims{g.width, g.height}
 }
 
 func (g *Galaxy) GenerateStart() Locatable {
@@ -60,7 +65,7 @@ func (g *Galaxy) GenerateStart() Locatable {
 	return ss.starSystem.Planets[0]
 }
 
-//Generates the Sol System (and with it, the ACTUAL STRAIGHT UP EARTH). Totally amazing.
+// Generates the Sol System (and with it, the ACTUAL STRAIGHT UP EARTH). Totally amazing.
 func (g *Galaxy) GenerateEarth() {
 	ss := g.GenerateRandomSubSector()
 	ss.starSystem = NewStarSystem(ss.GetCoords())
@@ -72,33 +77,33 @@ func (g *Galaxy) GenerateRandomSubSector() (ss *SubSector) {
 	var sx, sy int
 	//pick random non-empty sector
 	for {
-		sx, sy = burl.GenerateCoord(0, 0, g.width, g.height)
-		s := g.GetSector(sx, sy)
+		sx, sy = util.GenerateCoord(0, 0, g.width, g.height)
+		s := g.GetSector(vec.Coord{sx, sy})
 		if s.Density != 0 {
 			break
 		}
 	}
 
-	ss = g.GetSector(sx, sy).GenerateSubSector(burl.GenerateCoord(0, 0, coord_SECTOR_MAX, coord_SECTOR_MAX))
+	ss = g.GetSector(vec.Coord{sx, sy}).GenerateSubSector(util.GenerateCoord(0, 0, coord_SECTOR_MAX, coord_SECTOR_MAX))
 
 	return
 }
 
-//Retreives sector at (x, y). Returns nil if x,y out of bounds (bad).
-func (g Galaxy) GetSector(x, y int) *Sector {
-	if !burl.CheckBounds(x, y, coord_SECTOR_MAX, coord_SECTOR_MAX) {
+// Retreives sector at (x, y). Returns nil if x,y out of bounds (bad).
+func (g Galaxy) GetSector(c vec.Coord) *Sector {
+	if !c.IsInside(vec.Rect{vec.ZERO_COORD, vec.Dims{coord_SECTOR_MAX, coord_SECTOR_MAX}}) {
 		return nil
 	}
-	return g.sectors[y*g.width+x]
+	return g.sectors[c.ToIndex(g.width)]
 }
 
 func (g Galaxy) GetLocation(c Coordinates) Locatable {
-	sector := g.GetSector(c.Sector.Get())
+	sector := g.GetSector(c.Sector)
 	if c.Resolution == coord_SECTOR {
 		return sector
 	}
 
-	subsector := sector.GetSubSector(c.SubSector.Get())
+	subsector := sector.GetSubSector(c.SubSector)
 	if c.Resolution == coord_SUBSECTOR {
 		return subsector
 	}
@@ -119,11 +124,11 @@ func (g Galaxy) GetLocation(c Coordinates) Locatable {
 	}
 }
 
-//Retreives a reference to the starsystem, given a local coord. Returns nil if coord is not local,
-//or if coord is not within a starsystem
+// Retreives a reference to the starsystem, given a local coord. Returns nil if coord is not local,
+// or if coord is not within a starsystem
 func (g Galaxy) GetStarSystem(c Coordinates) (ss *StarSystem) {
 	if c.Resolution == coord_LOCAL {
-		ss = g.GetSector(c.Sector.Get()).GetSubSector(c.SubSector.Get()).starSystem
+		ss = g.GetSector(c.Sector).GetSubSector(c.SubSector).starSystem
 	}
 
 	return
@@ -156,29 +161,29 @@ func NewSector(x, y, density int) (s *Sector) {
 		name = "Galactic Core Space"
 	}
 	s.Location = Location{name, "Sectors are 1000x1000 lightyears! Wow!", loc_SECTOR, false, true, NewSectorCoordinate(x, y), 0, 0}
-	s.Density = burl.Max(density, 0) //ensures density is at least 0
+	s.Density = max(density, 0) //ensures density is at least 0
 
 	s.subSectors = make(map[int]*SubSector)
 
 	return
 }
 
-//generates the name of the sector based on its (x, y).
+// generates the name of the sector based on its (x, y).
 func (s Sector) ProperName() string {
 	x, y := s.Coords.GetCoordStrings()
 	return x + "-" + y
 }
 
-//GetSubSector attempts to retreive a subsector. If none exists, returns nil.
-func (s Sector) GetSubSector(x, y int) *SubSector {
-	if s, ok := s.subSectors[x+y*coord_SUBSECTOR_MAX]; ok {
+// GetSubSector attempts to retreive a subsector. If none exists, returns nil.
+func (s Sector) GetSubSector(c vec.Coord) *SubSector {
+	if s, ok := s.subSectors[c.ToIndex(coord_SUBSECTOR_MAX)]; ok {
 		return s
 	} else {
 		return nil
 	}
 }
 
-//generates a subsector and adds it to the subsector map. if (x, y) already exists, just returns the old one
+// generates a subsector and adds it to the subsector map. if (x, y) already exists, just returns the old one
 func (s *Sector) GenerateSubSector(x, y int) *SubSector {
 	if s, ok := s.subSectors[x+y*coord_SUBSECTOR_MAX]; ok {
 		return s

@@ -1,15 +1,19 @@
 package main
 
-import "strconv"
-import "math"
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"math"
+	"strconv"
+
+	"github.com/bennicholls/tyumi/util"
+	"github.com/bennicholls/tyumi/vec"
+)
 
 const (
 	METERS_PER_LY float64 = 9.461e15
 	LY_PER_SECTOR int     = 1000
 )
 
-//defines any place where your ship can travel to
+// defines any place where your ship can travel to
 type Locatable interface {
 	GetName() string
 	GetDescription() string
@@ -24,7 +28,7 @@ type Locatable interface {
 
 type LocationType int
 
-//different types of locations
+// different types of locations
 const (
 	loc_NONE LocationType = iota
 	loc_SECTOR
@@ -102,17 +106,17 @@ func (l Location) GetCoords() Coordinates {
 	return l.Coords
 }
 
-//Returns orbital distance or docking distance. Only works for local locations, returns 0 otherwise.
+// Returns orbital distance or docking distance. Only works for local locations, returns 0 otherwise.
 func (l Location) GetVisitDistance() float64 {
 	return l.VisitDistance
 }
 
-//Returns orbital speed or docking speed. Only works for local locations, returns 0 otherwise.
+// Returns orbital speed or docking speed. Only works for local locations, returns 0 otherwise.
 func (l Location) GetVisitSpeed() float64 {
 	return l.VisitSpeed
 }
 
-//This default method actually doesn't work, we don't want the Location object. Hmm.
+// This default method actually doesn't work, we don't want the Location object. Hmm.
 func (l Location) GetLocations() []Locatable {
 	a := make([]Locatable, 1)
 	a[0] = l
@@ -121,7 +125,7 @@ func (l Location) GetLocations() []Locatable {
 
 type CoordResolution int
 
-//coordinate resolution levels
+// coordinate resolution levels
 const (
 	coord_SECTOR CoordResolution = iota
 	coord_SUBSECTOR
@@ -137,15 +141,15 @@ const (
 )
 
 type Coordinates struct {
-	Sector    burl.Coord
-	SubSector burl.Coord
-	StarCoord burl.Coord
-	Local     burl.Vec2
+	Sector    vec.Coord
+	SubSector vec.Coord
+	StarCoord vec.Coord
+	Local     vec.Vec2f
 
 	Resolution CoordResolution //how deep into the rabbit hole this coordinate goes. see above
 }
 
-//NewCoordinate makes a new Coordinate object, defaulted to the center of the galaxy.
+// NewCoordinate makes a new Coordinate object, defaulted to the center of the galaxy.
 func NewCoordinate(res CoordResolution) (c Coordinates) {
 	c.Resolution = res
 	c.Sector.MoveTo(coord_SECTOR_MAX/2, coord_SECTOR_MAX/2)
@@ -156,7 +160,7 @@ func NewCoordinate(res CoordResolution) (c Coordinates) {
 	return
 }
 
-//NewCoordinate makes a new Coordinate object, defaulted to the center of a sector.
+// NewCoordinate makes a new Coordinate object, defaulted to the center of a sector.
 func NewSectorCoordinate(x, y int) (c Coordinates) {
 	c = NewCoordinate(coord_SECTOR)
 	c.Sector.MoveTo(x, y)
@@ -164,8 +168,8 @@ func NewSectorCoordinate(x, y int) (c Coordinates) {
 	return
 }
 
-//Returns a string for each coordinate in the form
-//SECTOR:SUBSECTOR:STARCOORD:LOCAL, subject to resolution limits.
+// Returns a string for each coordinate in the form
+// SECTOR:SUBSECTOR:STARCOORD:LOCAL, subject to resolution limits.
 func (c Coordinates) GetCoordStrings() (xString string, yString string) {
 	xString, yString = strconv.Itoa(c.Sector.X), strconv.Itoa(c.Sector.Y)
 	if c.Resolution == coord_SECTOR {
@@ -190,9 +194,9 @@ func (c Coordinates) GetCoordStrings() (xString string, yString string) {
 	return
 }
 
-//Reports whether coordinate c1 is "inside" a location l.
-//NOTES: if c1 and l are the same, this reports true. if c1 and l are both Local
-//objects, it tests instead to see if c1 is in orbit/docking range.
+// Reports whether coordinate c1 is "inside" a location l.
+// NOTES: if c1 and l are the same, this reports true. if c1 and l are both Local
+// objects, it tests instead to see if c1 is in orbit/docking range.
 func (c1 Coordinates) IsIn(l Locatable) bool {
 	if l == nil {
 		return false
@@ -251,8 +255,8 @@ func (c *Coordinates) moveLocal(dx, dy float64) {
 	xDecimals := (c.Local.X - math.Trunc(c.Local.X)) + (dx - math.Trunc(dx))
 	yDecimals := (c.Local.Y - math.Trunc(c.Local.Y)) + (dy - math.Trunc(dy))
 
-	x, odx := burl.ModularClamp(int(c.Local.X)+int(dx), 0, int(coord_LOCAL_MAX)-1)
-	y, ody := burl.ModularClamp(int(c.Local.Y)+int(dy), 0, int(coord_LOCAL_MAX)-1)
+	x, odx := util.CycleClampWithOverflow(int(c.Local.X)+int(dx), 0, int(coord_LOCAL_MAX)-1)
+	y, ody := util.CycleClampWithOverflow(int(c.Local.Y)+int(dy), 0, int(coord_LOCAL_MAX)-1)
 
 	c.Local.X = float64(x) + xDecimals
 	c.Local.Y = float64(y) + yDecimals
@@ -265,8 +269,8 @@ func (c *Coordinates) moveLocal(dx, dy float64) {
 func (c *Coordinates) moveStarSystem(dx, dy int) {
 	var odx, ody int
 
-	c.StarCoord.X, odx = burl.ModularClamp(c.StarCoord.X+dx, 0, coord_STARSYSTEM_MAX-1)
-	c.StarCoord.Y, ody = burl.ModularClamp(c.StarCoord.Y+dy, 0, coord_STARSYSTEM_MAX-1)
+	c.StarCoord.X, odx = util.CycleClampWithOverflow(c.StarCoord.X+dx, 0, coord_STARSYSTEM_MAX-1)
+	c.StarCoord.Y, ody = util.CycleClampWithOverflow(c.StarCoord.Y+dy, 0, coord_STARSYSTEM_MAX-1)
 
 	if odx != 0 || ody != 0 {
 		c.moveSubSector(odx, ody)
@@ -276,8 +280,8 @@ func (c *Coordinates) moveStarSystem(dx, dy int) {
 func (c *Coordinates) moveSubSector(dx, dy int) {
 	var odx, ody int
 
-	c.SubSector.X, odx = burl.ModularClamp(c.SubSector.X+dx, 0, coord_SUBSECTOR_MAX-1)
-	c.SubSector.Y, ody = burl.ModularClamp(c.SubSector.Y+dy, 0, coord_SUBSECTOR_MAX-1)
+	c.SubSector.X, odx = util.CycleClampWithOverflow(c.SubSector.X+dx, 0, coord_SUBSECTOR_MAX-1)
+	c.SubSector.Y, ody = util.CycleClampWithOverflow(c.SubSector.Y+dy, 0, coord_SUBSECTOR_MAX-1)
 
 	if odx != 0 || ody != 0 {
 		c.moveSector(odx, ody)
@@ -285,20 +289,20 @@ func (c *Coordinates) moveSubSector(dx, dy int) {
 }
 
 func (c *Coordinates) moveSector(dx, dy int) {
-	c.Sector.X = burl.Clamp(c.Sector.X+dx, 0, coord_SECTOR_MAX-1)
-	c.Sector.Y = burl.Clamp(c.Sector.Y+dy, 0, coord_SECTOR_MAX-1)
+	c.Sector.X = util.Clamp(c.Sector.X+dx, 0, coord_SECTOR_MAX-1)
+	c.Sector.Y = util.Clamp(c.Sector.Y+dy, 0, coord_SECTOR_MAX-1)
 }
 
-//Galactic Vector. represents the vector between two points in the galaxy
+// Galactic Vector. represents the vector between two points in the galaxy
 type GalVec struct {
 	Coordinates         //0-centered vector
 	Distance    float64 //magnitude in Ly
 }
 
 func (c1 Coordinates) CalcVector(c2 Coordinates) (g GalVec) {
-	g.Sector = c2.Sector.Sub(c1.Sector)
-	g.SubSector = c2.SubSector.Sub(c1.SubSector)
-	g.StarCoord = c2.StarCoord.Sub(c1.StarCoord)
+	g.Sector = c2.Sector.Subtract(c1.Sector)
+	g.SubSector = c2.SubSector.Subtract(c1.SubSector)
+	g.StarCoord = c2.StarCoord.Subtract(c1.StarCoord)
 	g.Local = c2.Local.Sub(c1.Local)
 
 	xDistance := g.Local.X/METERS_PER_LY + float64(LY_PER_SECTOR)*(float64(g.Sector.X)+(float64(g.SubSector.X)+float64(g.StarCoord.X)/float64(coord_STARSYSTEM_MAX))/float64(coord_SUBSECTOR_MAX))

@@ -103,8 +103,8 @@ func (sg *SpaceshipGame) LoadSpaceEvents() {
 				Text: "Holy Moly! Time for an adventure!",
 				Result: func() {
 					sg.player.AddMission(GenerateGoToMission(sg.playerShip, sg.galaxy.GetEarth(), nil))
-					welcomeMessage := "Hi Captain! Welcome to " + sg.playerShip.GetName() + "! I am the Ship Computer Interactive Parameter-Parsing Intelligence Entity, but you can call me SCIPPIE! "
-					sg.OpenDialog(NewCommDialog("SCIPPIE", sg.player.Name+", Captain of "+sg.playerShip.GetName(), "res/art/scippie.xp", welcomeMessage))
+					//welcomeMessage := "Hi Captain! Welcome to " + sg.playerShip.GetName() + "! I am the Ship Computer Interactive Parameter-Parsing Intelligence Entity, but you can call me SCIPPIE! "
+					//sg.OpenDialog(NewCommDialog("SCIPPIE", sg.player.Name+", Captain of "+sg.playerShip.GetName(), "res/art/scippie.xp", welcomeMessage))
 				},
 			},
 		},

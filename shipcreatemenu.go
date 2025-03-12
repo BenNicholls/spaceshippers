@@ -31,7 +31,7 @@ func NewShipCreateMenu(g *Galaxy) (scm *ShipCreateMenu) {
 
 	scm.shipView = burl.NewTileView(94, 30, 0, 0, 0, true)
 
-	scm.stars = NewStarField(20, scm.shipView)
+	//scm.stars = NewStarField(20, scm.shipView)
 
 	scm.shipNameInput = burl.NewInputbox(20, 1, 0, 31, 0, true)
 	scm.shipNameInput.SetTitle("Ship Name")
@@ -115,13 +115,13 @@ func (scm *ShipCreateMenu) HandleEvent(e *burl.Event) {
 	case burl.EV_ANIMATION_DONE:
 		if e.Caller == scm.generateButton {
 			if scm.shipNameInput.GetText() == "" {
-				scm.OpenDialog(NewCommDialog("", "", "", "You must give your ship a name before you can continue!"))
+				//scm.OpenDialog(NewCommDialog("", "", "", "You must give your ship a name before you can continue!"))
 			} else {
 				scm.ship.Name = scm.shipNameInput.GetText()
 				burl.ChangeState(NewSpaceshipGame(scm.galaxy, scm.ship))
 			}
 		} else if e.Caller == scm.cancelButton {
-			burl.ChangeState(NewCreateGalaxyMenu())
+			//burl.ChangeState(NewCreateGalaxyMenu())
 		}
 	}
 }
@@ -130,11 +130,11 @@ func (scm *ShipCreateMenu) Update() {
 	scm.Tick++
 
 	if scm.Tick%10 == 0 {
-		scm.stars.Shift()
+		//scm.stars.Shift()
 	}
 
 	//move around the crew, for fun!
-	for i, _ := range scm.ship.Crew {
+	for i := range scm.ship.Crew {
 		scm.ship.Crew[i].Update(scm.Tick)
 		if scm.Tick%20 == 0 {
 			dx, dy := burl.RandomDirection()
@@ -147,7 +147,7 @@ func (scm *ShipCreateMenu) Update() {
 }
 
 func (scm *ShipCreateMenu) Render() {
-	scm.stars.Draw()
+	//scm.stars.Draw()
 
 	//calculate offset for ship based on ship size, so ship is centered
 	displayWidth, displayHeight := scm.shipView.Dims()
