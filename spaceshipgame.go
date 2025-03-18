@@ -21,11 +21,6 @@ const (
 //Event types for spaceshippers!
 var LOG_EVENT = burl.RegisterCustomEvent()
 
-//load some tile data
-var TILE_FLOOR = burl.LoadTileData("Floor", true, true, burl.GLYPH_DOT_SMALL, burl.COL_DARKGREY)
-var TILE_WALL = burl.LoadTileData("Wall", false, false, burl.GLYPH_HASH, burl.COL_GREY)
-var TILE_DOOR = burl.LoadTileData("Door", true, false, burl.GLYPH_IDENTICAL, burl.COL_GREY)
-
 func init() {
 	//need to register types that might be hidden by an interface, in order for them to be serializable
 	gob.Register(&SleepJob{})
