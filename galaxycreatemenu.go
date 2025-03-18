@@ -143,7 +143,7 @@ func (cgm *CreateGalaxyMenu) Generate() {
 	if cgm.nameInput.InputtedText() == "" {
 		cgm.OpenDialog(NewSimpleCommDialog("You must give your galaxy a name before you can continue!"))
 	} else {
-		//burl.ChangeState(NewShipCreateMenu(cgm.galaxy))
+		tyumi.ChangeState(NewShipCreateMenu(cgm.galaxy))
 	}
 }
 

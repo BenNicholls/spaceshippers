@@ -1,158 +1,143 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/gfx"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/log"
+	"github.com/bennicholls/tyumi/rl"
+	"github.com/bennicholls/tyumi/util"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 type ShipCreateMenu struct {
-	burl.StatePrototype
+	tyumi.State
 
-	shipView            *burl.TileView
-	shipNameInput       *burl.Inputbox
-	shipTypeList        *burl.List
-	shipDescriptionText *burl.Textbox
-	generateButton      *burl.Button
-	cancelButton        *burl.Button
-	focusedField        burl.UIElem
+	shipView            rl.TileMapView
+	shipNameInput       ui.InputBox
+	shipTypeList        ui.List
+	shipDescriptionText ui.Textbox
+	generateButton      ui.Button
+	cancelButton        ui.Button
+	stars               StarField
 
 	galaxy *Galaxy //ship exists in a galaxy, for real
 	ship   *Ship
 
-	stars StarField
-
 	templates []ShipTemplate
 }
 
-func NewShipCreateMenu(g *Galaxy) (scm *ShipCreateMenu) {
+func NewShipCreateMenu(galaxy *Galaxy) (scm *ShipCreateMenu) {
 	scm = new(ShipCreateMenu)
-	scm.InitWindow(true)
-	scm.Window.SetTitle("YOUR SHIP IS YOUR WHOLE WORLD")
 
-	scm.shipView = burl.NewTileView(94, 30, 0, 0, 0, true)
+	scm.InitBordered()
+	scm.Window().SetupBorder("YOUR SHIP IS YOUR WHOLE WORLD", "[TAB]/[ENTER]")
+	windowStyle := ui.DefaultBorderStyle
+	windowStyle.TitleJustification = ui.JUSTIFY_CENTER
+	scm.Window().Border.SetStyle(ui.BORDER_STYLE_CUSTOM, windowStyle)
 
-	//scm.stars = NewStarField(20, scm.shipView)
+	scm.shipView.Init(vec.Dims{94, 30}, vec.ZERO_COORD, ui.BorderDepth, nil)
+	scm.shipView.SetDefaultVisuals(gfx.Visuals{Mode: gfx.DRAW_NONE})
+	scm.Window().AddChild(&scm.shipView)
 
-	scm.shipNameInput = burl.NewInputbox(20, 1, 0, 31, 0, true)
-	scm.shipNameInput.SetTitle("Ship Name")
-	scm.shipNameInput.CenterX(94, 1)
+	scm.shipNameInput.Init(vec.Dims{20, 1}, vec.Coord{0, 31}, ui.BorderDepth, 0)
+	scm.shipNameInput.SetupBorder("Ship Name", "")
+	scm.shipNameInput.Border.SetStyle(ui.BORDER_STYLE_CUSTOM, windowStyle)
+	scm.Window().AddChild(&scm.shipNameInput)
+	scm.shipNameInput.CenterHorizontal()
 
-	scm.shipTypeList = burl.NewList(15, 19, 2, 32, 1, true, "No Ships! How'd this happen?")
-	scm.shipTypeList.SetTitle("Ships!")
+	scm.shipTypeList.Init(vec.Dims{15, 19}, vec.Coord{2, 32}, 1)
+	scm.shipTypeList.SetupBorder("Ships!", "")
+	scm.shipTypeList.OnChangeSelection = func() {
+		scm.UpdateShipDescription()
+		scm.CreateShip()
+	}
+	scm.shipTypeList.ToggleHighlight()
+	scm.Window().AddChild(&scm.shipTypeList)
+	//TODO: default text for empty list
 
-	scm.shipDescriptionText = burl.NewTextbox(52, 17, 20, 34, 1, true, false, "DESCRIPTIOS")
+	scm.shipDescriptionText.Init(vec.Dims{52, 17}, vec.Coord{20, 34}, 1, "Descriptios", ui.JUSTIFY_LEFT)
+	scm.shipDescriptionText.EnableBorder()
+	scm.Window().AddChild(&scm.shipDescriptionText)
 
-	scm.generateButton = burl.NewButton(15, 1, 76, 39, 1, true, true, "Confirm Ship Selection!")
-	scm.cancelButton = burl.NewButton(15, 1, 76, 44, 1, true, true, "Return to Galaxy Creation")
+	scm.generateButton.Init(vec.Dims{15, 1}, vec.Coord{76, 39}, 1, "Confirm Ship Selection!", scm.onGeneratePress)
+	scm.generateButton.EnableBorder()
+	scm.cancelButton.Init(vec.Dims{15, 1}, vec.Coord{76, 44}, 1, "Return to Galaxy Creation", func() {
+		tyumi.ChangeState(NewCreateGalaxyMenu())
+	})
+	scm.cancelButton.EnableBorder()
+	scm.Window().AddChildren(&scm.generateButton, &scm.cancelButton)
 
-	scm.Window.Add(scm.shipView, scm.shipNameInput, scm.shipTypeList, scm.shipDescriptionText, scm.generateButton, scm.cancelButton)
+	scm.stars.Init(scm.Window().Size(), vec.ZERO_COORD, 0, 25, 10)
+	scm.Window().AddChild(&scm.stars)
 
 	scm.templates = make([]ShipTemplate, 0)
-	shipFiles, _ := burl.GetFileList("raws/ship/", ".shp")
+	shipFiles, _ := util.GetFileList("raws/ship/", ".shp")
 
 	for _, file := range shipFiles {
 		temp, err := LoadShipTemplate("raws/ship/" + file)
 		if err != nil {
-			burl.LogError(err.Error())
+			log.Error(err.Error())
 		} else {
 			scm.templates = append(scm.templates, temp)
-			scm.shipTypeList.Append(temp.Name)
+			scm.shipTypeList.AddTextItems(ui.JUSTIFY_LEFT, temp.Name)
 		}
 	}
 
 	scm.UpdateShipDescription()
 
-	scm.focusedField = scm.shipNameInput
-	scm.focusedField.ToggleFocus()
+	scm.shipNameInput.Focus()
+	scm.Window().SetTabbingOrder(&scm.shipNameInput, &scm.shipTypeList, &scm.generateButton, &scm.cancelButton)
 
-	scm.shipNameInput.SetTabID(1)
-	scm.shipTypeList.SetTabID(2)
-	scm.generateButton.SetTabID(3)
-	scm.cancelButton.SetTabID(4)
-
-	scm.galaxy = g
-
+	scm.galaxy = galaxy
 	scm.CreateShip()
 
 	return
 }
 
 func (scm *ShipCreateMenu) UpdateShipDescription() {
-	temp := scm.templates[scm.shipTypeList.GetSelection()]
+	temp := scm.templates[scm.shipTypeList.GetSelectionIndex()]
 	scm.shipDescriptionText.ChangeText(temp.Name + "/n/n" + temp.Description)
 }
 
 func (scm *ShipCreateMenu) CreateShip() {
-	temp := scm.templates[scm.shipTypeList.GetSelection()]
-	scm.ship = NewShip(scm.shipNameInput.GetText(), scm.galaxy)
+	temp := scm.templates[scm.shipTypeList.GetSelectionIndex()]
+	scm.ship = NewShip(scm.shipNameInput.InputtedText(), scm.galaxy)
 	scm.ship.SetupFromTemplate(temp)
-	for i := 0; i < temp.CrewNum; i++ {
+	for range temp.CrewNum {
 		scm.ship.AddCrewman(NewCrewman())
 	}
 	scm.ship.SetupShip(scm.galaxy)
+	scm.shipView.SetTileMap(&scm.ship.shipMap)
+
+	//calculate offset for ship based on ship size, so ship is centered
+	//TODO: the tilemap view should do this automatically maybe
+	offX := scm.ship.width/2 + scm.ship.x - scm.shipView.Size().W/2
+	offY := scm.ship.height/2 + scm.ship.y - scm.shipView.Size().H/2
+	scm.shipView.SetCameraOffset(vec.Coord{-offX, -offY})
+	scm.Window().ForceRedraw()
+
 }
 
-func (scm *ShipCreateMenu) HandleKeypress(key sdl.Keycode) {
-	//non-standard ui behaviour
-	if key == sdl.K_TAB || (key == sdl.K_RETURN && scm.focusedField == scm.shipNameInput) {
-		burl.PushEvent(burl.NewEvent(burl.EV_TAB_FIELD, "+"))
-	}
-
-	scm.focusedField.HandleKeypress(key)
-}
-
-func (scm *ShipCreateMenu) HandleEvent(e *burl.Event) {
-	switch e.ID {
-	case burl.EV_LIST_CYCLE:
-		if e.Caller == scm.shipTypeList {
-			scm.UpdateShipDescription()
-			scm.CreateShip()
-		}
-	case burl.EV_TAB_FIELD:
-		scm.focusedField.ToggleFocus()
-		scm.focusedField = scm.Window.FindNextTab(scm.focusedField)
-		scm.focusedField.ToggleFocus()
-	case burl.EV_ANIMATION_DONE:
-		if e.Caller == scm.generateButton {
-			if scm.shipNameInput.GetText() == "" {
-				//scm.OpenDialog(NewCommDialog("", "", "", "You must give your ship a name before you can continue!"))
-			} else {
-				scm.ship.Name = scm.shipNameInput.GetText()
-				burl.ChangeState(NewSpaceshipGame(scm.galaxy, scm.ship))
-			}
-		} else if e.Caller == scm.cancelButton {
-			//burl.ChangeState(NewCreateGalaxyMenu())
-		}
+func (scm *ShipCreateMenu) onGeneratePress() {
+	if scm.shipNameInput.InputtedText() == "" {
+		scm.OpenDialog(NewSimpleCommDialog("You must give your ship a name before you can continue!"))
+	} else {
+		scm.ship.Name = scm.shipNameInput.InputtedText()
+		//burl.ChangeState(NewSpaceshipGame(scm.galaxy, scm.ship))
 	}
 }
 
 func (scm *ShipCreateMenu) Update() {
-	scm.Tick++
-
-	if scm.Tick%10 == 0 {
-		//scm.stars.Shift()
-	}
-
 	//move around the crew, for fun!
 	for i := range scm.ship.Crew {
-		scm.ship.Crew[i].Update(scm.Tick)
-		if scm.Tick%20 == 0 {
-			dx, dy := burl.RandomDirection()
-			if scm.ship.shipMap.GetTile(scm.ship.Crew[i].X+dx, scm.ship.Crew[i].Y+dy).Empty() {
-				scm.ship.shipMap.MoveEntity(scm.ship.Crew[i].X, scm.ship.Crew[i].Y, dx, dy)
-				scm.ship.Crew[i].Move(dx, dy)
-			}
+		scm.ship.Crew[i].Update(tyumi.GetTick())
+		if tyumi.GetTick()%20 == 0 {
+			// dx, dy := util.RandomDirection()
+			// if scm.ship.shipMap.GetTile(scm.ship.Crew[i].X+dx, scm.ship.Crew[i].Y+dy).Empty() {
+			// 	scm.ship.shipMap.MoveEntity(scm.ship.Crew[i].X, scm.ship.Crew[i].Y, dx, dy)
+			// 	scm.ship.Crew[i].Move(dx, dy)
+			// }
 		}
 	}
-}
-
-func (scm *ShipCreateMenu) Render() {
-	//scm.stars.Draw()
-
-	//calculate offset for ship based on ship size, so ship is centered
-	displayWidth, displayHeight := scm.shipView.Dims()
-	offX := scm.ship.width/2 + scm.ship.x - displayWidth/2
-	offY := scm.ship.height/2 + scm.ship.y - displayHeight/2
-
-	scm.ship.DrawToTileView(scm.shipView, VIEW_DEFAULT, offX, offY)
 }
