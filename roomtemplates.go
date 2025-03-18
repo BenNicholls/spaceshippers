@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/util"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 //This file is just going to hold room data until I can be bothered to
@@ -342,24 +343,25 @@ func init() {
 	}
 }
 
-//Instantiates a room from a template. "dims" (width, height) is optional, allowing
-//the caller to provide custom dimensions. If either dimension is zero, uses the default.
-func CreateRoomFromTemplate(room RoomType, rotate bool, dims ...int) (r *Room) {
+// Instantiates a room from a template. "dims" (width, height) is optional, allowing
+// the caller to provide custom dimensions. If either dimension is zero, uses the default.
+func CreateRoomFromTemplate(room RoomType, rotate bool, dims ...vec.Dims) (r *Room) {
 	r = new(Room)
 
-	if temp, ok := roomTemplates[room]; ok {
-		r = NewRoomFromTemplate(temp)
-		if temp.resizable && len(dims) == 2 {
-			if dims[0] == 0 {
-				r.Width = temp.width
+	if template, ok := roomTemplates[room]; ok {
+		r = NewRoomFromTemplate(template)
+		if template.resizable && len(dims) == 1 {
+			size := dims[0]
+			if size.W == 0 {
+				r.Width = template.width
 			} else {
-				r.Width = burl.Clamp(dims[0], temp.min_width, temp.max_width)
+				r.Width = util.Clamp(size.W, template.min_width, template.max_width)
 			}
 
-			if dims[1] == 0 {
-				r.Height = temp.height
+			if size.H == 0 {
+				r.Height = template.height
 			} else {
-				r.Height = burl.Clamp(dims[1], temp.min_height, temp.max_height)
+				r.Height = util.Clamp(size.H, template.min_height, template.max_height)
 			}
 			r.CreateRoomMap()
 		}

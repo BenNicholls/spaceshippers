@@ -1,9 +1,10 @@
 package main
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 
+	"github.com/bennicholls/tyumi/vec"
 	"gopkg.in/yaml.v2"
 )
 
@@ -14,11 +15,12 @@ type ShipTemplate struct {
 	CrewNum     int
 }
 
+// TO DO: get rid of yaml, move to json or something
 type RoomDef struct {
-	RoomType      RoomType
-	Rotated       bool
-	Width, Height int
-	X, Y          int
+	RoomType RoomType
+	Rotated  bool
+	Size     vec.Dims  `yaml:",flow"`
+	Position vec.Coord `yaml:",flow"`
 }
 
 func (st *ShipTemplate) Save() error {
@@ -47,7 +49,7 @@ func LoadShipTemplate(path string) (ShipTemplate, error) {
 	}
 	defer f.Close()
 
-	data, err := ioutil.ReadAll(f)
+	data, err := io.ReadAll(f)
 	if err != nil {
 		return st, err
 	}
@@ -60,15 +62,15 @@ func LoadShipTemplate(path string) (ShipTemplate, error) {
 	return st, nil
 }
 
-//we are assuming the ship's defaults are already set
-func (s *Ship) SetupFromTemplate(temp ShipTemplate) {
-	s.Description = temp.Description
+// we are assuming the ship's defaults are already set
+func (s *Ship) SetupFromTemplate(template ShipTemplate) {
+	s.Description = template.Description
 
-	for _, r := range temp.Rooms {
-		s.AddRoom(CreateRoomFromTemplate(r.RoomType, r.Rotated, r.Width, r.Height), r.X, r.Y)
+	for _, room := range template.Rooms {
+		s.AddRoom(room.Position, CreateRoomFromTemplate(room.RoomType, room.Rotated, room.Size))
 	}
 
-	for i := 0; i < temp.CrewNum; i++ {
+	for range template.CrewNum {
 		s.AddCrewman(NewCrewman())
 	}
 }
@@ -85,13 +87,11 @@ func (s *Ship) CreateShipTemplate() (st ShipTemplate) {
 		st.Rooms[i] = RoomDef{
 			RoomType: room.Roomtype,
 			Rotated:  room.Rotated,
-			Width:    room.Width,
-			Height:   room.Height,
-			X:        room.X,
-			Y:        room.Y,
+			Size:     vec.Dims{room.Width, room.Height},
+			Position: room.pos,
 		}
 		if room.Rotated {
-			st.Rooms[i].Width, st.Rooms[i].Height = st.Rooms[i].Height, st.Rooms[i].Width
+			st.Rooms[i].Size.W, st.Rooms[i].Size.H = st.Rooms[i].Size.H, st.Rooms[i].Size.W
 		}
 	}
 

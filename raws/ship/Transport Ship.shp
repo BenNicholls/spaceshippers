@@ -6,44 +6,30 @@ shiptype: 2
 rooms:
 - roomtype: 0
   rotated: false
-  width: 7
-  height: 9
-  x: 45
-  "y": 21
+  size: {w: 7, h: 9}
+  position: {x: 45, "y": 21}
 - roomtype: 2
   rotated: false
-  width: 15
-  height: 4
-  x: 34
-  "y": 29
+  size: {w: 15, h: 4}
+  position: {x: 34, "y": 29}
 - roomtype: 2
   rotated: true
-  width: 12
-  height: 4
-  x: 36
-  "y": 18
+  size: {w: 12, h: 4}
+  position: {x: 36, "y": 18}
 - roomtype: 7
   rotated: false
-  width: 6
-  height: 6
-  x: 39
-  "y": 18
+  size: {w: 6, h: 6}
+  position: {x: 39, "y": 18}
 - roomtype: 7
   rotated: false
-  width: 6
-  height: 6
-  x: 39
-  "y": 24
+  size: {w: 6, h: 6}
+  position: {x: 39, "y": 24}
 - roomtype: 6
   rotated: false
-  width: 8
-  height: 8
-  x: 29
-  "y": 20
+  size: {w: 8, h: 8}
+  position: {x: 29, "y": 20}
 - roomtype: 5
   rotated: false
-  width: 7
-  height: 9
-  x: 28
-  "y": 27
+  size: {w: 7, h: 9}
+  position: {x: 28, "y": 27}
 crewnum: 4
