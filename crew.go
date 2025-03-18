@@ -1,7 +1,11 @@
 package main
 
-import "math/rand"
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"math/rand"
+
+	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/vec"
+)
 
 var FIRSTNAMES []string
 var LASTNAMES []string
@@ -56,7 +60,7 @@ func (c *Crewman) randomizeName() {
 	c.Name = FIRSTNAMES[rand.Intn(len(FIRSTNAMES))] + " " + LASTNAMES[rand.Intn(len(LASTNAMES))]
 }
 
-//general per-tick update function.
+// general per-tick update function.
 func (c *Crewman) Update(spaceTime int) {
 	if c.Dead {
 		return
@@ -81,11 +85,11 @@ func (c *Crewman) Update(spaceTime int) {
 
 		//walk around randomly like a doofus.
 		if spaceTime%20 == 0 {
-			dx, dy := burl.RandomDirection()
-			if c.ship.shipMap.GetTile(c.X+dx, c.Y+dy).Empty() {
-				c.ship.shipMap.MoveEntity(c.X, c.Y, dx, dy)
-				c.Move(dx, dy)
-			}
+			// dx, dy := burl.RandomDirection()
+			// if c.ship.shipMap.GetTile(c.X+dx, c.Y+dy).Empty() {
+			// 	c.ship.shipMap.MoveEntity(c.X, c.Y, dx, dy)
+			// 	c.Move(dx, dy)
+			// }
 		}
 	}
 
@@ -122,7 +126,7 @@ func (c *Crewman) Breathe() {
 		return
 	}
 
-	r := c.ship.GetRoom(c.X, c.Y)
+	r := c.ship.GetRoom(vec.Coord{c.X, c.Y})
 	if r == nil {
 		//no room found... person is outside? TODO: spacemen dont like being outside. hurts their eyes. handle that.
 		return
@@ -254,7 +258,7 @@ func (c *Crewman) AddEffect(e EffectID, s StatusID) {
 	c.Effects[e] = effect
 }
 
-//Per-turn things for effects
+// Per-turn things for effects
 func (c *Crewman) HandleEffects(spaceTime int) {
 	var e CrewEffect
 

@@ -1,14 +1,19 @@
 package main
 
 import (
-	"math/rand"
+	"slices"
 
 	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/gfx"
+	"github.com/bennicholls/tyumi/gfx/col"
+	"github.com/bennicholls/tyumi/log"
+	"github.com/bennicholls/tyumi/rl"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 type Ship struct {
-	Location     //ship is technically a location, but you can't go there... you *are* there!
-	burl.Visuals //for drawing on the galaxy map
+	Location    //ship is technically a location, but you can't go there... you *are* there!
+	gfx.Visuals //for drawing on the galaxy map
 
 	Crew  []*Crewman
 	Rooms []*Room
@@ -28,9 +33,9 @@ type Ship struct {
 	//status numbers.
 	Hull burl.Stat
 
-	Velocity burl.Vec2Polar
+	Velocity vec.Vec2Polar
 
-	shipMap *burl.TileMap
+	shipMap rl.TileMap
 
 	x, y, width, height int //bounding box of the ship on the shipMap
 	volume              int //total floorspace volume of the ship
@@ -39,7 +44,7 @@ type Ship struct {
 	destination     Locatable //where we're going
 }
 
-//Inits a new Ship. Ship systems but no modules or crew. Add those yourself you lazy bum.
+// Inits a new Ship. Ship systems but no modules or crew. Add those yourself you lazy bum.
 func NewShip(n string, g *Galaxy) *Ship {
 	s := new(Ship)
 	s.Name = n
@@ -68,20 +73,19 @@ func NewShip(n string, g *Galaxy) *Ship {
 
 	s.Hull = burl.NewStat(100)
 
-	s.shipMap = burl.NewMap(100, 100)
+	s.shipMap.Init(vec.Dims{100, 100}, rl.TILE_NONE)
 
-	s.Visuals = burl.Visuals{
-		Glyph:      burl.GLYPH_FACE2,
-		ForeColour: burl.COL_WHITE,
-		BackColour: burl.COL_BLACK,
+	s.Visuals = gfx.Visuals{
+		Glyph:   gfx.GLYPH_FACE2,
+		Colours: col.Pair{col.WHITE, col.BLACK},
 	}
 
 	return s
 }
 
-//SetupShip performs post-init calculations. Do after loading.
+// SetupShip performs post-init calculations. Do after loading.
 func (s *Ship) SetupShip(g *Galaxy) {
-	s.shipMap = burl.NewMap(100, 100)
+	s.shipMap.Init(vec.Dims{100, 100}, rl.TILE_NONE)
 
 	//rooms -- need to process room connections and add them to shipmap
 	for i := range s.Rooms {
@@ -90,17 +94,17 @@ func (s *Ship) SetupShip(g *Galaxy) {
 		}
 		s.DrawRoom(s.Rooms[i])
 	}
-	s.CalcShipDims()
+	s.CalcShipBounds()
 
 	//crew -- need to set the crew's jobs to point back at the crew, add crew to shipmap
-	for i := range s.Crew {
-		if s.Crew[i].CurrentTask != nil {
-			s.Crew[i].CurrentTask.SetWorker(s.Crew[i])
-		}
-		rx, ry := s.Crew[i].X, s.Crew[i].Y
-		s.shipMap.AddEntity(rx, ry, s.Crew[i])
-		s.Crew[i].MoveTo(rx, ry)
-	}
+	// for i := range s.Crew {
+	// 	if s.Crew[i].CurrentTask != nil {
+	// 		s.Crew[i].CurrentTask.SetWorker(s.Crew[i])
+	// 	}
+	// 	rx, ry := s.Crew[i].X, s.Crew[i].Y
+	// 	s.shipMap.AddEntity(rx, ry, s.Crew[i])
+	// 	s.Crew[i].MoveTo(rx, ry)
+	// }
 
 	s.Engine.ship = s
 	s.Navigation.ship = s
@@ -132,60 +136,57 @@ func (s *Ship) SetLocation(l Locatable) {
 	s.Coords.Resolution = coord_LOCAL
 }
 
-//Adds a room to the ship and connects it. If room is an invalid add
-//(ex. overlaps too much with an existing room), does nothing.
-func (s *Ship) AddRoom(r *Room, x, y int) {
-	r.X = x
-	r.Y = y
+// Adds a room to the ship and connects it. If room is an invalid add
+// (ex. overlaps too much with an existing room), does nothing.
+func (s *Ship) AddRoom(pos vec.Coord, r *Room) {
+	r.pos = pos
 
-	if s.CheckRoomValidAdd(r, x, y) {
-		s.Rooms = append(s.Rooms, r)
-
-		//attempt to connect to each current room
-		for _, room := range s.Rooms {
-			s.ConnectRooms(room, r)
-		}
-
-		s.DrawRoom(r)
-		s.CalcShipDims()
-		s.CompileStats()
-	} else {
-		burl.LogError("Invalid room add attempt: " + r.Name)
+	if !s.CheckRoomValidAdd(r) {
+		log.Error("Invalid room add attempt: " + r.Name)
+		return
 	}
+
+	s.Rooms = append(s.Rooms, r)
+
+	//attempt to connect to each current room
+	for _, room := range s.Rooms {
+		s.ConnectRooms(room, r)
+	}
+
+	s.DrawRoom(r)
+	s.CalcShipBounds()
+	s.CompileStats()
+
 }
 
 func (s *Ship) RemoveRoom(r *Room) {
 	//find the room in the ship's roomlist
-	roomIndex := -1
-	for i, room := range s.Rooms {
-		if r == room {
-			roomIndex = i
-		}
+	roomIndex := slices.Index(s.Rooms, r)
+	if roomIndex == -1 {
+		return
 	}
 
-	if roomIndex >= 0 {
-		s.Rooms = append(s.Rooms[:roomIndex], s.Rooms[roomIndex+1:]...)
-		//erase room from shipmap
-		for i := 0; i < r.Width*r.Height; i++ {
-			s.shipMap.ChangeTileType(r.X+i%r.Width, r.Y+i/r.Width, 0)
-		}
-
-		//remove connections and re-draw
-		for _, connected := range r.connected {
-			connected.RemoveConnection(r)
-			s.DrawRoom(connected)
-		}
-
-		s.CalcShipDims()
-		s.CompileStats()
+	s.Rooms = append(s.Rooms[:roomIndex], s.Rooms[roomIndex+1:]...)
+	//erase room from shipmap
+	for cursor := range vec.EachCoordInArea(r) {
+		s.shipMap.SetTileType(cursor, rl.TILE_NONE)
 	}
+
+	//remove connections and re-draw
+	for _, connected := range r.connected {
+		connected.RemoveConnection(r)
+		s.DrawRoom(connected)
+	}
+
+	s.CalcShipBounds()
+	s.CompileStats()
 }
 
-//Checks to see if the provided room collides illegally with another
-//in the ship. If there is no collision at all, still reports true
-func (s *Ship) CheckRoomValidAdd(r *Room, x, y int) bool {
+// Checks to see if the provided room collides illegally with another
+// in the ship. If there is no collision at all, still reports true
+func (s *Ship) CheckRoomValidAdd(r *Room) bool {
 	for _, room := range s.Rooms {
-		i := burl.FindIntersectionRect(r, room)
+		i := vec.FindIntersectionRect(r, room)
 		if i.W >= 2 && i.H >= 2 {
 			return false
 		}
@@ -195,19 +196,19 @@ func (s *Ship) CheckRoomValidAdd(r *Room, x, y int) bool {
 }
 
 func (s *Ship) AddCrewman(c *Crewman) {
-	s.Crew = append(s.Crew, c)
-	c.ship = s
+	// s.Crew = append(s.Crew, c)
+	// c.ship = s
 
-	//place randomly in ship
-	for {
-		start := s.Rooms[rand.Intn(len(s.Rooms))]
-		rx, ry := burl.GenerateCoord(start.X, start.Y, start.Width, start.Height)
-		if s.shipMap.GetTile(rx, ry).Empty() {
-			s.shipMap.AddEntity(rx, ry, c)
-			c.MoveTo(rx, ry)
-			break
-		}
-	}
+	// //place randomly in ship
+	// for {
+	// 	start := s.Rooms[rand.Intn(len(s.Rooms))]
+	// 	rx, ry := burl.GenerateCoord(start.X, start.Y, start.Width, start.Height)
+	// 	if s.shipMap.GetTile(rx, ry).Empty() {
+	// 		s.shipMap.AddEntity(rx, ry, c)
+	// 		c.MoveTo(rx, ry)
+	// 		break
+	// 	}
+	// }
 }
 
 func (s *Ship) ConnectRooms(r1, r2 *Room) {
@@ -215,25 +216,24 @@ func (s *Ship) ConnectRooms(r1, r2 *Room) {
 	r2.AddConnection(r1)
 }
 
-//Draws a room onto the shipmap
+// Draws a room onto the shipmap
 func (s *Ship) DrawRoom(r *Room) {
-	for i := 0; i < r.Width*r.Height; i++ {
-		s.shipMap.ChangeTileType(r.X+i%r.Width, r.Y+i/r.Width, r.RoomMap.GetTileType(i%r.Width, i/r.Width))
-	}
+	r.RoomMap.CopyToTileMap(&s.shipMap, r.pos)
 }
 
-//Calculates the bounding box for the current ship configuration, as well as the volume.
-func (s *Ship) CalcShipDims() {
-	s.x, s.y = s.shipMap.Dims()
+// Calculates the bounding box for the current ship configuration, as well as the volume.
+func (s *Ship) CalcShipBounds() {
+	s.x, s.y = s.shipMap.Size().W, s.shipMap.Size().H
 	x2, y2 := 0, 0
 	s.volume = 0
 
 	for _, r := range s.Rooms {
-		s.x = burl.Min(s.x, r.X)
-		x2 = burl.Max(x2, r.X+r.Width)
-		s.y = burl.Min(s.y, r.Y)
-		y2 = burl.Max(y2, r.Y+r.Height)
-		s.volume += (r.Width - 2) * (r.Height - 2)
+		b := r.Bounds()
+		s.x = min(s.x, b.X)
+		x2 = max(x2, b.X+b.W)
+		s.y = min(s.y, b.Y)
+		y2 = max(y2, b.Y+b.H)
+		s.volume += (b.W - 2) * (b.H - 2)
 	}
 
 	s.width = x2 - s.x
@@ -253,7 +253,6 @@ func (s Ship) GetSpeed() int {
 }
 
 func (s *Ship) Update(spaceTime int) {
-
 	for sys := range s.Systems {
 		s.Systems[sys].Update(spaceTime)
 	}
@@ -267,12 +266,12 @@ func (s *Ship) Update(spaceTime int) {
 	}
 }
 
-//Returns the room for a given (x,y) coord on the shipmap. Returns nil if no room found.
-//If multiple rooms occupy a space (ex. shared wall), returns the first one found.
-//TODO: this behaviour could be better. Could return all the valid rooms? ugh.
-func (s *Ship) GetRoom(x, y int) *Room {
+// Returns the room for a given coord on the shipmap. Returns nil if no room found.
+// If multiple rooms occupy a space (ex. shared wall), returns the first one found.
+// TODO: this behaviour could be better. Could return all the valid rooms? ugh.
+func (s *Ship) GetRoom(c vec.Coord) *Room {
 	for _, room := range s.Rooms {
-		if burl.IsInside(x, y, room) {
+		if c.IsInside(room) {
 			return room
 		}
 	}
@@ -280,40 +279,40 @@ func (s *Ship) GetRoom(x, y int) *Room {
 	return nil
 }
 
-//draws the ship to the provided TileView UI object, offset by (offX, offY). mode is the VIEWMODE
+// draws the ship to the provided TileView UI object, offset by (offX, offY). mode is the VIEWMODE
 func (s *Ship) DrawToTileView(view *burl.TileView, mode, offX, offY int) {
-	x, y := 0, 0
-	displayWidth, displayHeight := view.Dims()
+	// x, y := 0, 0
+	// displayWidth, displayHeight := view.Dims()
 
-	for i := 0; i < s.width*s.height; i++ {
-		//tileView-space coords
-		x = i%s.width + s.x - offX
-		y = i/s.width + s.y - offY
+	// for i := 0; i < s.width*s.height; i++ {
+	// 	//tileView-space coords
+	// 	x = i%s.width + s.x - offX
+	// 	y = i/s.width + s.y - offY
 
-		if burl.CheckBounds(x, y, displayWidth, displayHeight) {
-			if t := s.shipMap.GetTile(i%s.width+s.x, i/s.width+s.y); t.TileType != 0 {
-				tv := t.GetVisuals()
+	// 	if burl.CheckBounds(x, y, displayWidth, displayHeight) {
+	// 		if t := s.shipMap.GetTile(i%s.width+s.x, i/s.width+s.y); t.TileType != 0 {
+	// 			tv := t.GetVisuals()
 
-				if t.TileType != TILE_WALL && t.TileType != TILE_DOOR {
-					r := s.GetRoom(i%s.width+s.x, i/s.width+s.y)
-					switch mode {
-					case VIEW_ATMO_PRESSURE:
-						tv.BackColour = viewModeData[mode].GetColour(r.atmo.Pressure())
-					case VIEW_ATMO_O2:
-						tv.BackColour = viewModeData[mode].GetColour(r.atmo.PartialPressure(GAS_O2))
-					case VIEW_ATMO_TEMP:
-						tv.BackColour = viewModeData[mode].GetColour(r.atmo.Temp)
-					case VIEW_ATMO_CO2:
-						tv.BackColour = viewModeData[mode].GetColour(r.atmo.PartialPressure(GAS_CO2))
-					}
-				}
+	// 			if t.TileType != TILE_WALL && t.TileType != TILE_DOOR {
+	// 				r := s.GetRoom(vec.Coord{i%s.width + s.x, i/s.width + s.y})
+	// 				switch mode {
+	// 				case VIEW_ATMO_PRESSURE:
+	// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.Pressure())
+	// 				case VIEW_ATMO_O2:
+	// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.PartialPressure(GAS_O2))
+	// 				case VIEW_ATMO_TEMP:
+	// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.Temp)
+	// 				case VIEW_ATMO_CO2:
+	// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.PartialPressure(GAS_CO2))
+	// 				}
+	// 			}
 
-				view.DrawObject(x, y, tv)
-			}
+	// 			view.DrawObject(x, y, tv)
+	// 		}
 
-			if e := s.shipMap.GetEntity(i%s.width+s.x, i/s.width+s.y); e != nil {
-				view.DrawObject(x, y, e)
-			}
-		}
-	}
+	// 		if e := s.shipMap.GetEntity(i%s.width+s.x, i/s.width+s.y); e != nil {
+	// 			view.DrawObject(x, y, e)
+	// 		}
+	// 	}
+	// }
 }

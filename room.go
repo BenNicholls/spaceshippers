@@ -1,7 +1,10 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
+	"slices"
+
+	"github.com/bennicholls/tyumi/rl"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 type Room struct {
@@ -11,8 +14,8 @@ type Room struct {
 	Rotated       bool
 	Width, Height int
 
-	X, Y    int
-	RoomMap *burl.TileMap
+	pos     vec.Coord
+	RoomMap rl.TileMap
 	atmo    GasMixture
 
 	connected []*Room
@@ -43,15 +46,18 @@ func NewRoomFromTemplate(temp RoomTemplate) (r *Room) {
 	return
 }
 
-//Creates the map for the room.
+func (r Room) Size() vec.Dims {
+	return vec.Dims{r.Width, r.Height}
+}
+
+// Creates the map for the room.
 func (r *Room) CreateRoomMap() {
-	r.RoomMap = burl.NewMap(r.Width, r.Height)
-	for i := 0; i < r.Width*r.Height; i++ {
-		x, y := i%r.Width, i/r.Width
-		if x == 0 || y == 0 || x == r.Width-1 || y == r.Height-1 {
-			r.RoomMap.ChangeTileType(x, y, TILE_WALL)
+	r.RoomMap.Init(r.Size(), rl.TILE_NONE)
+	for cursor := range vec.EachCoordInArea(r.RoomMap) {
+		if cursor.IsInPerimeter(r.RoomMap) {
+			r.RoomMap.SetTileType(cursor, TILE_WALL)
 		} else {
-			r.RoomMap.ChangeTileType(x, y, TILE_FLOOR)
+			r.RoomMap.SetTileType(cursor, TILE_FLOOR)
 		}
 	}
 }
@@ -62,12 +68,12 @@ func (r *Room) Rotate() {
 	r.CreateRoomMap()
 }
 
-func (r *Room) Bounds() burl.Rect {
-	return burl.Rect{W: r.Width, H: r.Height, X: r.X, Y: r.Y}
+func (r *Room) Bounds() vec.Rect {
+	return vec.Rect{r.pos, r.Size()}
 }
 
-//Tries to connect room to another. Finds the intersection of the two rooms and puts doors there!
-//If rooms not properly lined up, does nothing.
+// Tries to connect room to another. Finds the intersection of the two rooms and puts doors there!
+// If rooms not properly lined up, does nothing.
 func (r *Room) AddConnection(c *Room) {
 	//ensure room isn't trying to connect with itself
 	if r == c {
@@ -75,48 +81,40 @@ func (r *Room) AddConnection(c *Room) {
 	}
 
 	//check if room is already connected
-	for _, room := range r.connected {
-		if room == c {
-			return
-		}
+	if slices.Contains(r.connected, c) {
+		return
 	}
 
 	//check if rooms intersect properly
-	i := burl.FindIntersectionRect(c, r)
+	i := vec.FindIntersectionRect(c, r)
 	if i.W != 1 && i.H != 1 {
 		return
 	}
 
-	//translate coords from shipspace to roomspace
-	x, y := i.X-r.X, i.Y-r.Y
-
-	if i.W == 1 && i.H >= 3 {
+	i.Coord = i.Coord.Subtract(r.pos) // translate from shipspace to roomspace
+	if i.W == 1 && i.H >= 3 { // left-right rooms
 		if i.H%2 == 0 {
-			r.RoomMap.ChangeTileType(x, y+i.H/2-1, TILE_DOOR)
+			r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{0, i.H/2-1}), TILE_DOOR)
 		}
-		r.RoomMap.ChangeTileType(x, y+i.H/2, TILE_DOOR)
-	} else if i.H == 1 && i.W >= 3 {
-		//up-down rooms
+		r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{0, i.H/2}), TILE_DOOR)
+	} else if i.H == 1 && i.W >= 3 { //up-down rooms
 		if i.W%2 == 0 {
-			r.RoomMap.ChangeTileType(x+i.W/2-1, y, TILE_DOOR)
+			r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{i.W/2-1, 0}), TILE_DOOR)
 		}
-		r.RoomMap.ChangeTileType(x+i.W/2, y, TILE_DOOR)
+		r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{i.W/2, 0}), TILE_DOOR)
 	}
 
 	r.connected = append(r.connected, c)
 }
 
 func (r *Room) RemoveConnection(c *Room) {
-	for i, room := range r.connected {
-		if room == c {
-			r.connected = append(r.connected[:i], r.connected[i+1:]...)
+	c_i := slices.Index(r.connected, c)
+	r.connected = slices.Delete(r.connected, c_i, c_i+1)
 
-			//redraw walls over now-nonexistent doors
-			sect := burl.FindIntersectionRect(r, c)
-			for i := 0; i < sect.W*sect.H; i++ {
-				r.RoomMap.ChangeTileType(sect.X+i%sect.W-r.X, sect.Y+i/sect.W-r.Y, TILE_WALL)
-			}
-		}
+	//redraw walls over now-nonexistent doors
+	sect := vec.FindIntersectionRect(r, c)
+	for cursor := range vec.EachCoordInArea(sect) {
+		r.RoomMap.SetTileType(cursor.Subtract(r.pos), TILE_WALL)
 	}
 }
 
@@ -151,7 +149,7 @@ func (r *Room) Update(spaceTime int) {
 	//r.ApplyUpkeep(spaceTime)
 }
 
-//Volume returns the interior volume of the room in m^3
+// Volume returns the interior volume of the room in m^3
 func (r Room) Volume() int {
 	return (r.Width - 2) * (r.Height - 2) * 3 //rooms are 3 meters high... right?
 }

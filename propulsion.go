@@ -1,6 +1,8 @@
 package main
 
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"github.com/bennicholls/burl-E/burl"
+)
 
 type PropulsionSystem struct {
 	SystemStats
@@ -57,9 +59,9 @@ func (ps *PropulsionSystem) Update(tick int) {
 		}
 	}
 
-	x, y := ps.ship.Velocity.ToRect().Get()
-	if x != 0 || y != 0 {
-		ps.ship.Coords.moveLocal(x, y)
+	rectVelo := ps.ship.Velocity.ToRect()
+	if rectVelo.NonZero() {
+		ps.ship.Coords.moveLocal(rectVelo.X, rectVelo.Y)
 		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship move"))
 		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship status"))
 	}
