@@ -80,7 +80,7 @@ func NewShipCreateMenu(galaxy *Galaxy) (scm *ShipCreateMenu) {
 			log.Error(err.Error())
 		} else {
 			scm.templates = append(scm.templates, temp)
-			scm.shipTypeList.AddTextItems(ui.JUSTIFY_LEFT, temp.Name)
+			scm.shipTypeList.InsertText(ui.JUSTIFY_LEFT, temp.Name)
 		}
 	}
 

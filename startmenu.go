@@ -28,7 +28,7 @@ func (sm *StartMenu) Init() {
 	sm.menu.EnableBorder()
 	sm.Window().AddChild(&sm.menu)
 	sm.menu.Center()
-	sm.menu.AddTextItems(ui.JUSTIFY_CENTER, "New Game", "Load Game", "Ship Designer", "Options", "Quit")
+	sm.menu.InsertText(ui.JUSTIFY_CENTER, "New Game", "Load Game", "Ship Designer", "Options", "Quit")
 	sm.menu.EnableHighlight()
 	sm.menu.Focus()
 
@@ -57,7 +57,7 @@ func (sm *StartMenu) HandleInput(input_event event.Event) (event_handled bool) {
 			case 1: //Load Game
 				//Load Game dialog
 			case 2: //Ship Designer
-				//burl.ChangeState(NewShipDesignMenu())
+				tyumi.ChangeState(NewShipDesignMenu())
 			case 3: //Options
 				//Options Dialog
 			case 4: //Quit

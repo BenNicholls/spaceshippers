@@ -40,10 +40,12 @@ type CommMessage struct {
 }
 
 func (cs *CommSystem) Update(tick int) {
-	if tick%cs.Freq == 0 {
-		if rand.Intn(100) < cs.Sensitivity {
-			cs.AddRandomTransmission(tick)
-		}
+	if tick%cs.Freq != 0 {
+		return
+	}
+
+	if rand.Intn(100) < cs.Sensitivity {
+		cs.AddRandomTransmission(tick)
 	}
 }
 
