@@ -1,163 +1,179 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
+	"slices"
+
 	"github.com/bennicholls/tyumi"
 	"github.com/bennicholls/tyumi/event"
 	"github.com/bennicholls/tyumi/gfx"
 	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/input"
+	"github.com/bennicholls/tyumi/log"
+	"github.com/bennicholls/tyumi/util"
 	"github.com/bennicholls/tyumi/vec"
-	"github.com/veandco/go-sdl2/sdl"
 )
 
-var EV_LOADFILE = burl.RegisterCustomEvent() //event.Message will contain local pathname
-var EV_SAVEFILE = burl.RegisterCustomEvent() //event.Message will contain local pathname
-
 type ChooseFileDialog struct {
-	burl.StatePrototype
+	tyumi.State
+	done bool
 
-	fileList     *burl.List
-	okayButton   *burl.Button
-	cancelButton *burl.Button
+	onFileLoaded func(filename string) // function run when dialog exits if a file was successfully chosen
 
-	filenames []string
+	fileList     ui.List
+	okayButton   ui.Button
+	cancelButton ui.Button
 
-	dirPath string
+	filenames  []string
+	dirPath    string
+	chosenFile string
 }
 
-func NewChooseFileDialog(dirPath, ext string) (cfd *ChooseFileDialog) {
+func NewChooseFileDialog(dirPath, ext string, onLoad func(filename string)) (cfd *ChooseFileDialog) {
 	cfd = new(ChooseFileDialog)
 	cfd.dirPath = dirPath
+	cfd.SetKeypressHandler(cfd.HandleKeypress)
 
-	cfd.Window = burl.NewContainer(20, 29, 0, 0, 50, true)
-	cfd.Window.CenterInConsole()
-	cfd.Window.ToggleFocus()
-	cfd.Window.SetTitle("Select file!")
+	cfd.InitCentered(vec.Dims{20, 29})
+	cfd.Window().SetupBorder("Select File!", "")
+	cfd.Window().SendKeyEventsToUnfocused = true
 
-	cfd.fileList = burl.NewList(20, 25, 0, 0, 0, true, "No Files Found!/n/n(Press C or ESCAPE to cancel)")
-	cfd.fileList.ToggleFocus()
-	cfd.okayButton = burl.NewButton(8, 1, 1, 27, 1, true, true, "[L]oad File")
-	cfd.cancelButton = burl.NewButton(8, 1, 11, 27, 2, true, true, "[C]ancel")
-
-	cfd.Window.Add(cfd.fileList, cfd.okayButton, cfd.cancelButton)
+	cfd.fileList.Init(vec.Dims{20, 25}, vec.ZERO_COORD, ui.BorderDepth)
+	cfd.fileList.EnableBorder()
+	cfd.fileList.SetEmptyText("No Files Found!/n/n(Press C or ESCAPE to cancel)")
+	cfd.fileList.AcceptInput = true
+	cfd.fileList.EnableHighlight()
+	cfd.okayButton.Init(vec.Dims{8, 1}, vec.Coord{1, 27}, 1, "[L]oad File", func() {
+		if cfd.fileList.Count() > 0 {
+			cfd.chosenFile = cfd.filenames[cfd.fileList.GetSelectionIndex()]
+			cfd.CreateTimer(20, func() { cfd.done = true })
+		}
+	})
+	cfd.okayButton.EnableBorder()
+	cfd.cancelButton.Init(vec.Dims{8, 1}, vec.Coord{11, 27}, 1, "[C]ancel", func() {
+		cfd.CreateTimer(20, func() { cfd.done = true })
+	})
+	cfd.cancelButton.EnableBorder()
+	cfd.Window().AddChildren(&cfd.fileList, &cfd.okayButton, &cfd.cancelButton)
 
 	var err error
-	cfd.filenames, err = burl.GetFileList(dirPath, ext)
+	cfd.filenames, err = util.GetFileList(dirPath, ext)
 	if err != nil {
-		cfd.fileList.ChangeEmptyText("Could not load files!/n/n(See log.txt for details, Press C or ESCAPE to cancel)")
+		cfd.fileList.SetEmptyText("Could not load files!/n/n(See log.txt for details, Press C or ESCAPE to cancel)")
 	}
 
-	for _, name := range cfd.filenames {
-		cfd.fileList.Append(name)
-	}
+	cfd.fileList.InsertText(ui.JUSTIFY_LEFT, cfd.filenames...)
 
 	return
 }
 
-func (cfd *ChooseFileDialog) HandleKeypress(key sdl.Keycode) {
-	cfd.fileList.HandleKeypress(key)
-	switch key {
-	case sdl.K_RETURN, sdl.K_l:
-		if len(cfd.fileList.Elements) != 0 {
-			cfd.okayButton.Press()
-		}
-	case sdl.K_ESCAPE, sdl.K_c:
+func (cfd *ChooseFileDialog) HandleKeypress(key_event *input.KeyboardEvent) (event_handled bool) {
+	switch key_event.Key {
+	case input.K_RETURN, input.K_l:
+		cfd.okayButton.Press()
+	case input.K_ESCAPE, input.K_c:
 		cfd.cancelButton.Press()
 	}
+	return
 }
 
 func (cfd *ChooseFileDialog) Done() bool {
-	if cfd.okayButton.PressPulse.IsFinished() {
-		burl.PushEvent(burl.NewEvent(EV_LOADFILE, cfd.filenames[cfd.fileList.GetSelection()]))
-		return true
-	} else if cfd.cancelButton.PressPulse.IsFinished() {
-		return true
-	}
+	return cfd.done
+}
 
-	return false
+func (cfd *ChooseFileDialog) Shutdown() {
+	if cfd.onFileLoaded != nil && cfd.chosenFile != "" {
+		cfd.onFileLoaded(cfd.chosenFile)
+	}
 }
 
 type SaveDialog struct {
-	burl.StatePrototype
+	tyumi.State
+	done bool
 
-	nameInput    *burl.Inputbox
-	fileText     *burl.Textbox
-	saveButton   *burl.Button
-	cancelButton *burl.Button
+	onFileSaved func(filename string)
 
-	ext       string
-	dirPath   string
-	filenames []string //current contents of directory so we can warn against overwrites
+	nameInput    ui.InputBox
+	fileText     ui.Textbox
+	saveButton   ui.Button
+	cancelButton ui.Button
+
+	chosenFilename string
+	ext            string
+	dirPath        string
+	filenames      []string //current contents of directory so we can warn against overwrites
 }
 
-func NewSaveDialog(dirPath, ext, def string) (sd *SaveDialog) {
+func NewSaveDialog(dirPath, ext, default_filename string, onSave func(filename string)) (sd *SaveDialog) {
 	sd = new(SaveDialog)
 	sd.dirPath = dirPath
 	sd.ext = ext
 
-	sd.Window = burl.NewContainer(26, 10, 0, 0, 50, true)
-	sd.Window.CenterInConsole()
-	sd.Window.SetTitle("Choose Save Name")
-	sd.Window.ToggleFocus()
+	sd.InitCentered(vec.Dims{26, 10})
+	sd.SetKeypressHandler(sd.HandleKeypress)
+	sd.Window().SetupBorder("Choose Save Name", "[ENTER]/[ESC]")
 
-	sd.Window.Add(burl.NewTextbox(5, 1, 1, 2, 0, false, false, "Filename:"))
-	sd.nameInput = burl.NewInputbox(17, 1, 7, 2, 0, true)
-	sd.nameInput.ChangeText(def)
-	sd.nameInput.ToggleFocus()
+	sd.Window().AddChild(ui.NewTextbox(vec.Dims{5, 1}, vec.Coord{1, 2}, 0, "Filename:", ui.JUSTIFY_LEFT))
+	sd.nameInput.Init(vec.Dims{17, 1}, vec.Coord{7, 2}, 0, 0)
+	sd.nameInput.EnableBorder()
+	sd.nameInput.Focus()
+	sd.nameInput.ChangeText(default_filename)
+	sd.nameInput.OnTextChanged = sd.UpdateFileText
 
-	sd.fileText = burl.NewTextbox(24, 3, 1, 4, 0, false, true, "Input filename.")
+	sd.fileText.Init(vec.Dims{24, 3}, vec.Coord{1, 4}, 0, "Input filename.", ui.JUSTIFY_CENTER)
 
-	sd.saveButton = burl.NewButton(5, 1, 7, 8, 2, true, true, "Save")
-	sd.saveButton.ToggleFocus()
-	sd.cancelButton = burl.NewButton(5, 1, 14, 8, 1, true, true, "Cancel")
-	sd.cancelButton.ToggleFocus()
+	sd.saveButton.Init(vec.Dims{5, 1}, vec.Coord{7, 8}, 2, "Save", func() {
+		sd.chosenFilename = sd.dirPath + sd.nameInput.InputtedText()
+		sd.CreateTimer(20, func() { sd.done = true })
+	})
+	sd.saveButton.EnableBorder()
+	sd.cancelButton.Init(vec.Dims{5, 1}, vec.Coord{14, 8}, 2, "Cancel", func() {
+		sd.CreateTimer(20, func() { sd.done = true })
+	})
+	sd.cancelButton.EnableBorder()
 
-	sd.Window.Add(sd.nameInput, sd.fileText, sd.saveButton, sd.cancelButton)
+	sd.Window().AddChildren(&sd.nameInput, &sd.fileText, &sd.saveButton, &sd.cancelButton)
 
-	sd.filenames, _ = burl.GetFileList(dirPath, "")
+	sd.filenames, _ = util.GetFileList(dirPath, "")
 	sd.UpdateFileText()
 
 	return
 }
 
-func (sd *SaveDialog) HandleKeypress(key sdl.Keycode) {
-	switch key {
-	case sdl.K_RETURN:
-		if sd.nameInput.GetText() != "" {
+func (sd *SaveDialog) HandleKeypress(key_event *input.KeyboardEvent) (event_handled bool) {
+	switch key_event.Key {
+	case input.K_RETURN:
+		if sd.nameInput.InputtedText() != "" {
 			sd.saveButton.Press()
+			return true
 		}
-	case sdl.K_ESCAPE:
+	case input.K_ESCAPE:
 		sd.cancelButton.Press()
-	default:
-		sd.nameInput.HandleKeypress(key)
-		sd.UpdateFileText()
+		return true
 	}
+
+	return
 }
 
 func (sd *SaveDialog) UpdateFileText() {
-	if sd.nameInput.GetText() == "" {
+	if filename := sd.nameInput.InputtedText(); filename == "" {
 		sd.fileText.ChangeText("Please input filename.")
 	} else {
-		name := sd.nameInput.GetText() + sd.ext
+		name := filename + sd.ext
 		sd.fileText.ChangeText("Will save the file as " + sd.dirPath + name)
-		for _, filename := range sd.filenames {
-			if name == filename {
-				sd.fileText.AppendText("/nThis will OVERWRITE the current file!")
-				break
-			}
+		if slices.Contains(sd.filenames, name) {
+			sd.fileText.AppendText("/nThis will OVERWRITE the current file!")
 		}
+	}
+}
+
+func (sd *SaveDialog) Shutdown() {
+	if sd.onFileSaved != nil && sd.chosenFilename != "" {
+		sd.onFileSaved(sd.chosenFilename)
 	}
 }
 
 func (sd *SaveDialog) Done() bool {
-	if sd.saveButton.PressPulse.IsFinished() {
-		burl.PushEvent(burl.NewEvent(EV_SAVEFILE, sd.nameInput.GetText()+sd.ext))
-		return true
-	} else if sd.cancelButton.PressPulse.IsFinished() {
-		return true
-	}
-
-	return false
+	return sd.done
 }
 
 type CommDialog struct {
