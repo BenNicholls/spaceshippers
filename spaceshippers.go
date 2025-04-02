@@ -7,14 +7,11 @@ import (
 	"github.com/bennicholls/tyumi/log"
 	"github.com/bennicholls/tyumi/platform/sdl"
 	"github.com/bennicholls/tyumi/vec"
+	//"github.com/pkg/profile"
 )
-
-//import "github.com/pkg/profile"
 
 func main() {
 	//defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
-	log.EnableConsoleOutput()
-	log.SetMinimumLogLevel(log.LVL_DEBUG)
 	defer log.WriteToDisk()
 
 	tyumi.SetPlatform(sdl.NewPlatform())

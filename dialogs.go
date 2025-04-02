@@ -8,7 +8,6 @@ import (
 	"github.com/bennicholls/tyumi/gfx"
 	"github.com/bennicholls/tyumi/gfx/ui"
 	"github.com/bennicholls/tyumi/input"
-	"github.com/bennicholls/tyumi/log"
 	"github.com/bennicholls/tyumi/util"
 	"github.com/bennicholls/tyumi/vec"
 )
@@ -31,11 +30,12 @@ type ChooseFileDialog struct {
 func NewChooseFileDialog(dirPath, ext string, onLoad func(filename string)) (cfd *ChooseFileDialog) {
 	cfd = new(ChooseFileDialog)
 	cfd.dirPath = dirPath
+	cfd.onFileLoaded = onLoad
 	cfd.SetKeypressHandler(cfd.HandleKeypress)
 
 	cfd.InitCentered(vec.Dims{20, 29})
 	cfd.Window().SetupBorder("Select File!", "")
-	cfd.Window().SendKeyEventsToUnfocused = true
+	cfd.Window().SendEventsToUnfocused = true
 
 	cfd.fileList.Init(vec.Dims{20, 25}, vec.ZERO_COORD, ui.BorderDepth)
 	cfd.fileList.EnableBorder()

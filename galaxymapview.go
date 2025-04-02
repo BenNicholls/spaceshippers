@@ -96,7 +96,7 @@ func (gmv *GalaxyMapView) Render() {
 	// TODO: offset galaxy drawing to be centered inside mapview
 	for cursor := range vec.EachCoordInArea(vec.Rect{vec.ZERO_COORD, gmv.galaxy.Dims()}) {
 		s := gmv.galaxy.GetSector(cursor)
-		bright := util.Lerp(0, 255, s.Density, 100)
+		bright := util.Lerp(uint8(0), uint8(255), s.Density, 100)
 		g := gfx.GLYPH_FILL_SPARSE
 		if bright == 0 {
 			g = gfx.GLYPH_NONE
