@@ -4,6 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/log"
 	"github.com/bennicholls/tyumi/vec"
 )
 
@@ -116,13 +117,13 @@ func (c *Crewman) Update(spaceTime int) {
 			c.CurrentTask.OnInterrupt()
 			c.CurrentTask = nil
 		}
-		burl.PushEvent(burl.NewEvent(LOG_EVENT, c.Name+" has died! :("))
+		fireSpaceLogEvent(c.Name + " has died! :(")
 	}
 }
 
 func (c *Crewman) Breathe() {
 	if c.ship == nil { //protection against uninitialized ship? not sure how this would arise but it's probably a good idea.
-		burl.LogError("No ship associated with crewman: ", c.Name)
+		log.Error("No ship associated with crewman: ", c.Name)
 		return
 	}
 
@@ -272,7 +273,7 @@ func (c *Crewman) HandleEffects(spaceTime int) {
 			if e.Duration > 120 {
 				if c.IsAwake() {
 					c.ConsumeJob(NewSleepJob())
-					burl.PushEvent(burl.NewEvent(LOG_EVENT, c.Name+" passed out!"))
+					fireSpaceLogEvent(c.Name + " passed out!")
 				}
 				c.Awakeness.Set(0) //make sure they don't wake up from being passed out
 				c.HP.Mod(-1)

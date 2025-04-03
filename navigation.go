@@ -62,7 +62,7 @@ func (ns *NavigationSystem) Update(tick int) {
 				ns.ship.Engine.Firing = false
 				ns.CurrentCourse.Done = true
 
-				burl.PushEvent(burl.NewEvent(LOG_EVENT, "We have arrived at "+ns.ship.currentLocation.GetName()))
+				fireSpaceLogEvent("We have arrived at "+ns.ship.currentLocation.GetName())
 			}
 		}
 	}

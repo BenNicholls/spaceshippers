@@ -93,7 +93,7 @@ func NewMission(name, desc string) (m *Mission) {
 				return false
 			}
 		}
-		burl.PushEvent(burl.NewEvent(LOG_EVENT, "You have completed: "+m.name))
+		fireSpaceLogEvent("You have completed: "+m.name)
 		return true
 	}
 
@@ -101,7 +101,7 @@ func NewMission(name, desc string) (m *Mission) {
 		for _, c := range m.criteria {
 			c.Update()
 			if c.IsFailed() {
-				burl.PushEvent(burl.NewEvent(LOG_EVENT, "You have failed: "+m.name))
+				fireSpaceLogEvent("You have failed: "+m.name)
 				return true
 			}
 		}

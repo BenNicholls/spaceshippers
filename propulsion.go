@@ -37,7 +37,7 @@ func (ps *PropulsionSystem) Update(tick int) {
 	if ps.Firing && ps.ship.destination != nil {
 		if ps.ship.Storage.GetItemVolume("Fuel")-ps.FuelUse < 0 {
 			ps.Firing = false
-			burl.PushEvent(burl.NewEvent(LOG_EVENT, "Out of fuel! What a catastrophe!"))
+			fireSpaceLogEvent("Out of fuel! What a catastrophe!")
 		} else {
 			switch ps.ship.Navigation.CurrentCourse.Phase {
 			case phase_ACCEL:

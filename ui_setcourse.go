@@ -1,9 +1,12 @@
 package main
 
-import "github.com/bennicholls/burl-E/burl"
-import "github.com/veandco/go-sdl2/sdl"
-import "strconv"
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/bennicholls/burl-E/burl"
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 type SetCourseDialog struct {
 	burl.StatePrototype
@@ -113,12 +116,12 @@ func (sc *SetCourseDialog) UpdateCourse() {
 func (sc *SetCourseDialog) Done() bool {
 	if sc.goButton.IsFocused() {
 		if sc.goButton.PressPulse.IsFinished() {
-			burl.PushEvent(burl.NewEvent(LOG_EVENT, "Setting course for "+sc.destination.GetName()))
+			fireSpaceLogEvent("Setting course for " + sc.destination.GetName())
 			return true
 		}
 	} else {
 		if sc.cancelButton.PressPulse.IsFinished() {
-			burl.PushEvent(burl.NewEvent(LOG_EVENT, "Course selection cancelled."))
+			fireSpaceLogEvent("Course selection cancelled.")
 			return true
 		}
 	}

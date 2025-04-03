@@ -48,12 +48,11 @@ func (ss *StorageSystem) Update(tick int) {
 	//put love here
 }
 
-//ensure storage capacities are updated if stats change
+// ensure storage capacities are updated if stats change
 func (ss *StorageSystem) OnStatUpdate() {
 	ss.capacity[STORE_GENERAL] = float64(ss.GetStat(STAT_GENERAL_STORAGE))
 	ss.capacity[STORE_LIQUID] = float64(ss.GetStat(STAT_LIQUID_STORAGE))
 	ss.capacity[STORE_GAS] = float64(ss.GetStat(STAT_GAS_STORAGE) * 50000) //NOTE: currently limiting gas storage to 50000 kPa
-	burl.LogInfo("updated capacties")
 	burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
 }
 
@@ -79,9 +78,9 @@ func (ss *StorageSystem) Store(item Storable) error {
 	return nil
 }
 
-//Attempts to remove item from stores. Returns the amount of item removed, or returns 0 if no item is found.
-//If less than volume v is present in stores, returns just what was there and removes the item from the
-//ship's inventory entirely. Check err to see what the deal is.
+// Attempts to remove item from stores. Returns the amount of item removed, or returns 0 if no item is found.
+// If less than volume v is present in stores, returns just what was there and removes the item from the
+// ship's inventory entirely. Check err to see what the deal is.
 func (ss *StorageSystem) Remove(item Storable) (amount float64, err error) {
 	if i, ok := ss.items[item.GetName()]; !ok {
 		return 0, errors.New("Item not found.")

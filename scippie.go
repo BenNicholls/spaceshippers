@@ -33,7 +33,4 @@ package main
 // 	sg.output.ScrollToBottom()
 // }
 
-func (sg *SpaceshipGame) AddMessage(s string) {
-	sg.output.Append(s)
-	sg.output.ScrollToBottom()
-}
+

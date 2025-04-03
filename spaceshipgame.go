@@ -18,9 +18,6 @@ const (
 	MAX_MENUS
 )
 
-// Event types for spaceshippers!
-var LOG_EVENT = burl.RegisterCustomEvent()
-
 func init() {
 	//need to register types that might be hidden by an interface, in order for them to be serializable
 	gob.Register(&SleepJob{})
@@ -344,21 +341,21 @@ func (sg SpaceshipGame) Shutdown() {
 func (sg *SpaceshipGame) SaveShip() {
 	f, err := os.Create("savefile")
 	if err != nil {
-		burl.LogError("Could not open file for saving: " + err.Error())
+		log.Error("Could not open file for saving: " + err.Error())
 	}
 	defer f.Close()
 
 	enc := gob.NewEncoder(f)
 	err = enc.Encode(sg.playerShip)
 	if err != nil {
-		burl.LogError("Could not save ship: " + err.Error())
+		log.Error("Could not save ship: " + err.Error())
 	}
 }
 
 func (sg *SpaceshipGame) LoadShip() {
 	f, err := os.Open("savefile")
 	if err != nil {
-		burl.LogError("Could not open file for loading: " + err.Error())
+		log.Error("Could not open file for loading: " + err.Error())
 	}
 	defer f.Close()
 
@@ -367,7 +364,7 @@ func (sg *SpaceshipGame) LoadShip() {
 	dec := gob.NewDecoder(f)
 	err = dec.Decode(s)
 	if err != nil {
-		burl.LogError("Could not load ship: " + err.Error())
+		log.Error("Could not load ship: " + err.Error())
 	}
 
 	//data loaded, now to re-init everything

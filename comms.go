@@ -64,7 +64,7 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 			cs.Inbox = append(cs.Inbox, trans)
 		}
 		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "inbox"))
-		burl.PushEvent(burl.NewEvent(LOG_EVENT, "A new message has been received! Check your inbox."))
+		fireSpaceLogEvent("A new message has been received! Check your inbox.")
 	case t < 10:
 		//9% chance to win a radio contest
 		trans.sender = NewPersonContact("1781.2 NOVA-FM")
@@ -74,7 +74,7 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 			cs.Transmissions = append(cs.Transmissions, trans)
 		}
 		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "transmissions"))
-		burl.PushEvent(burl.NewEvent(LOG_EVENT, "A transmission has been decoded."))
+		fireSpaceLogEvent("A transmission has been decoded.")
 	default:
 		trans.sender = NewPersonContact("Unknown")
 		trans.title = "--indecipherable--"
@@ -83,6 +83,6 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 			cs.Transmissions = append(cs.Transmissions, trans)
 		}
 		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "transmissions"))
-		burl.PushEvent(burl.NewEvent(LOG_EVENT, "A garbled transmission was intercepted."))
+		fireSpaceLogEvent("A garbled transmission was intercepted.")
 	}
 }
