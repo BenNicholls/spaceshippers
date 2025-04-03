@@ -1,35 +1,44 @@
 package main
 
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/gfx/col"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/vec"
+)
 
 type QuickStatsWindow struct {
-	burl.Container
+	ui.Element
 
-	hullBar   *burl.ProgressBar
-	fuelBar   *burl.ProgressBar
-	energyBar *burl.ProgressBar
-	courseBar *burl.ProgressBar
+	hullBar   ui.ProgressBar
+	fuelBar   ui.ProgressBar
+	energyBar ui.ProgressBar
+	courseBar ui.ProgressBar
 
-	alertText *burl.Textbox
+	alertText ui.Textbox
 
 	ship *Ship
 }
 
-func NewQuickStatsWindow(x, y int, s *Ship) (qsw *QuickStatsWindow) {
-	qsw = new(QuickStatsWindow)
-	qsw.Container = *burl.NewContainer(39, 3, x, y, 9, true)
+func (qsw *QuickStatsWindow) Init(pos vec.Coord, s *Ship) {
+	qsw.Element.Init(vec.Dims{39, 3}, pos, 10)
+	qsw.EnableBorder()
 
-	qsw.alertText = burl.NewTextbox(39, 1, 0, 0, 1, true, true, "All Optimal")
-	qsw.hullBar = burl.NewProgressBar(9, 1, 0, 2, 1, true, true, "HULL", burl.COL_RED)
-	qsw.fuelBar = burl.NewProgressBar(9, 1, 10, 2, 1, true, true, "FUEL", burl.COL_PURPLE)
-	qsw.energyBar = burl.NewProgressBar(9, 1, 20, 2, 1, true, true, "ENERGY", burl.COL_BLUE)
-	qsw.courseBar = burl.NewProgressBar(9, 1, 30, 2, 1, true, true, "COURSE", burl.COL_GREEN)
+	qsw.alertText.Init(vec.Dims{39, 1}, vec.ZERO_COORD, ui.BorderDepth, "All Optimal", ui.JUSTIFY_CENTER)
+	qsw.alertText.EnableBorder()
+	qsw.hullBar.Init(vec.Dims{9, 1}, vec.Coord{0, 2}, ui.BorderDepth, col.RED, "HULL")
+	qsw.hullBar.EnableBorder()
+	qsw.fuelBar.Init(vec.Dims{9, 1}, vec.Coord{10, 2}, ui.BorderDepth, col.PURPLE, "FUEL")
+	qsw.fuelBar.EnableBorder()
+	qsw.energyBar.Init(vec.Dims{9, 1}, vec.Coord{20, 2}, ui.BorderDepth, col.BLUE, "ENERGY")
+	qsw.energyBar.EnableBorder()
+	qsw.courseBar.Init(vec.Dims{9, 1}, vec.Coord{30, 2}, ui.BorderDepth, col.GREEN, "COURSE")
+	qsw.courseBar.EnableBorder()
 
-	qsw.Add(qsw.alertText)
-	qsw.Add(qsw.hullBar, qsw.fuelBar, qsw.energyBar, qsw.courseBar)
+	qsw.AddChild(&qsw.alertText)
+	qsw.AddChildren(&qsw.hullBar, &qsw.fuelBar, &qsw.energyBar, &qsw.courseBar)
 
 	qsw.ship = s
-
 	qsw.Update()
 
 	return
