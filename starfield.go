@@ -16,11 +16,12 @@ type StarField struct {
 
 	field          []bool
 	offset         int
-	shiftFrequency int // number of game ticks between shifts
+	shiftFrequency int // number of game ticks between shifts. if 0, no shift.
 }
 
 func (sf *StarField) Init(size vec.Dims, pos vec.Coord, depth, starFrequency, shiftFrequency int) {
 	sf.Element.Init(size, pos, depth)
+	sf.TreeNode.Init(sf)
 	sf.shiftFrequency = shiftFrequency
 
 	sf.field = make([]bool, size.Area()*2)
@@ -32,6 +33,10 @@ func (sf *StarField) Init(size vec.Dims, pos vec.Coord, depth, starFrequency, sh
 }
 
 func (sf *StarField) Update() {
+	if sf.shiftFrequency == 0 {
+		return
+	}
+	
 	// moves the "camera" on the stars.
 	if tyumi.GetTick()%sf.shiftFrequency != 0 {
 		return
