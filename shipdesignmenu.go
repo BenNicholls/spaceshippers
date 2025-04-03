@@ -159,11 +159,6 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 	sdm.roomToAddElement.Hide()
 	sdm.shipView.AddChild(&sdm.roomToAddElement)
 
-	sdm.UpdateAllRoomList()
-	sdm.UpdateRoomDetails()
-	sdm.UpdateHelpText()
-	sdm.UpdateShipDetails()
-
 	sdm.addRoomState = sdm.RegisterState(util.State{
 		OnEnter: func(prev util.StateID) {
 			sdm.roomToAdd = CreateRoomFromTemplate(sdm.roomTemplateOrder[sdm.allRoomList.GetSelectionIndex()], false)
@@ -172,14 +167,12 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 			sdm.roomToAddElement.Center()
 			sdm.roomToAddElement.Show()
 			sdm.UpdateRoomState()
-			sdm.UpdateHelpText()
 			sdm.allRoomList.AcceptInput = false
 		},
 		OnLeave: func(next util.StateID) {
 			sdm.roomToAdd = nil
 			sdm.roomToAddElement.Hide()
 			sdm.allRoomList.AcceptInput = true
-			sdm.UpdateHelpText()
 		},
 	})
 
@@ -188,14 +181,19 @@ func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 			sdm.addRemoveButton.ChangeText("[R]emove Module")
 			sdm.UpdateInstalledRoomList()
 			sdm.UpdateSelectionAnimation()
-			sdm.UpdateHelpText()
 		},
 		OnLeave: func(next util.StateID) {
 			sdm.addRemoveButton.ChangeText("[A]dd Module")
 			sdm.selectionAnimation.Stop()
-			sdm.UpdateHelpText()
 		},
 	})
+
+	sdm.OnStateChange = func(prev, next util.StateID) { sdm.UpdateHelpText(next) }
+
+	sdm.UpdateAllRoomList()
+	sdm.UpdateRoomDetails()
+	sdm.UpdateHelpText(sdm.CurrentState())
+	sdm.UpdateShipDetails()
 
 	return
 }
@@ -234,9 +232,7 @@ func (sdm *ShipDesignMenu) SaveShip(filename string) {
 	err := template.Save()
 	if err != nil {
 		log.Error(err)
-	} else {
-		log.Info("saved ship ", template)
-	}
+	} 
 	sdm.UpdateShipDetails()
 }
 
@@ -325,13 +321,14 @@ func (sdm *ShipDesignMenu) AddRoomToShip() {
 	}
 }
 
-func (sdm *ShipDesignMenu) UpdateHelpText() {
-	if sdm.roomToAdd != nil {
-		sdm.helpText.ChangeText("ADDING MODULE: " + sdm.roomToAdd.Name + "/n/n Press ARROW KEYS to move, R to rotate, ENTER to add module to ship, and ESCAPE to cancel.")
-	} else if sdm.roomLists.GetPageIndex() == 0 {
-		sdm.helpText.ChangeText("Welcome to the Ship Designer!/n/n Use PGUP/PGDOWN to select a module to add. Press TAB to see all modules currently installed.")
-	} else {
-		sdm.helpText.ChangeText("Welcome to the Ship Designer!/n/n Use PGUP/PGDOWN to select a module to remove. Press TAB to see all available modules.")
+func (sdm *ShipDesignMenu) UpdateHelpText(state util.StateID) {
+	switch state {
+	case sdm.addRoomState:
+		sdm.helpText.ChangeText("ADDING MODULE/n/n Press ARROW KEYS to move, R to rotate, A or ENTER to add module to ship, and ESCAPE to cancel.")
+	case sdm.removeRoomState:
+		sdm.helpText.ChangeText("REMOVING MODULE/n/n Use UP/DOWN to select a module to remove, and R to remove the module. Press TAB to see all available modules.")
+	default:
+		sdm.helpText.ChangeText("Welcome to the Ship Designer!/n/n Use UP/DOWN to select a module to add. Press TAB to see all modules currently installed.")
 	}
 }
 
@@ -359,8 +356,6 @@ func (sdm *ShipDesignMenu) UpdateRoomState() {
 		sdm.roomToAddElement.SetValid(sdm.ship.CheckRoomValidAdd(sdm.roomToAdd))
 	}
 }
-
-
 
 func (sdm *ShipDesignMenu) UpdateInstalledRoomList() {
 	selection := sdm.installedRoomList.GetSelectionIndex()
