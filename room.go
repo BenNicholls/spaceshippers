@@ -3,6 +3,7 @@ package main
 import (
 	"slices"
 
+	"github.com/bennicholls/tyumi/gfx"
 	"github.com/bennicholls/tyumi/rl"
 	"github.com/bennicholls/tyumi/vec"
 )
@@ -152,4 +153,8 @@ func (r *Room) Update(spaceTime int) {
 // Volume returns the interior volume of the room in m^3
 func (r Room) Volume() int {
 	return (r.Width - 2) * (r.Height - 2) * 3 //rooms are 3 meters high... right?
+}
+
+func (r Room) Draw(dst_canvas *gfx.Canvas, offset vec.Coord, depth int) {
+	r.RoomMap.Draw(dst_canvas, offset, depth)
 }

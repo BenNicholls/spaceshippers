@@ -5,319 +5,405 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bennicholls/burl-E/burl"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/gfx"
+	"github.com/bennicholls/tyumi/gfx/col"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/input"
+	"github.com/bennicholls/tyumi/log"
+	"github.com/bennicholls/tyumi/rl"
+	"github.com/bennicholls/tyumi/util"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 type ShipDesignMenu struct {
-	burl.StatePrototype
+	tyumi.Scene
 
-	roomColumn        *burl.Container
-	roomLists         *burl.PagedContainer
-	installedRoomList *burl.List
-	allRoomList       *burl.List
-	roomDetails       *burl.Container
+	roomColumn        ui.Element
+	roomLists         ui.PageContainer
+	installedRoomList ui.List
+	allRoomList       ui.List
+	roomDetails       ui.Element
 
-	shipView           *burl.TileView
-	selectionAnimation *burl.PulseAnimation
+	shipView           rl.TileMapView
 	stars              StarField
+	selectionAnimation gfx.PulseAnimation
 
-	shipColumn     *burl.Container
-	shipNameText   *burl.Textbox
-	shipVolumeText *burl.Textbox
-	shipStatsList  *burl.List
+	shipColumn     ui.Element
+	shipNameText   ui.Textbox
+	shipVolumeText ui.Textbox
+	shipStatsList  ui.List
 
-	buttons         *burl.Container
-	addRemoveButton *burl.Button
-	saveButton      *burl.Button
-	loadButton      *burl.Button
-	returnButton    *burl.Button
-	helpText        *burl.Textbox
+	addRemoveButton ui.Button
+	saveButton      ui.Button
+	loadButton      ui.Button
+	helpText        ui.Textbox
 
-	ship        *Ship
-	roomToAdd   *Room
-	roomAddGood bool
+	ship             *Ship
+	roomToAdd        *Room
+	roomToAddElement RoomElement
 
 	roomTemplateOrder []RoomType //ordering for room templates, so we can later sort/filter
 
-	offX, offY int //shipview camera offsets
+	addRoomState    util.StateID
+	removeRoomState util.StateID
 }
 
 func NewShipDesignMenu() (sdm *ShipDesignMenu) {
 	sdm = new(ShipDesignMenu)
-
 	sdm.ship = NewShip("Unsaved Ship", nil)
 
-	sdm.InitWindow(true)
-	sdm.Window.SetTitle("USE YOUR IMAGINATION")
+	sdm.InitBordered()
+	sdm.Window().SetupBorder("USE YOUR IMAGINATION", "")
+	windowStyle := ui.DefaultBorderStyle
+	windowStyle.TitleJustification = ui.JUSTIFY_CENTER
+	sdm.Window().Border.SetStyle(ui.BORDER_STYLE_CUSTOM, windowStyle)
+	sdm.Window().SendEventsToUnfocused = true
 
-	sdm.roomColumn = burl.NewContainer(20, 52, 0, 0, 0, true)
-	sdm.roomColumn.Add(burl.NewTextbox(20, 1, 0, 0, 0, false, true, "Modules"))
-	sdm.roomLists = burl.NewPagedContainer(20, 20, 0, 2, 0, true)
-	pw, ph := sdm.roomLists.GetPageDims()
+	sdm.roomColumn.Init(vec.Dims{20, 52}, vec.ZERO_COORD, ui.BorderDepth)
+	sdm.roomColumn.EnableBorder()
+	sdm.roomColumn.AddChild(ui.NewTitleTextbox(vec.Dims{20, 1}, vec.ZERO_COORD, ui.BorderDepth, "Modules"))
 
-	all := sdm.roomLists.AddPage("All")
-	sdm.allRoomList = burl.NewList(pw, ph, 0, 0, 0, false, "No modules exist in the whole universe somehow.")
-	all.Add(sdm.allRoomList)
+	sdm.roomLists.Init(vec.Dims{20, 20}, vec.Coord{0, 2}, ui.BorderDepth)
+	sdm.roomLists.EnableBorder()
+	sdm.roomLists.OnPageChanged = func() {
+		sdm.UpdateRoomDetails()
+		if sdm.roomLists.GetPageIndex() == 1 {
+			sdm.ChangeState(sdm.removeRoomState)
+		} else {
+			sdm.ChangeState(util.STATE_NONE)
+		}
+	}
+	sdm.roomLists.AcceptInput = true
+	allPage := sdm.roomLists.CreatePage("All")
+	sdm.allRoomList.Init(allPage.Size(), vec.ZERO_COORD, 0)
+	sdm.allRoomList.SetEmptyText("No modules exist in the whole universe somehow.")
+	sdm.allRoomList.ToggleHighlight()
+	sdm.allRoomList.OnChangeSelection = sdm.OnRoomSelectionChange
+	sdm.allRoomList.AcceptInput = true
+	allPage.AddChild(&sdm.allRoomList)
 
-	installed := sdm.roomLists.AddPage("Installed")
-	sdm.installedRoomList = burl.NewList(pw, ph, 0, 0, 0, false, "Ain't got no modules!")
-	installed.Add(sdm.installedRoomList)
+	installedPage := sdm.roomLists.CreatePage("Installed")
+	sdm.installedRoomList.Init(installedPage.Size(), vec.ZERO_COORD, 0)
+	sdm.installedRoomList.SetEmptyText("Ain't got no modules!")
+	sdm.installedRoomList.ToggleHighlight()
+	sdm.installedRoomList.OnChangeSelection = sdm.OnRoomSelectionChange
+	sdm.installedRoomList.AcceptInput = true
+	installedPage.AddChild(&sdm.installedRoomList)
 
-	sdm.roomDetails = burl.NewContainer(20, 29, 0, 23, 0, true)
+	sdm.roomDetails.Init(vec.Dims{20, 29}, vec.Coord{0, 23}, ui.BorderDepth)
+	roomName := ui.NewTitleTextbox(vec.Dims{20, 1}, vec.ZERO_COORD, ui.BorderDepth, "Room Name")
+	roomName.SetLabel("Room Name")
+	roomDesc := ui.NewTextbox(vec.Dims{18, 5}, vec.Coord{1, 2}, 0, "Room Description", ui.JUSTIFY_CENTER)
+	roomDesc.SetLabel("Room Description")
+	roomDims := ui.NewTextbox(vec.Dims{20, 1}, vec.Coord{0, 8}, 0, "DIMS: ???", ui.JUSTIFY_LEFT)
+	roomDims.SetLabel("Room Dimensions")
+	roomStats := ui.NewList(vec.Dims{18, 18}, vec.Coord{2, 11}, 0)
+	roomStats.SetLabel("Room Stats")
+	sdm.roomDetails.AddChild(ui.NewTextbox(vec.Dims{20, 1}, vec.Coord{0, 10}, 0, "STATS:", ui.JUSTIFY_LEFT))
+	sdm.roomDetails.AddChildren(roomName, roomDesc, roomDims, roomStats)
+	sdm.roomColumn.AddChildren(&sdm.roomLists, &sdm.roomDetails)
 
-	sdm.roomColumn.Add(sdm.roomLists, sdm.roomDetails)
+	sdm.shipView.Init(vec.Dims{52, 45}, vec.Coord{21, 0}, 1, &sdm.ship.shipMap)
+	sdm.shipView.SetDefaultVisuals(gfx.Visuals{Mode: gfx.DRAW_NONE, Colours: col.Pair{col.WHITE, col.BLACK}})
+	sdm.stars.Init(sdm.shipView.Size(), vec.Coord{21, 0}, 0, 20, 10)
+	sdm.shipColumn.Init(vec.Dims{20, 52}, vec.Coord{74, 0}, ui.BorderDepth)
+	sdm.shipColumn.EnableBorder()
+	sdm.shipColumn.AddChild(ui.NewTitleTextbox(vec.Dims{20, 1}, vec.ZERO_COORD, ui.BorderDepth, "Ship Details"))
+	sdm.shipColumn.AddChild(ui.NewTextbox(vec.Dims{5, 1}, vec.Coord{0, 3}, 0, "Ship Name:", ui.JUSTIFY_LEFT))
+	sdm.shipColumn.AddChild(ui.NewTextbox(vec.Dims{5, 1}, vec.Coord{0, 4}, 0, "Volume:", ui.JUSTIFY_LEFT))
+	sdm.shipNameText.Init(vec.Dims{14, 2}, vec.Coord{6, 3}, 0, "", ui.JUSTIFY_LEFT)
+	sdm.shipVolumeText.Init(vec.Dims{14, 1}, vec.Coord{6, 4}, 0, strconv.Itoa(sdm.ship.volume), ui.JUSTIFY_LEFT)
+	sdm.shipStatsList.Init(vec.Dims{20, 30}, vec.Coord{0, 22}, ui.BorderDepth)
+	sdm.shipStatsList.EnableBorder()
+	sdm.shipStatsList.SetEmptyText("Ship has no stats to display. Try adding some modules!")
+	sdm.shipColumn.AddChildren(&sdm.shipNameText, &sdm.shipVolumeText, &sdm.shipStatsList)
+	sdm.Window().AddChildren(&sdm.shipView, &sdm.stars, &sdm.shipColumn)
 
-	sdm.shipView = burl.NewTileView(52, 45, 21, 0, 0, false)
-	sdm.shipColumn = burl.NewContainer(20, 52, 74, 0, 0, true)
-	sdm.shipColumn.Add(burl.NewTextbox(20, 1, 0, 0, 0, true, true, "Ship Details"))
-	sdm.shipColumn.Add(burl.NewTextbox(5, 1, 0, 3, 0, false, false, "Ship Name:"))
-	sdm.shipNameText = burl.NewTextbox(14, 2, 6, 3, 0, false, false, "")
-	sdm.shipColumn.Add(burl.NewTextbox(5, 1, 0, 4, 0, false, false, "Volume:"))
-	sdm.shipVolumeText = burl.NewTextbox(14, 1, 6, 4, 0, false, false, strconv.Itoa(sdm.ship.volume))
-	sdm.shipStatsList = burl.NewList(20, 30, 0, 22, 0, true, "Ship has no stats to display. Try adding some modules!")
-	sdm.shipStatsList.Highlight = false
-	sdm.shipColumn.Add(sdm.shipNameText, sdm.shipVolumeText, sdm.shipStatsList)
+	var buttons ui.Element
+	buttons.Init(vec.Dims{52, 6}, vec.Coord{21, 46}, ui.BorderDepth)
+	buttons.EnableBorder()
+	sdm.addRemoveButton.Init(vec.Dims{8, 1}, vec.ZERO_COORD, ui.BorderDepth, "[A]dd Module", nil)
+	sdm.addRemoveButton.EnableBorder()
+	sdm.loadButton.Init(vec.Dims{8, 1}, vec.Coord{35, 0}, ui.BorderDepth, "[L]oad", func() {
+		sdm.OpenDialog(NewChooseFileDialog("raws/ship/", ".shp", sdm.LoadShip))
+	})
+	sdm.loadButton.EnableBorder()
+	sdm.saveButton.Init(vec.Dims{8, 1}, vec.Coord{44, 0}, ui.BorderDepth, "[S]ave", func() {
+		if sdm.ship.Name != "Unsaved Ship" {
+			sdm.OpenDialog(NewSaveDialog("raws/ship/", ".shp", sdm.ship.Name, sdm.SaveShip))
+		} else {
+			sdm.OpenDialog(NewSaveDialog("raws/ship/", ".shp", "", sdm.SaveShip))
+		}
+	})
+	sdm.saveButton.EnableBorder()
+	sdm.helpText.Init(vec.Dims{52, 4}, vec.Coord{0, 2}, ui.BorderDepth, "", ui.JUSTIFY_CENTER)
+	sdm.helpText.EnableBorder()
+	buttons.AddChildren(&sdm.addRemoveButton, &sdm.loadButton, &sdm.saveButton, &sdm.helpText)
 
-	sdm.buttons = burl.NewContainer(52, 6, 21, 46, 0, true)
-	sdm.addRemoveButton = burl.NewButton(8, 1, 0, 0, 0, true, true, "[A]dd Module")
-	sdm.loadButton = burl.NewButton(8, 1, 35, 0, 0, true, true, "[L]oad")
-	sdm.saveButton = burl.NewButton(8, 1, 44, 0, 0, true, true, "[S]ave")
-	sdm.helpText = burl.NewTextbox(52, 4, 0, 2, 0, true, true, "")
-	sdm.buttons.Add(sdm.addRemoveButton, sdm.saveButton, sdm.loadButton, sdm.helpText)
+	sdm.Window().AddChildren(&sdm.roomColumn, &buttons)
 
-	sdm.Window.Add(sdm.roomColumn, sdm.shipView, sdm.shipColumn, sdm.buttons)
+	sdm.selectionAnimation = gfx.NewPulseAnimation(vec.Rect{}, 1, 60, col.Pair{col.LIGHTGREY, col.LIGHTGREY})
+	sdm.selectionAnimation.Repeat = true
+	sdm.shipView.AddAnimation(&sdm.selectionAnimation)
 
-	//sdm.stars = NewStarField(20, sdm.shipView)
+	sdm.SetKeypressHandler(sdm.HandleKeypress)
+
 	sdm.CenterView()
 
 	sdm.roomTemplateOrder = make([]RoomType, 0)
 	for i := range roomTemplates {
 		sdm.roomTemplateOrder = append(sdm.roomTemplateOrder, i)
 	}
+	sdm.roomToAddElement.Init(vec.ZERO_COORD, 10, nil)
+	sdm.roomToAddElement.Hide()
+	sdm.shipView.AddChild(&sdm.roomToAddElement)
 
 	sdm.UpdateAllRoomList()
 	sdm.UpdateRoomDetails()
 	sdm.UpdateHelpText()
-	sdm.UpdateSelectionAnimation()
 	sdm.UpdateShipDetails()
+
+	sdm.addRoomState = sdm.RegisterState(util.State{
+		OnEnter: func(prev util.StateID) {
+			sdm.roomToAdd = CreateRoomFromTemplate(sdm.roomTemplateOrder[sdm.allRoomList.GetSelectionIndex()], false)
+			sdm.roomToAddElement.SetRoom(sdm.roomToAdd)
+			sdm.CenterView()
+			sdm.roomToAddElement.Center()
+			sdm.roomToAddElement.Show()
+			sdm.UpdateRoomState()
+			sdm.UpdateHelpText()
+			sdm.allRoomList.AcceptInput = false
+		},
+		OnLeave: func(next util.StateID) {
+			sdm.roomToAdd = nil
+			sdm.roomToAddElement.Hide()
+			sdm.allRoomList.AcceptInput = true
+			sdm.UpdateHelpText()
+		},
+	})
+
+	sdm.removeRoomState = sdm.RegisterState(util.State{
+		OnEnter: func(prev util.StateID) {
+			sdm.addRemoveButton.ChangeText("[R]emove Module")
+			sdm.UpdateInstalledRoomList()
+			sdm.UpdateSelectionAnimation()
+			sdm.UpdateHelpText()
+		},
+		OnLeave: func(next util.StateID) {
+			sdm.addRemoveButton.ChangeText("[A]dd Module")
+			sdm.selectionAnimation.Stop()
+			sdm.UpdateHelpText()
+		},
+	})
 
 	return
 }
 
-func (sdm *ShipDesignMenu) CenterView() {
-	w, h := sdm.shipView.Dims()
-	if sdm.roomToAdd == nil {
-		sdm.offX = sdm.ship.x + sdm.ship.width/2 - w/2
-		sdm.offY = sdm.ship.y + sdm.ship.height/2 - h/2
+func (sdm *ShipDesignMenu) LoadShip(filename string) {
+	if filename == "" {
+		return
+	}
+
+	template, err := LoadShipTemplate("raws/ship/" + filename)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+
+	sdm.ship = NewShip("whatever", nil)
+	sdm.ship.SetupFromTemplate(template)
+	sdm.ship.Name = template.Name
+	sdm.shipView.SetTileMap(sdm.ship.shipMap)
+	sdm.UpdateInstalledRoomList()
+	sdm.UpdateRoomDetails()
+	sdm.UpdateShipDetails()
+	sdm.CenterView()
+
+	switch sdm.CurrentState() {
+	case sdm.addRoomState:
+		sdm.UpdateRoomState()
+	case sdm.removeRoomState:
+		sdm.UpdateSelectionAnimation()
+	}
+}
+
+func (sdm *ShipDesignMenu) SaveShip(filename string) {
+	sdm.ship.Name = strings.TrimSuffix(filename, ".shp")
+	template := sdm.ship.CreateShipTemplate()
+	err := template.Save()
+	if err != nil {
+		log.Error(err)
 	} else {
-		sdm.offX = sdm.roomToAdd.X + sdm.roomToAdd.Width/2 - w/2
-		sdm.offY = sdm.roomToAdd.Y + sdm.roomToAdd.Height/2 - h/2
+		log.Info("saved ship ", template)
+	}
+	sdm.UpdateShipDetails()
+}
+
+func (sdm *ShipDesignMenu) CenterView() {
+	if sdm.ship.Bounds().Area() > 0 {
+		sdm.shipView.CenterOnTileMapCoord(sdm.ship.Bounds().Center())
+	} else {
+		sdm.shipView.CenterTileMap()
+	}
+}
+
+func (sdm *ShipDesignMenu) HandleKeypress(key_event *input.KeyboardEvent) (event_handled bool) {
+	//general inputs valid for all states
+	switch key_event.Key {
+	case input.K_l:
+		sdm.loadButton.Press()
+		return true
+	case input.K_s:
+		sdm.UpdateInstalledRoomList()
+		if sdm.installedRoomList.Count() != 0 {
+			sdm.saveButton.Press()
+			return true
+		}
+	case input.K_ESCAPE:
+		if sdm.CurrentState() != util.STATE_NONE {
+			sdm.ChangeState(util.STATE_NONE)
+		} else {
+			var startMenu StartMenu
+			startMenu.Init()
+			tyumi.ChangeScene(&startMenu)
+		}
+
+		return true
+	}
+
+	// state specific inputs
+	switch sdm.CurrentState() {
+	case sdm.addRoomState:
+		if dir := key_event.Direction(); dir != vec.DIR_NONE {
+			sdm.roomToAddElement.Move(dir.X, dir.Y)
+			sdm.UpdateRoomState()
+		}
+		switch key_event.Key {
+		case input.K_r:
+			sdm.roomToAdd.Rotate()
+			sdm.roomToAddElement.Resize(sdm.roomToAdd.Size())
+			sdm.UpdateRoomState()
+		case input.K_RETURN, input.K_a:
+			sdm.AddRoomToShip()
+			sdm.CenterView()
+		}
+	case sdm.removeRoomState:
+		if key_event.Key == input.K_r {
+			if roomIndex := sdm.installedRoomList.GetSelectionIndex(); roomIndex != -1 {
+				room := sdm.ship.Rooms[sdm.installedRoomList.GetSelectionIndex()]
+				sdm.ship.RemoveRoom(room)
+				sdm.UpdateInstalledRoomList()
+				sdm.UpdateShipDetails()
+				sdm.CenterView()
+				sdm.UpdateSelectionAnimation()
+				sdm.addRemoveButton.Press()
+			}
+		}
+	default: // STATE_NONE, default state
+		switch key_event.Key {
+		case input.K_a:
+			if sdm.roomLists.GetPageIndex() != 0 {
+				return
+			}
+
+			sdm.ChangeState(sdm.addRoomState)
+			sdm.addRemoveButton.Press()
+			return true
+		}
+	}
+
+	return
+}
+
+func (sdm *ShipDesignMenu) AddRoomToShip() {
+	sdm.UpdateRoomState()
+	if sdm.roomToAddElement.valid {
+		sdm.ship.AddRoom(sdm.roomToAdd.pos, sdm.roomToAdd)
+		sdm.UpdateShipDetails()
+		sdm.ChangeState(util.STATE_NONE)
 	}
 }
 
 func (sdm *ShipDesignMenu) UpdateHelpText() {
 	if sdm.roomToAdd != nil {
 		sdm.helpText.ChangeText("ADDING MODULE: " + sdm.roomToAdd.Name + "/n/n Press ARROW KEYS to move, R to rotate, ENTER to add module to ship, and ESCAPE to cancel.")
-	} else if sdm.roomLists.CurrentIndex() == 0 {
+	} else if sdm.roomLists.GetPageIndex() == 0 {
 		sdm.helpText.ChangeText("Welcome to the Ship Designer!/n/n Use PGUP/PGDOWN to select a module to add. Press TAB to see all modules currently installed.")
 	} else {
 		sdm.helpText.ChangeText("Welcome to the Ship Designer!/n/n Use PGUP/PGDOWN to select a module to remove. Press TAB to see all available modules.")
 	}
 }
 
-func (sdm *ShipDesignMenu) HandleKeypress(key sdl.Keycode) {
-	if sdm.roomToAdd == nil {
-		switch key {
-		case sdl.K_a:
-			if sdm.roomLists.CurrentIndex() == 0 {
-				sdm.roomToAdd = CreateRoomFromTemplate(sdm.roomTemplateOrder[sdm.allRoomList.GetSelection()], false)
-				if sdm.ship.volume == 0 {
-					sdm.roomToAdd.X = sdm.ship.shipMap.Width/2 - sdm.roomToAdd.Width/2
-					sdm.roomToAdd.Y = sdm.ship.shipMap.Height/2 - sdm.roomToAdd.Height/2
-				} else {
-					sdm.roomToAdd.X = sdm.ship.x + sdm.ship.width/2 - sdm.roomToAdd.Width/2
-					sdm.roomToAdd.Y = sdm.ship.y + sdm.ship.height/2 - sdm.roomToAdd.Height/2
-				}
-				sdm.CenterView()
-				sdm.UpdateRoomState()
-				sdm.UpdateHelpText()
-				sdm.addRemoveButton.Press()
-			}
-		case sdl.K_r:
-			if sdm.roomLists.CurrentIndex() == 1 && len(sdm.installedRoomList.Elements) > 0 {
-				room := sdm.ship.Rooms[sdm.installedRoomList.GetSelection()]
-				sdm.ship.RemoveRoom(room)
-				sdm.UpdateInstalledRoomList()
-				sdm.UpdateShipDetails()
-				sdm.addRemoveButton.Press()
-			}
-		case sdl.K_l:
-			sdm.loadButton.Press()
-			sdm.OpenDialog(NewChooseFileDialog("raws/ship/", ".shp"))
-		case sdl.K_s:
-			sdm.saveButton.Press()
-			if len(sdm.installedRoomList.Elements) != 0 {
-				if sdm.ship.Name != "Unsaved Ship" {
-					sdm.OpenDialog(NewSaveDialog("raws/ship/", ".shp", sdm.ship.Name))
-				} else {
-					sdm.OpenDialog(NewSaveDialog("raws/ship/", ".shp", ""))
-				}
-			}
-		case sdl.K_TAB:
-			sdm.roomLists.HandleKeypress(key)
-			sdm.UpdateRoomDetails()
-			sdm.UpdateHelpText()
-			sdm.UpdateSelectionAnimation()
-			if sdm.roomLists.CurrentIndex() == 0 {
-				sdm.addRemoveButton.ChangeText("[A]dd Module")
-			} else {
-				sdm.addRemoveButton.ChangeText("[R]emove Module")
-			}
-
-		case sdl.K_PAGEUP:
-			if sdm.roomLists.CurrentIndex() == 0 {
-				sdm.allRoomList.Prev()
-			} else {
-				sdm.installedRoomList.Prev()
-				sdm.UpdateSelectionAnimation()
-			}
-			sdm.UpdateRoomDetails()
-		case sdl.K_PAGEDOWN:
-			if sdm.roomLists.CurrentIndex() == 0 {
-				sdm.allRoomList.Next()
-			} else {
-				sdm.installedRoomList.Next()
-				sdm.UpdateSelectionAnimation()
-			}
-			sdm.UpdateRoomDetails()
-		}
-	} else { //adding a room
-		switch key {
-		case sdl.K_r:
-			sdm.roomToAdd.Rotate()
-			sdm.UpdateRoomState()
-		case sdl.K_RETURN:
-			sdm.AddRoomToShip()
-			sdm.UpdateHelpText()
-			sdm.UpdateShipDetails()
-		case sdl.K_UP:
-			sdm.roomToAdd.Y -= 1
-			sdm.UpdateRoomState()
-		case sdl.K_DOWN:
-			sdm.roomToAdd.Y += 1
-			sdm.UpdateRoomState()
-		case sdl.K_LEFT:
-			sdm.roomToAdd.X -= 1
-			sdm.UpdateRoomState()
-		case sdl.K_RIGHT:
-			sdm.roomToAdd.X += 1
-			sdm.UpdateRoomState()
-		case sdl.K_ESCAPE:
-			sdm.roomToAdd = nil
-			sdm.UpdateHelpText()
-		}
+func (sdm *ShipDesignMenu) OnRoomSelectionChange() {
+	if sdm.CurrentState() == sdm.removeRoomState {
+		sdm.UpdateSelectionAnimation()
 	}
+	sdm.UpdateRoomDetails()
 }
 
 func (sdm *ShipDesignMenu) UpdateSelectionAnimation() {
-	sdm.shipView.RemoveAnimation(sdm.selectionAnimation)
-	if len(sdm.installedRoomList.Elements) != 0 {
-		room := sdm.ship.Rooms[sdm.installedRoomList.GetSelection()]
-		sdm.selectionAnimation = burl.NewPulseAnimation(0, 0, 0, room.Width, room.Height, 50, 0, true)
-		sdm.shipView.AddAnimation(sdm.selectionAnimation)
-		if sdm.roomLists.CurrentIndex() == 1 {
-			sdm.selectionAnimation.Activate()
-		}
-	}
-}
-
-func (sdm *ShipDesignMenu) Update() {
-	sdm.Tick++
-
-	if sdm.Tick%10 == 0 {
-	//	sdm.stars.Shift()
-	}
-}
-
-func (sdm *ShipDesignMenu) HandleEvent(e *burl.Event) {
-	switch e.ID {
-	case EV_LOADFILE:
-		temp, err := LoadShipTemplate("raws/ship/" + e.Message)
-		if err != nil {
-			burl.LogError(err.Error())
-		} else {
-			sdm.ship = NewShip("whatever", nil)
-			sdm.ship.SetupFromTemplate(temp)
-			sdm.ship.Name = temp.Name
-			sdm.UpdateInstalledRoomList()
-			sdm.UpdateRoomDetails()
-			sdm.UpdateShipDetails()
-			sdm.CenterView()
-		}
-	case EV_SAVEFILE:
-		sdm.ship.Name = strings.TrimSuffix(e.Message, ".shp")
-		temp := sdm.ship.CreateShipTemplate()
-		temp.Save()
-		sdm.UpdateShipDetails()
+	if sdm.installedRoomList.Count() != 0 {
+		room := sdm.ship.Rooms[sdm.installedRoomList.GetSelectionIndex()]
+		pos := sdm.shipView.MapCoordToViewCoord(room.pos)
+		sdm.selectionAnimation.SetArea(vec.Rect{pos, room.Size()})
+		sdm.selectionAnimation.Start()
+	} else {
+		sdm.selectionAnimation.Stop()
 	}
 }
 
 func (sdm *ShipDesignMenu) UpdateRoomState() {
 	if sdm.roomToAdd != nil {
-		sdm.roomAddGood = sdm.ship.CheckRoomValidAdd(sdm.roomToAdd, sdm.roomToAdd.X, sdm.roomToAdd.Y)
+		sdm.roomToAdd.pos = sdm.roomToAddElement.Bounds().Coord.Add(sdm.shipView.GetCameraOffset())
+		sdm.roomToAddElement.SetValid(sdm.ship.CheckRoomValidAdd(sdm.roomToAdd))
 	}
 }
 
-func (sdm *ShipDesignMenu) AddRoomToShip() {
-	sdm.UpdateRoomState()
-	if sdm.roomAddGood {
-		sdm.ship.AddRoom(sdm.roomToAdd, sdm.roomToAdd.X, sdm.roomToAdd.Y)
-		sdm.roomToAdd = nil
-	}
-	sdm.UpdateInstalledRoomList()
-	sdm.UpdateRoomDetails()
-}
+
 
 func (sdm *ShipDesignMenu) UpdateInstalledRoomList() {
-	sdm.installedRoomList.ClearElements()
+	selection := sdm.installedRoomList.GetSelectionIndex()
+	sdm.installedRoomList.RemoveAll()
 	for _, r := range sdm.ship.Rooms {
-		sdm.installedRoomList.Append(r.Name)
+		sdm.installedRoomList.InsertText(ui.JUSTIFY_LEFT, r.Name)
 	}
-	sdm.installedRoomList.CheckSelection()
-	sdm.UpdateSelectionAnimation()
+	sdm.installedRoomList.Select(selection)
 	sdm.UpdateRoomDetails()
 }
 
 func (sdm *ShipDesignMenu) UpdateAllRoomList() {
-	sdm.allRoomList.ClearElements()
+	sdm.allRoomList.RemoveAll()
 	for _, temp := range sdm.roomTemplateOrder {
-		sdm.allRoomList.Append(roomTemplates[temp].name)
+		sdm.allRoomList.InsertText(ui.JUSTIFY_LEFT, roomTemplates[temp].name)
 	}
 }
 
 func (sdm *ShipDesignMenu) UpdateRoomDetails() {
-	sdm.roomDetails.ClearElements()
-
 	var room *Room
-
-	switch sdm.roomLists.CurrentIndex() {
+	switch sdm.roomLists.GetPageIndex() {
 	case 0: //All
-		room = CreateRoomFromTemplate(sdm.roomTemplateOrder[sdm.allRoomList.GetSelection()], false)
+		if sdm.allRoomList.Count() > 0 {
+			room = CreateRoomFromTemplate(sdm.roomTemplateOrder[sdm.allRoomList.GetSelectionIndex()], false)
+		}
 	case 1: //Installed modules
-		if len(sdm.installedRoomList.Elements) != 0 {
-			room = sdm.ship.Rooms[sdm.installedRoomList.GetSelection()]
+		if sdm.installedRoomList.Count() != 0 {
+			room = sdm.ship.Rooms[sdm.installedRoomList.GetSelectionIndex()]
 		}
 	}
 
 	if room != nil {
-		sdm.roomDetails.Add(burl.NewTextbox(20, 1, 0, 0, 0, true, true, room.Name))
-		sdm.roomDetails.Add(burl.NewTextbox(20, 5, 0, 2, 0, false, true, room.Description))
-		sdm.roomDetails.Add(burl.NewTextbox(20, 1, 0, 8, 0, false, false, "Dims: ("+strconv.Itoa(room.Width)+"x"+strconv.Itoa(room.Height)+")"))
-		sdm.roomDetails.Add(burl.NewTextbox(20, 1, 0, 10, 0, false, false, "STATS:"))
-		for i, s := range room.Stats {
-			sdm.roomDetails.Add(burl.NewTextbox(20, 1, 2, 11+i, 0, false, false, s.GetName()+": "+strconv.Itoa(s.Modifier)))
+		sdm.roomDetails.Show()
+		ui.GetLabelled[*ui.Textbox](sdm.Window(), "Room Name").ChangeText(room.Name)
+		ui.GetLabelled[*ui.Textbox](sdm.Window(), "Room Description").ChangeText(room.Description)
+		ui.GetLabelled[*ui.Textbox](sdm.Window(), "Room Dimensions").ChangeText("Dims: (" + strconv.Itoa(room.Width) + "x" + strconv.Itoa(room.Height) + ")")
+		statList := ui.GetLabelled[*ui.List](sdm.Window(), "Room Stats")
+		statList.RemoveAll()
+		for _, s := range room.Stats {
+			statList.InsertText(ui.JUSTIFY_LEFT, s.GetName()+": "+strconv.Itoa(s.Modifier))
 		}
+	} else {
+		sdm.roomDetails.Hide()
 	}
 }
 
@@ -325,41 +411,65 @@ func (sdm *ShipDesignMenu) UpdateShipDetails() {
 	sdm.shipNameText.ChangeText(sdm.ship.Name)
 	sdm.shipVolumeText.ChangeText(strconv.Itoa(sdm.ship.volume))
 
-	sdm.shipStatsList.ClearElements()
+	sdm.shipStatsList.RemoveAll()
 
 	for _, sys := range sdm.ship.Systems {
 		var statStrings []string
 		for _, stat := range sys.GetAllStats() {
-
 			statStrings = append(statStrings, stat.GetName()+": "+strconv.Itoa(stat.Modifier))
 		}
 		sort.Strings(statStrings)
-		sdm.shipStatsList.Append(statStrings...)
+		sdm.shipStatsList.InsertText(ui.JUSTIFY_LEFT, statStrings...)
 	}
 }
 
-func (sdm *ShipDesignMenu) Render() {
-	//sdm.stars.Draw()
-	sdm.ship.DrawToTileView(sdm.shipView, VIEW_DEFAULT, sdm.offX, sdm.offY)
+type RoomElement struct {
+	rl.TileMapView
 
-	if sdm.roomToAdd != nil {
-		for i := 0; i < sdm.roomToAdd.Width*sdm.roomToAdd.Height; i++ {
+	valid bool
+	room  *Room
+}
 
-			x := i%sdm.roomToAdd.Width + sdm.roomToAdd.X - sdm.offX
-			y := i/sdm.roomToAdd.Width + sdm.roomToAdd.Y - sdm.offY
-			w, h := sdm.shipView.Dims()
-
-			if burl.CheckBounds(x, y, w, h) {
-				tv := sdm.roomToAdd.RoomMap.GetTile(i%sdm.roomToAdd.Width, i/sdm.roomToAdd.Width).GetVisuals()
-				if sdm.roomAddGood {
-					sdm.shipView.Draw(x, y, tv.Glyph, tv.ForeColour, burl.COL_GREEN)
-				} else {
-					sdm.shipView.Draw(x, y, tv.Glyph, tv.ForeColour, burl.COL_RED)
-				}
-			}
-		}
-	} else if sdm.roomLists.CurrentIndex() == 1 && len(sdm.installedRoomList.Elements) != 0 {
-		room := sdm.ship.Rooms[sdm.installedRoomList.GetSelection()]
-		sdm.selectionAnimation.MoveTo(room.X-sdm.offX, room.Y-sdm.offY)
+func (re *RoomElement) Init(pos vec.Coord, depth int, room *Room) {
+	if room != nil {
+		re.TileMapView.Init(room.Size(), pos, depth, &room.RoomMap)
+	} else {
+		re.TileMapView.Init(vec.Dims{1, 1}, pos, depth, nil)
 	}
+
+	re.TreeNode.Init(re)
+}
+
+func (re *RoomElement) SetRoom(room *Room) {
+	if re.room == room {
+		return
+	}
+
+	re.room = room
+	re.Resize(room.Size())
+	re.SetTileMap(&re.room.RoomMap)
+	re.valid = false
+}
+
+func (re *RoomElement) SetValid(valid bool) {
+	if re.valid == valid {
+		return
+	}
+
+	re.valid = valid
+	re.Updated = true
+}
+
+func (re *RoomElement) Render() {
+	if re.room == nil {
+		return
+	}
+
+	if re.valid {
+		re.SetDefaultColours(col.Pair{col.NONE, col.GREEN})
+	} else {
+		re.SetDefaultColours(col.Pair{col.NONE, col.RED})
+	}
+
+	re.TileMapView.Render()
 }

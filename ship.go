@@ -227,6 +227,14 @@ func (s *Ship) DrawRoom(r *Room) {
 
 // Calculates the bounding box for the current ship configuration, as well as the volume.
 func (s *Ship) CalcShipBounds() {
+	if len(s.Rooms) == 0 {
+		// if no rooms, just pretend the ship is a 0-area dot in the middle of the ship map.
+		s.width, s.height = 0, 0
+		s.x, s.y = s.width/2, s.height/2
+		s.volume = 0
+		return
+	}
+
 	s.x, s.y = s.shipMap.Size().W, s.shipMap.Size().H
 	x2, y2 := 0, 0
 	s.volume = 0
