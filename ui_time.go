@@ -1,28 +1,32 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/gfx"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 type TimeDisplay struct {
-	burl.Container
+	ui.Element
 
-	timeText     *burl.Textbox
-	speedDisplay *burl.TileView
+	timeText     ui.Textbox
+	speedDisplay ui.Element
 
 	galaxy *Galaxy
+	speed  int
 }
 
-func NewTimeDisplay(x, y int, g *Galaxy) (td *TimeDisplay) {
-	td = new(TimeDisplay)
+func (td *TimeDisplay) Init(pos vec.Coord, g *Galaxy) {
+	td.Element.Init(vec.Dims{16, 3}, pos, 10)
+	td.TreeNode.Init(td)
+	td.SetupBorder("", "+/-: change speed")
+	td.speedDisplay.Init(vec.Dims{4, 1}, vec.Coord{12, 0}, ui.BorderDepth)
+	td.speedDisplay.EnableBorder()
+	td.timeText.Init(vec.Dims{16, 1}, vec.Coord{0, 2}, ui.BorderDepth, "", ui.JUSTIFY_CENTER)
+	td.timeText.EnableBorder()
 
-	td.Container = *burl.NewContainer(16, 3, x, y, 10, true)
-	td.Container.SetHint("+/-: change speed")
-	td.speedDisplay = burl.NewTileView(4, 1, 12, 0, 0, true)
-	td.timeText = burl.NewTextbox(16, 1, 0, 2, 0, true, true, "")
-
-	td.Add(td.timeText, td.speedDisplay)
-	td.Add(burl.NewTextbox(11, 1, 0, 0, 0, false, true, "Simulation Speed: "))
+	td.AddChildren(&td.timeText, &td.speedDisplay)
+	td.AddChild(ui.NewTextbox(vec.Dims{11, 1}, vec.ZERO_COORD, 0, "Simulation Speed: ", ui.JUSTIFY_CENTER))
 
 	td.galaxy = g
 	td.UpdateTime()
@@ -35,12 +39,20 @@ func (td *TimeDisplay) UpdateTime() {
 }
 
 func (td *TimeDisplay) UpdateSpeed(simSpeed int) {
-	td.speedDisplay.Reset()
-	for i := 0; i < 4; i++ {
-		if i < simSpeed {
-			td.speedDisplay.Draw(i, 0, burl.GLYPH_TRIANGLE_RIGHT, burl.COL_WHITE, burl.COL_BLACK)
+	if td.speed == simSpeed {
+		return
+	}
+
+	td.speed = simSpeed
+	td.Updated = true
+}
+
+func (td *TimeDisplay) Render() {
+	for i := range 4 {
+		if i < td.speed {
+			td.speedDisplay.DrawGlyph(vec.Coord{i, 0}, 0, gfx.GLYPH_TRIANGLE_RIGHT)
 		} else {
-			td.speedDisplay.Draw(i, 0, burl.GLYPH_UNDERSCORE, burl.COL_WHITE, burl.COL_BLACK)
+			td.speedDisplay.DrawGlyph(vec.Coord{i, 0}, 0, gfx.GLYPH_UNDERSCORE)
 		}
 	}
 }
