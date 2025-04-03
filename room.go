@@ -50,6 +50,10 @@ func (r Room) Size() vec.Dims {
 	return vec.Dims{r.Width, r.Height}
 }
 
+func (r *Room) Bounds() vec.Rect {
+	return vec.Rect{r.pos, r.Size()}
+}
+
 // Creates the map for the room.
 func (r *Room) CreateRoomMap() {
 	r.RoomMap.Init(r.Size(), rl.TILE_NONE)
@@ -66,10 +70,6 @@ func (r *Room) Rotate() {
 	r.Width, r.Height = r.Height, r.Width
 	r.Rotated = !r.Rotated
 	r.CreateRoomMap()
-}
-
-func (r *Room) Bounds() vec.Rect {
-	return vec.Rect{r.pos, r.Size()}
 }
 
 // Tries to connect room to another. Finds the intersection of the two rooms and puts doors there!
@@ -92,16 +92,16 @@ func (r *Room) AddConnection(c *Room) {
 	}
 
 	i.Coord = i.Coord.Subtract(r.pos) // translate from shipspace to roomspace
-	if i.W == 1 && i.H >= 3 { // left-right rooms
+	if i.W == 1 && i.H >= 3 {         // left-right rooms
 		if i.H%2 == 0 {
-			r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{0, i.H/2-1}), TILE_DOOR)
+			r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{0, i.H/2 - 1}), TILE_DOOR)
 		}
-		r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{0, i.H/2}), TILE_DOOR)
+		r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{0, i.H / 2}), TILE_DOOR)
 	} else if i.H == 1 && i.W >= 3 { //up-down rooms
 		if i.W%2 == 0 {
-			r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{i.W/2-1, 0}), TILE_DOOR)
+			r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{i.W/2 - 1, 0}), TILE_DOOR)
 		}
-		r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{i.W/2, 0}), TILE_DOOR)
+		r.RoomMap.SetTileType(i.Coord.Add(vec.Coord{i.W / 2, 0}), TILE_DOOR)
 	}
 
 	r.connected = append(r.connected, c)

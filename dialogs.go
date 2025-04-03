@@ -97,16 +97,17 @@ type SaveDialog struct {
 	saveButton   ui.Button
 	cancelButton ui.Button
 
-	chosenFilename string
+	chosenFileName string
 	ext            string
 	dirPath        string
 	filenames      []string //current contents of directory so we can warn against overwrites
 }
 
-func NewSaveDialog(dirPath, ext, default_filename string, onSave func(filename string)) (sd *SaveDialog) {
+func NewSaveDialog(dirPath, ext, default_filename string, onSave func(filepath string)) (sd *SaveDialog) {
 	sd = new(SaveDialog)
 	sd.dirPath = dirPath
 	sd.ext = ext
+	sd.onFileSaved = onSave
 
 	sd.InitCentered(vec.Dims{26, 10})
 	sd.SetKeypressHandler(sd.HandleKeypress)
@@ -122,7 +123,7 @@ func NewSaveDialog(dirPath, ext, default_filename string, onSave func(filename s
 	sd.fileText.Init(vec.Dims{24, 3}, vec.Coord{1, 4}, 0, "Input filename.", ui.JUSTIFY_CENTER)
 
 	sd.saveButton.Init(vec.Dims{5, 1}, vec.Coord{7, 8}, 2, "Save", func() {
-		sd.chosenFilename = sd.dirPath + sd.nameInput.InputtedText()
+		sd.chosenFileName = sd.nameInput.InputtedText()
 		sd.CreateTimer(20, func() { sd.done = true })
 	})
 	sd.saveButton.EnableBorder()
@@ -167,8 +168,8 @@ func (sd *SaveDialog) UpdateFileText() {
 }
 
 func (sd *SaveDialog) Shutdown() {
-	if sd.onFileSaved != nil && sd.chosenFilename != "" {
-		sd.onFileSaved(sd.chosenFilename)
+	if sd.onFileSaved != nil && sd.chosenFileName != "" {
+		sd.onFileSaved(sd.chosenFileName)
 	}
 }
 

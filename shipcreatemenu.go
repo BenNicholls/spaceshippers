@@ -124,14 +124,14 @@ func (scm *ShipCreateMenu) onGeneratePress() {
 
 func (scm *ShipCreateMenu) Update() {
 	//move around the crew, for fun!
-	for i := range scm.ship.Crew {
-		scm.ship.Crew[i].Update(tyumi.GetTick())
-		if tyumi.GetTick()%20 == 0 {
-			// dx, dy := util.RandomDirection()
-			// if scm.ship.shipMap.GetTile(scm.ship.Crew[i].X+dx, scm.ship.Crew[i].Y+dy).Empty() {
-			// 	scm.ship.shipMap.MoveEntity(scm.ship.Crew[i].X, scm.ship.Crew[i].Y, dx, dy)
-			// 	scm.ship.Crew[i].Move(dx, dy)
-			// }
-		}
-	}
+	// for i := range scm.ship.Crew {
+	// 	scm.ship.Crew[i].Update(tyumi.GetTick())
+	// 	if tyumi.GetTick()%20 == 0 {
+	// 		// dx, dy := util.RandomDirection()
+	// 		// if scm.ship.shipMap.GetTile(scm.ship.Crew[i].X+dx, scm.ship.Crew[i].Y+dy).Empty() {
+	// 		// 	scm.ship.shipMap.MoveEntity(scm.ship.Crew[i].X, scm.ship.Crew[i].Y, dx, dy)
+	// 		// 	scm.ship.Crew[i].Move(dx, dy)
+	// 		// }
+	// 	}
+	// }
 }

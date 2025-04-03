@@ -111,6 +111,10 @@ func (s *Ship) SetupShip(g *Galaxy) {
 	s.Navigation.galaxy = g
 }
 
+func (s Ship) Bounds() vec.Rect {
+	return vec.Rect{vec.Coord{s.x, s.y}, vec.Dims{s.width, s.height}}
+}
+
 func (s *Ship) CompileStats() {
 	//remove stats from ship systems, we're starting fresh
 	for i := range s.Systems {
@@ -166,7 +170,7 @@ func (s *Ship) RemoveRoom(r *Room) {
 		return
 	}
 
-	s.Rooms = append(s.Rooms[:roomIndex], s.Rooms[roomIndex+1:]...)
+	s.Rooms = slices.Delete(s.Rooms, roomIndex, roomIndex+1)
 	//erase room from shipmap
 	for cursor := range vec.EachCoordInArea(r) {
 		s.shipMap.SetTileType(cursor, rl.TILE_NONE)
