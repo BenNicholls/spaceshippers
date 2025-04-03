@@ -4,19 +4,20 @@ import (
 	"encoding/gob"
 	"os"
 
-	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/event"
+	"github.com/bennicholls/tyumi/gfx"
+	"github.com/bennicholls/tyumi/gfx/col"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/log"
+	"github.com/bennicholls/tyumi/rl"
+	"github.com/bennicholls/tyumi/vec"
 )
 
-const (
-	MENU_GAME int = iota
-	MENU_SHIP
-	MENU_GALAXY
-	MENU_CREW
-	MENU_COMM
-	MENU_VIEW
-	MENU_MAIN
-	MAX_MENUS
-)
+type Menu interface {
+	Show()
+	Hide()
+}
 
 func init() {
 	//need to register types that might be hidden by an interface, in order for them to be serializable
@@ -24,22 +25,23 @@ func init() {
 }
 
 type SpaceshipGame struct {
-	burl.StatePrototype
+	tyumi.Scene
 
 	//ui stuff
-	output      *burl.List
-	quickstats  *QuickStatsWindow
-	timeDisplay *TimeDisplay
-	shipdisplay *burl.TileView
+	logOutput   ui.List
+	quickstats  QuickStatsWindow
+	timeDisplay TimeDisplay
+	shipView    rl.TileMapView
+	stars       StarField
 
 	//top menu. contains buttons for submenus
-	gameMenuButton   *burl.Button
-	shipMenuButton   *burl.Button
-	galaxyMenuButton *burl.Button
-	crewMenuButton   *burl.Button
-	commMenuButton   *burl.Button
-	viewMenuButton   *burl.Button
-	mainMenuButton   *burl.Button
+	gameMenuButton   ui.Button
+	shipMenuButton   ui.Button
+	galaxyMenuButton ui.Button
+	crewMenuButton   ui.Button
+	commMenuButton   ui.Button
+	viewMenuButton   ui.Button
+	mainMenuButton   ui.Button
 
 	gameMenu   *GameMenu   //(F1)
 	shipMenu   *ShipMenu   //(F2)
@@ -47,21 +49,15 @@ type SpaceshipGame struct {
 	crewMenu   *CrewMenu   //(F4)
 	commMenu   *CommMenu   //(F5)
 	viewMenu   *ViewMenu   //(F6)
-	mainMenu   *MainMenu   //(ESC)
+	mainMenu   MainMenu    //(ESC)
 
-	menus       []burl.UIElem
-	menuButtons []*burl.Button
-
-	activeMenu burl.UIElem
+	activeMenu Menu
 
 	//Time Globals.
 	startTime int //time since launch, measured in Standard Galactic Seconds
 	simSpeed  int //4 speeds, plus pause (0)
 	paused    bool
 
-	Stars StarField
-
-	viewX, viewY int
 	viewMode     int
 
 	galaxy     *Galaxy
@@ -105,15 +101,15 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 
 	sg.LoadSpaceEvents()
 
-	sg.OpenDialog(NewSpaceEventDialog(spaceEvents[1]))
+	//sg.OpenDialog(NewSpaceEventDialog(spaceEvents[1]))
 
-	burl.RegisterDebugCommand("fuel", func() {
-		sg.playerShip.Storage.Store(&Item{
-			Name:        "Fuel",
-			Volume:      s.Storage.GetCapacity(STORE_LIQUID)/2 - sg.playerShip.Storage.GetItemVolume("Fuel"),
-			StorageType: STORE_LIQUID,
-		})
-	})
+	// burl.RegisterDebugCommand("fuel", func() {
+	// 	sg.playerShip.Storage.Store(&Item{
+	// 		Name:        "Fuel",
+	// 		Volume:      s.Storage.GetCapacity(STORE_LIQUID)/2 - sg.playerShip.Storage.GetItemVolume("Fuel"),
+	// 		StorageType: STORE_LIQUID,
+	// 	})
+	// })
 
 	// burl.RegisterDebugCommand("earth", func() {
 	// 	sg.playerShip.SetLocation(sg.galaxy.GetEarth())
@@ -131,68 +127,56 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 
 // Centers the map of the ship in the main view.
 func (sg *SpaceshipGame) CenterShip() {
-	displayWidth, displayHeight := sg.shipdisplay.Dims()
-	sg.viewX = sg.playerShip.x + sg.playerShip.width/2 - displayWidth/2
-	sg.viewY = sg.playerShip.y + sg.playerShip.height/2 - displayHeight/2
-
+	sg.shipView.CenterOnTileMapCoord(sg.playerShip.Bounds().Center())
 	if sg.activeMenu != nil {
-		w, _ := sg.activeMenu.Dims()
-		sg.viewX += w / 2
+		sg.shipView.MoveCamera(28, 0)
 	}
-
-	sg.ResetShipView()
 }
 
 func (sg *SpaceshipGame) SetupUI() {
-	sg.InitWindow(false)
+	sg.Init()
 
-	sg.shipdisplay = burl.NewTileView(96, 46, 0, 3, 1, false)
-	//sg.Stars = NewStarField(20, sg.shipdisplay)
+	sg.shipView.Init(vec.Dims{96, 46}, vec.Coord{0, 3}, 1, &sg.playerShip.shipMap)
+	sg.shipView.SetDefaultVisuals(gfx.Visuals{Mode: gfx.DRAW_NONE, Colours: col.Pair{col.WHITE, col.BLACK}})
+	sg.shipView.CenterOnTileMapCoord(sg.playerShip.Bounds().Center())
+	sg.stars.Init(sg.shipView.Size(), vec.Coord{0, 3}, 0, 20, 0)
 
-	sg.output = burl.NewList(37, 8, 1, 45, 10, true, "Nothing to report, Captain!")
-	sg.output.SetHint("PgUp/PgDown to scroll")
-	sg.quickstats = NewQuickStatsWindow(39, 50, sg.playerShip)
+	sg.logOutput.Init(vec.Dims{37, 8}, vec.Coord{1, 45}, 10)
+	sg.logOutput.SetupBorder("SPACE LOG", "PgUp/PgDown to scroll")
+	sg.logOutput.SetEmptyText("Nothing to report, Captain!")
 
-	sg.timeDisplay = NewTimeDisplay(79, 50, sg.galaxy)
+	sg.quickstats.Init(vec.Coord{39, 50}, sg.playerShip)
+
+	sg.timeDisplay.Init(vec.Coord{79, 50}, sg.galaxy)
 	sg.timeDisplay.UpdateSpeed(sg.simSpeed)
 
-	sg.Window.Add(sg.output, sg.shipdisplay, sg.timeDisplay, sg.quickstats)
+	sg.Window().AddChildren(&sg.logOutput, &sg.shipView, &sg.stars, &sg.timeDisplay, &sg.quickstats)
 
-	sg.menus = make([]burl.UIElem, 0, MAX_MENUS)
+	// sg.gameMenu = NewGameMenu(sg.player)
+	// sg.shipMenu = NewShipMenu(sg.playerShip)
+	// sg.galaxyMenu = NewGalaxyMenu(sg.galaxy, sg.player.SpaceShip)
+	// sg.crewMenu = NewCrewMenu(sg.playerShip)
+	// sg.commMenu = NewCommsMenu(sg.playerShip.Comms)
+	// sg.viewMenu = NewViewMenu()
+	sg.mainMenu.Init()
 
-	sg.gameMenu = NewGameMenu(sg.player)
-	sg.shipMenu = NewShipMenu(sg.playerShip)
-	sg.galaxyMenu = NewGalaxyMenu(sg.galaxy, sg.player.SpaceShip)
-	sg.crewMenu = NewCrewMenu(sg.playerShip)
-	sg.commMenu = NewCommsMenu(sg.playerShip.Comms)
-	sg.viewMenu = NewViewMenu()
-	sg.mainMenu = NewMainMenu()
+	sg.Window().AddChildren(&sg.mainMenu)
 
-	sg.menus = append(sg.menus, sg.gameMenu, sg.shipMenu, sg.galaxyMenu, sg.crewMenu, sg.commMenu, sg.viewMenu, sg.mainMenu)
-	sg.Window.Add(sg.menus...)
-
-	sg.menuButtons = make([]*burl.Button, 0, MAX_MENUS)
-
-	sg.gameMenuButton = burl.NewButton(10, 1, 4, 1, 12, true, true, "Game")
-	sg.gameMenuButton.SetHint("F1")
-	sg.shipMenuButton = burl.NewButton(10, 1, 17, 1, 12, true, true, "Ship")
-	sg.shipMenuButton.SetHint("F2")
-	sg.galaxyMenuButton = burl.NewButton(10, 1, 30, 1, 12, true, true, "Galaxy")
-	sg.galaxyMenuButton.SetHint("F3")
-	sg.crewMenuButton = burl.NewButton(10, 1, 43, 1, 12, true, true, "Crew")
-	sg.crewMenuButton.SetHint("F4")
-	sg.commMenuButton = burl.NewButton(10, 1, 56, 1, 12, true, true, "Communications")
-	sg.commMenuButton.SetHint("F5")
-	sg.viewMenuButton = burl.NewButton(10, 1, 69, 1, 12, true, true, "View  Mode")
-	sg.viewMenuButton.SetHint("F6")
-	sg.mainMenuButton = burl.NewButton(10, 1, 82, 1, 12, true, true, "Main  Menu")
-	sg.mainMenuButton.SetHint("ESC")
-
-	sg.menuButtons = append(sg.menuButtons, sg.gameMenuButton, sg.shipMenuButton, sg.galaxyMenuButton, sg.crewMenuButton, sg.commMenuButton, sg.viewMenuButton, sg.mainMenuButton)
-
-	for i := range sg.menuButtons {
-		sg.Window.Add(sg.menuButtons[i])
-	}
+	sg.gameMenuButton.Init(vec.Dims{10, 1}, vec.Coord{4, 1}, 10, "Game", nil)
+	sg.gameMenuButton.SetupBorder("", "F1")
+	sg.shipMenuButton.Init(vec.Dims{10, 1}, vec.Coord{17, 1}, 10, "Ship", nil)
+	sg.shipMenuButton.SetupBorder("", "F2")
+	sg.galaxyMenuButton.Init(vec.Dims{10, 1}, vec.Coord{30, 1}, 10, "Galaxy", nil)
+	sg.galaxyMenuButton.SetupBorder("", "F3")
+	sg.crewMenuButton.Init(vec.Dims{10, 1}, vec.Coord{43, 1}, 10, "Crew", nil)
+	sg.crewMenuButton.SetupBorder("", "F4")
+	sg.commMenuButton.Init(vec.Dims{10, 1}, vec.Coord{56, 1}, 10, "Communications", nil)
+	sg.commMenuButton.SetupBorder("", "F5")
+	sg.viewMenuButton.Init(vec.Dims{10, 1}, vec.Coord{69, 1}, 10, "View Mode", nil)
+	sg.viewMenuButton.SetupBorder("", "F6")
+	sg.mainMenuButton.Init(vec.Dims{10, 1}, vec.Coord{82, 1}, 10, "Main Menu", func() { sg.ActivateMenu(&sg.mainMenu) })
+	sg.mainMenuButton.SetupBorder("", "ESC")
+	sg.Window().AddChildren(&sg.gameMenuButton, &sg.shipMenuButton, &sg.galaxyMenuButton, &sg.crewMenuButton, &sg.commMenuButton, &sg.viewMenuButton, &sg.mainMenuButton)
 
 	//setup view mode colour palettes and other runtime jazz
 	viewModeData[VIEW_ATMO_PRESSURE].SetTarget(sg.playerShip.LifeSupport.targetPressure)
@@ -201,17 +185,22 @@ func (sg *SpaceshipGame) SetupUI() {
 	viewModeData[VIEW_ATMO_CO2].SetTarget(sg.playerShip.LifeSupport.targetCO2)
 
 	sg.CenterShip()
+
+	sg.SetKeypressHandler(sg.HandleKeypress)
+	sg.SetEventHandler(sg.HandleEvent)
 }
 
 func (sg *SpaceshipGame) Update() {
 	//simulation!
-	for i := 0; i < sg.GetIncrement(); i++ {
+	for range sg.GetIncrement() {
 		sg.galaxy.spaceTime++
 		sg.playerShip.Update(sg.GetTime())
 
 		//need starfield shift speed controlled here (currently hardcoded to shift every 100 seconds as long as the ship is moving)
-		if sg.playerShip.GetSpeed() != 0 && sg.GetTick()%100 == 0 {
-			//sg.Stars.Shift()
+		if sg.playerShip.GetSpeed() != 0 {
+			sg.stars.shiftFrequency = 100
+		} else {
+			sg.stars.shiftFrequency = 0
 		}
 
 		for i := range sg.player.MissionLog {
@@ -219,90 +208,66 @@ func (sg *SpaceshipGame) Update() {
 		}
 	}
 
-	sg.timeDisplay.UpdateTime()
-}
-
-func (sg *SpaceshipGame) HandleEvent(event *burl.Event) {
-	switch event.ID {
-	case burl.EV_UPDATE_UI:
-		switch event.Message {
-		case "inbox":
-			sg.commMenu.UpdateInbox()
-		case "transmissions":
-			sg.commMenu.UpdateTransmissions()
-		case "missions":
-			sg.gameMenu.UpdateMissions()
-		case "crew":
-			if sg.activeMenu == sg.crewMenu {
-				sg.crewMenu.UpdateCrewDetails()
-			}
-		case "stores":
-			sg.shipMenu.storesMenu.Update()
-		case "ship status":
-			sg.quickstats.Update()
-		case "ship move":
-			if sg.activeMenu == sg.galaxyMenu {
-				sg.galaxyMenu.Update()
-			}
-			sg.quickstats.Update()
-		}
-	case burl.EV_LIST_CYCLE:
-		switch event.Caller {
-		case sg.crewMenu.crewList:
-			sg.crewMenu.UpdateCrewDetails()
-		}
-	case LOG_EVENT:
-		sg.AddMessage(event.Message)
+	if sg.GetIncrement() > 0 {
+		sg.timeDisplay.UpdateTime()
 	}
 }
 
-func (sg *SpaceshipGame) Render() {
-	//sg.Stars.Draw()
-	sg.playerShip.DrawToTileView(sg.shipdisplay, sg.viewMenu.GetViewMode(), sg.viewX, sg.viewY)
+func (sg *SpaceshipGame) HandleEvent(event event.Event) (event_handled bool) {
+	switch event.ID() {
+	case EV_LOG:
+		sg.AddLogMessage(event.(*SpaceLogEvent).message)
+		return true
+	}
+	// switch event.ID {
+	// case burl.EV_UPDATE_UI:
+	// 	switch event.Message {
+	// 	case "inbox":
+	// 		sg.commMenu.UpdateInbox()
+	// 	case "transmissions":
+	// 		sg.commMenu.UpdateTransmissions()
+	// 	case "missions":
+	// 		sg.gameMenu.UpdateMissions()
+	// 	case "crew":
+	// 		if sg.activeMenu == sg.crewMenu {
+	// 			sg.crewMenu.UpdateCrewDetails()
+	// 		}
+	// 	case "stores":
+	// 		sg.shipMenu.storesMenu.Update()
+	// 	case "ship status":
+	// 		sg.quickstats.Update()
+	// 	case "ship move":
+	// 		if sg.activeMenu == sg.galaxyMenu {
+	// 			sg.galaxyMenu.Update()
+	// 		}
+	// 		sg.quickstats.Update()
+	// 	}
+	// case burl.EV_LIST_CYCLE:
+	// 	switch event.Caller {
+	// 	case sg.crewMenu.crewList:
+	// 		sg.crewMenu.UpdateCrewDetails()
+	// 	}
+
+	return
 }
 
 // Activates a menu (crew, rooms, systems, etc). Deactivates menu if menu already active.
-func (sg *SpaceshipGame) ActivateMenu(menu int) {
-	sg.menuButtons[menu].Press()
-	m := sg.menus[menu]
-
-	if sg.activeMenu == m {
-		sg.DeactivateMenu()
+func (sg *SpaceshipGame) ActivateMenu(menu Menu) {
+	if sg.activeMenu == menu {
+		//double-activating means close
+		sg.activeMenu.Hide()
+		sg.activeMenu = nil
+		sg.CenterShip()
 		return
 	}
 
-	m.SetVisibility(true)
 	if sg.activeMenu != nil {
-		sg.activeMenu.SetVisibility(false)
+		sg.activeMenu.Hide()
 	}
-	sg.activeMenu = m
+
+	sg.activeMenu = menu
+	sg.activeMenu.Show()
 	sg.CenterShip()
-}
-
-// deactivates the open menu (if there is one)
-func (sg *SpaceshipGame) DeactivateMenu() {
-	if sg.activeMenu == nil {
-		return
-	}
-	sg.activeMenu.SetVisibility(false)
-	sg.activeMenu = nil
-
-	for i := range sg.menuButtons {
-		sg.menuButtons[i].SetVisibility(true)
-	}
-	sg.CenterShip()
-}
-
-func (sg *SpaceshipGame) MoveShipCamera(dx, dy int) {
-	sg.ResetShipView()
-
-	sg.viewX -= dx
-	sg.viewY -= dy
-}
-
-func (sg *SpaceshipGame) ResetShipView() {
-	sg.shipdisplay.Reset()
-	//sg.Stars.dirty = true
 }
 
 func (sg SpaceshipGame) GetIncrement() int {

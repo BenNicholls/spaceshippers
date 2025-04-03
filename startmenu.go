@@ -56,11 +56,11 @@ func (sm *StartMenu) HandleKeypress(key_event *input.KeyboardEvent) (event_handl
 			event.FireSimple(tyumi.EV_QUIT)
 		}
 	case input.K_SPACE: //FOR TESTING PURPOSES ONLY DAMMIT
-		// g := NewGalaxy("Test Galaxy", GAL_MAX_RADIUS, GAL_DENSE)
-		// s := NewShip("The Greatest Spaceship There Is", g)
-		// temp, _ := LoadShipTemplate("raws/ship/Transport Ship.shp")
-		// s.SetupFromTemplate(temp)
-		// burl.ChangeState(NewSpaceshipGame(g, s))
+		g := NewGalaxy("Test Galaxy", GAL_MAX_RADIUS, GAL_DENSE)
+		s := NewShip("The Greatest Spaceship There Is", g)
+		temp, _ := LoadShipTemplate("raws/ship/Transport Ship.shp")
+		s.SetupFromTemplate(temp)
+		tyumi.ChangeScene(NewSpaceshipGame(g, s))
 	}
 
 	return

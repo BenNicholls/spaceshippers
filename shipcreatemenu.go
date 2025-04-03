@@ -118,7 +118,7 @@ func (scm *ShipCreateMenu) onGeneratePress() {
 		scm.OpenDialog(NewSimpleCommDialog("You must give your ship a name before you can continue!"))
 	} else {
 		scm.ship.Name = scm.shipNameInput.InputtedText()
-		//burl.ChangeState(NewSpaceshipGame(scm.galaxy, scm.ship))
+		tyumi.ChangeScene(NewSpaceshipGame(scm.galaxy, scm.ship))
 	}
 }
 

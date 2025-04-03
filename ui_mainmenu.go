@@ -1,16 +1,18 @@
 package main
 
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/vec"
+)
 
 type MainMenu struct {
-	burl.PagedContainer
+	ui.PageContainer
 }
 
-func NewMainMenu() (mm *MainMenu) {
-	mm = new(MainMenu)
-	mm.PagedContainer = *burl.NewPagedContainer(56, 45, 39, 4, 10, true)
-
-	mm.SetVisibility(false)
+func (mm *MainMenu) Init() {
+	mm.PageContainer.Init(vec.Dims{56, 45}, vec.Coord{39, 4}, 10)
+	mm.PageContainer.EnableBorder()
+	mm.Hide()
 
 	return
 }

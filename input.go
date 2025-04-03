@@ -1,78 +1,81 @@
 package main
 
-import (
-	"github.com/veandco/go-sdl2/sdl"
-)
+import "github.com/bennicholls/tyumi/input"
 
-func (sg *SpaceshipGame) HandleKeypress(key sdl.Keycode) {
-	//general keys -- works in all menus, modes, etc. Mainly menu switching stuff
-	switch key {
-	case sdl.K_F1:
-		sg.ActivateMenu(MENU_GAME)
-	case sdl.K_F2:
-		sg.ActivateMenu(MENU_SHIP)
-	case sdl.K_F3:
-		// if sg.activeMenu != sg.starchartMenu {
-		// 	sg.starchartMenu.OnActivate()
-		// }
-		sg.ActivateMenu(MENU_GALAXY)
-	case sdl.K_F4:
-		sg.ActivateMenu(MENU_CREW)
-	case sdl.K_F5:
-		sg.ActivateMenu(MENU_COMM)
-	case sdl.K_F6:
-		sg.ActivateMenu(MENU_VIEW)
-	case sdl.K_ESCAPE:
-		sg.ActivateMenu(MENU_MAIN)
-	case sdl.K_KP_PLUS:
+func (sg *SpaceshipGame) HandleKeypress(key_event *input.KeyboardEvent) (event_handled bool) {
+	if key_event.PressType == input.KEY_RELEASED {
+		return
+	}
+
+	switch key_event.Key {
+	case input.K_F1:
+		sg.gameMenuButton.Press()
+		return true
+	case input.K_F2:
+		sg.shipMenuButton.Press()
+		return true
+	case input.K_F3:
+		sg.galaxyMenuButton.Press()
+		return true
+	case input.K_F4:
+		sg.crewMenuButton.Press()
+		return true
+	case input.K_F5:
+		sg.commMenuButton.Press()
+		return true
+	case input.K_F6:
+		sg.viewMenuButton.Press()
+		return true
+	case input.K_ESCAPE:
+		sg.mainMenuButton.Press()
+		return true
+	case input.K_SPACE:
+		sg.paused = !sg.paused
+		if sg.paused {
+			sg.AddLogMessage("Game Paused")
+		} else {
+			sg.AddLogMessage("Game Unpaused")
+		}
+		return true
+	case input.K_KP_PLUS:
 		if sg.simSpeed < 4 {
 			sg.simSpeed++
 			sg.timeDisplay.UpdateSpeed(sg.simSpeed)
+			return true
 		}
-	case sdl.K_KP_MINUS:
+	case input.K_KP_MINUS:
 		if sg.simSpeed > 0 {
 			sg.simSpeed--
 			sg.timeDisplay.UpdateSpeed(sg.simSpeed)
-		}
-	case sdl.K_SPACE:
-		sg.paused = !sg.paused
-		if sg.paused {
-			sg.AddMessage("Game Paused")
-		} else {
-			sg.AddMessage("Game Unpaused")
-		}
-	default:
-		//Check for active menus. If nothing, apply to base game.
-		switch sg.activeMenu {
-		case sg.crewMenu:
-			sg.menus[MENU_CREW].HandleKeypress(key)
-		case sg.shipMenu:
-			sg.menus[MENU_SHIP].HandleKeypress(key)
-		case sg.galaxyMenu:
-			sg.menus[MENU_GALAXY].HandleKeypress(key)
-		case sg.gameMenu:
-			sg.menus[MENU_GAME].HandleKeypress(key)
-		case sg.commMenu:
-			sg.HandleKeypressCommMenu(key)
-		case sg.viewMenu:
-			sg.menus[MENU_VIEW].HandleKeypress(key)
-		default:
-			switch key {
-			case sdl.K_PAGEUP:
-				sg.output.ScrollUp()
-			case sdl.K_PAGEDOWN:
-				sg.output.ScrollDown()
-			case sdl.K_HOME:
-				sg.CenterShip()
-			case sdl.K_UP:
-				sg.MoveShipCamera(0, -1)
-			case sdl.K_DOWN:
-				sg.MoveShipCamera(0, 1)
-			case sdl.K_LEFT:
-				sg.MoveShipCamera(-1, 0)
-			case sdl.K_RIGHT:
-				sg.MoveShipCamera(1, 0)
-			}
+			return true
 		}
 	}
+
+	if sg.activeMenu == nil {
+		switch key_event.Key {
+		case input.K_PAGEUP:
+			sg.logOutput.Prev()
+			return true
+		case input.K_PAGEDOWN:
+			sg.logOutput.Next() // NOTE: this is supposed to just scroll up, probably not cycle
+			return true
+		case input.K_HOME:
+			sg.CenterShip()
+			return true
+		case input.K_UP:
+			sg.shipView.MoveCamera(0, 1)
+			return true
+		case input.K_DOWN:
+			sg.shipView.MoveCamera(0, -1)
+			return true
+		case input.K_LEFT:
+			sg.shipView.MoveCamera(1, 0)
+			return true
+		case input.K_RIGHT:
+			sg.shipView.MoveCamera(-1, 0)
+			return true
+		}
+	}
+
+	return
 }
