@@ -18,7 +18,7 @@ const (
 	MAX_MENUS
 )
 
-//Event types for spaceshippers!
+// Event types for spaceshippers!
 var LOG_EVENT = burl.RegisterCustomEvent()
 
 func init() {
@@ -132,7 +132,7 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	return sg
 }
 
-//Centers the map of the ship in the main view.
+// Centers the map of the ship in the main view.
 func (sg *SpaceshipGame) CenterShip() {
 	displayWidth, displayHeight := sg.shipdisplay.Dims()
 	sg.viewX = sg.playerShip.x + sg.playerShip.width/2 - displayWidth/2
@@ -264,7 +264,7 @@ func (sg *SpaceshipGame) Render() {
 	sg.playerShip.DrawToTileView(sg.shipdisplay, sg.viewMenu.GetViewMode(), sg.viewX, sg.viewY)
 }
 
-//Activates a menu (crew, rooms, systems, etc). Deactivates menu if menu already active.
+// Activates a menu (crew, rooms, systems, etc). Deactivates menu if menu already active.
 func (sg *SpaceshipGame) ActivateMenu(menu int) {
 	sg.menuButtons[menu].Press()
 	m := sg.menus[menu]
@@ -282,7 +282,7 @@ func (sg *SpaceshipGame) ActivateMenu(menu int) {
 	sg.CenterShip()
 }
 
-//deactivates the open menu (if there is one)
+// deactivates the open menu (if there is one)
 func (sg *SpaceshipGame) DeactivateMenu() {
 	if sg.activeMenu == nil {
 		return
@@ -327,12 +327,12 @@ func (sg SpaceshipGame) GetIncrement() int {
 	}
 }
 
-//returns the number of simulated seconds since launch
+// returns the number of simulated seconds since launch
 func (sg SpaceshipGame) GetTick() int {
 	return sg.galaxy.spaceTime - sg.startTime
 }
 
-//gets the time from the Galaxy
+// gets the time from the Galaxy
 func (sg SpaceshipGame) GetTime() int {
 	return sg.galaxy.spaceTime
 }

@@ -205,6 +205,6 @@ func (gmv *GalaxyMapView) MoveCursor(dx, dy int) {
 	new_pos := gmv.cursor.Add(vec.Coord{dx, dy})
 	if new_pos.IsInside(vec.Rect{vec.ZERO_COORD, gmv.Size()}) {
 		gmv.cursor.Move(dx, dy)
-		gmv.highlight.Area.Move(dx, dy)
+		gmv.highlight.MoveTo(gmv.cursor)
 	}
 }

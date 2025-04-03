@@ -25,7 +25,7 @@ func main() {
 
 	startMenu := StartMenu{}
 	startMenu.Init()
-	tyumi.SetInitialMainState(&startMenu)
+	tyumi.SetInitialScene(&startMenu)
 
 	tyumi.Run()
 }

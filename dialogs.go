@@ -13,7 +13,7 @@ import (
 )
 
 type ChooseFileDialog struct {
-	tyumi.State
+	tyumi.Scene
 	done bool
 
 	onFileLoaded func(filename string) // function run when dialog exits if a file was successfully chosen
@@ -87,7 +87,7 @@ func (cfd *ChooseFileDialog) Shutdown() {
 }
 
 type SaveDialog struct {
-	tyumi.State
+	tyumi.Scene
 	done bool
 
 	onFileSaved func(filename string)
@@ -177,7 +177,7 @@ func (sd *SaveDialog) Done() bool {
 }
 
 type CommDialog struct {
-	tyumi.State
+	tyumi.Scene
 
 	okayButton ui.Button
 	done       bool
@@ -207,7 +207,7 @@ func NewSimpleCommDialog(message string) (cd *CommDialog) {
 }
 
 func (cd *CommDialog) Init() {
-	cd.State.InitCentered(vec.Dims{48, 12})
+	cd.Scene.InitCentered(vec.Dims{48, 12})
 	cd.Window().EnableBorder()
 
 	cd.okayButton.Init(vec.Dims{6, 1}, vec.Coord{0, 10}, 1, "Sounds Good!", nil)

@@ -9,14 +9,14 @@ import (
 )
 
 type StartMenu struct {
-	tyumi.State
+	tyumi.Scene
 
 	menu  ui.List
 	stars StarField
 }
 
 func (sm *StartMenu) Init() {
-	sm.State.Init()
+	sm.Scene.Init()
 
 	title := ui.NewTitleTextbox(vec.Dims{ui.FIT_TEXT, 1}, vec.Coord{0, 10}, 1, "SPACE SHIPPERS: The Ones Who Space Ship!")
 	sm.Window().AddChild(title)
@@ -45,11 +45,11 @@ func (sm *StartMenu) HandleKeypress(key_event *input.KeyboardEvent) (event_handl
 	case input.K_RETURN:
 		switch sm.menu.GetSelectionIndex() {
 		case 0: //New Game
-			tyumi.ChangeState(NewCreateGalaxyMenu())
+			tyumi.ChangeScene(NewCreateGalaxyMenu())
 		case 1: //Load Game
 			//Load Game dialog
 		case 2: //Ship Designer
-			tyumi.ChangeState(NewShipDesignMenu())
+			tyumi.ChangeScene(NewShipDesignMenu())
 		case 3: //Options
 			//Options Dialog
 		case 4: //Quit

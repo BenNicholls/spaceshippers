@@ -9,7 +9,7 @@ import (
 )
 
 type CreateGalaxyMenu struct {
-	tyumi.State
+	tyumi.Scene
 
 	nameInput      ui.InputBox
 	densityChoice  ui.ChoiceBox //choice between some pre-defined densities
@@ -26,7 +26,7 @@ type CreateGalaxyMenu struct {
 
 func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 	cgm = new(CreateGalaxyMenu)
-	cgm.State.InitBordered()
+	cgm.Scene.InitBordered()
 	cgm.Events().Listen(ui.EV_FOCUS_CHANGED, ui.EV_CHOICE_CHANGED)
 	cgm.SetEventHandler(cgm.HandleEvent)
 
@@ -64,7 +64,7 @@ func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 	cgm.cancelButton.Init(vec.Dims{15, 1}, vec.Coord{74, 38}, 1, "Return to Main Menu", func() {
 		sm := StartMenu{}
 		sm.Init()
-		tyumi.ChangeState(&sm)
+		tyumi.ChangeScene(&sm)
 	})
 	cgm.cancelButton.EnableBorder()
 	cgm.Window().AddChildren(&cgm.randomButton, &cgm.generateButton, &cgm.cancelButton)
@@ -143,7 +143,7 @@ func (cgm *CreateGalaxyMenu) Generate() {
 	if cgm.nameInput.InputtedText() == "" {
 		cgm.OpenDialog(NewSimpleCommDialog("You must give your galaxy a name before you can continue!"))
 	} else {
-		tyumi.ChangeState(NewShipCreateMenu(cgm.galaxy))
+		tyumi.ChangeScene(NewShipCreateMenu(cgm.galaxy))
 	}
 }
 

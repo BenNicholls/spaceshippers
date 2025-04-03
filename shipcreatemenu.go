@@ -11,7 +11,7 @@ import (
 )
 
 type ShipCreateMenu struct {
-	tyumi.State
+	tyumi.Scene
 
 	shipView            rl.TileMapView
 	shipNameInput       ui.InputBox
@@ -63,7 +63,7 @@ func NewShipCreateMenu(galaxy *Galaxy) (scm *ShipCreateMenu) {
 	scm.generateButton.Init(vec.Dims{15, 1}, vec.Coord{76, 39}, 1, "Confirm Ship Selection!", scm.onGeneratePress)
 	scm.generateButton.EnableBorder()
 	scm.cancelButton.Init(vec.Dims{15, 1}, vec.Coord{76, 44}, 1, "Return to Galaxy Creation", func() {
-		tyumi.ChangeState(NewCreateGalaxyMenu())
+		tyumi.ChangeScene(NewCreateGalaxyMenu())
 	})
 	scm.cancelButton.EnableBorder()
 	scm.Window().AddChildren(&scm.generateButton, &scm.cancelButton)
@@ -109,13 +109,7 @@ func (scm *ShipCreateMenu) CreateShip() {
 	}
 	scm.ship.SetupShip(scm.galaxy)
 	scm.shipView.SetTileMap(&scm.ship.shipMap)
-
-	//calculate offset for ship based on ship size, so ship is centered
-	//TODO: the tilemap view should do this automatically maybe
-	offX := scm.ship.width/2 + scm.ship.x - scm.shipView.Size().W/2
-	offY := scm.ship.height/2 + scm.ship.y - scm.shipView.Size().H/2
-	scm.shipView.SetCameraOffset(vec.Coord{-offX, -offY})
-	scm.Window().ForceRedraw()
+	scm.shipView.CenterOnTileMapCoord(scm.ship.Bounds().Center())
 
 }
 
