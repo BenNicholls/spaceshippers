@@ -1,78 +1,90 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/input"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 type CommMenu struct {
-	burl.PagedContainer
+	ui.PageContainer
 
-	inboxPage *burl.Container
-	inboxList *burl.List
+	inboxPage *ui.Page
+	inboxList ui.List
 
-	contactsPage *burl.Container
+	contactsPage *ui.Page
 
-	transmissionsPage *burl.Container
-	transmissionsList *burl.List
+	transmissionsPage *ui.Page
+	transmissionsList ui.List
 
-	logsPage *burl.Container
+	logsPage *ui.Page
 
 	comms *CommSystem
 }
 
-func NewCommsMenu(comm *CommSystem) (cm *CommMenu) {
-	cm = new(CommMenu)
-
+func (cm *CommMenu) Init(comm *CommSystem) {
 	cm.comms = comm
 
-	cm.PagedContainer = *burl.NewPagedContainer(56, 45, 39, 4, 10, true)
-	cm.SetVisibility(false)
-	cm.SetHint("TAB to switch submenus")
+	cm.PageContainer.Init(vec.Dims{56, 45}, vec.Coord{39, 4}, 10)
+	cm.EnableBorder()
+	cm.Hide()
+	cm.AcceptInput = true
+	cm.OnPageChanged = cm.UpdateCurrentPage
 
-	_, ph := cm.GetPageDims()
-
-	cm.inboxPage = cm.AddPage("Messages")
-	cm.inboxList = burl.NewList(56, ph-2, 0, 0, 2, false, "NO INBOX MESSAGES")
-	cm.inboxPage.Add(cm.inboxList)
+	cm.inboxPage = cm.CreatePage("Messages")
+	ph := cm.inboxPage.Size().H
+	cm.inboxList.Init(vec.Dims{56, ph - 2}, vec.ZERO_COORD, 2)
+	cm.inboxList.SetEmptyText("NO INBOX MESSAGES")
+	cm.inboxList.AcceptInput = true
+	cm.inboxPage.AddChild(&cm.inboxList)
 	cm.UpdateInbox()
 
-	cm.contactsPage = cm.AddPage("Contacts")
-	cm.contactsPage.Add(burl.NewTextbox(10, 1, 2, 2, 1, true, true, "contacts page"))
+	cm.contactsPage = cm.CreatePage("Contacts")
+	cm.contactsPage.AddChild(ui.NewTitleTextbox(vec.Dims{10, 1}, vec.Coord{2, 2}, 1, "contacts page"))
 
-	cm.transmissionsPage = cm.AddPage("Radios")
-	cm.transmissionsList = burl.NewList(56, 32, 0, 10, 0, true, "NO TRANSMISSIONS")
-	cm.transmissionsPage.Add(cm.transmissionsList)
+	cm.transmissionsPage = cm.CreatePage("Radios")
+	cm.transmissionsList.Init(vec.Dims{56, 32}, vec.Coord{0, 10}, ui.BorderDepth)
+	cm.transmissionsList.EnableBorder()
+	cm.transmissionsList.SetEmptyText("NO TRANSMISSIONS")
+	cm.transmissionsList.ToggleHighlight()
+	cm.transmissionsPage.AddChild(&cm.transmissionsList)
+	cm.UpdateTransmissions()
 
-	cm.logsPage = cm.AddPage("Logs")
-	cm.logsPage.Add(burl.NewTextbox(10, 1, 2, 2, 1, true, true, "logs page"))
+	cm.logsPage = cm.CreatePage("Logs")
+	cm.logsPage.AddChild(ui.NewTitleTextbox(vec.Dims{10, 1}, vec.Coord{2, 2}, 1, "logs page"))
 
 	return
 }
 
-func (sg *SpaceshipGame) HandleKeypressCommMenu(key sdl.Keycode) {
-	sg.commMenu.HandleKeypress(key)
+func (cm *CommMenu) HandleKeypress(key_event *input.KeyboardEvent) (event_handled bool) {
+	if key_event.Handled() || key_event.PressType == input.KEY_RELEASED {
+		return
+	}
 
-	switch sg.commMenu.CurrentIndex() {
-	case 0: //Inbox
-		sg.commMenu.inboxList.HandleKeypress(key)
-		if key == sdl.K_RETURN && len(sg.commMenu.comms.Inbox) > 0 {
-			//s := sg.commMenu.inboxList.GetSelection()
-			//msg := sg.commMenu.comms.Inbox[s]
-			//burl.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
+	switch cm.GetPageIndex() {
+	case 0: // Inbox
+		if key_event.Key == input.K_RETURN {
+			if s := cm.inboxList.GetSelectionIndex(); s != -1 {
+				msg := cm.comms.Inbox[s]
+				tyumi.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
+			}
 		}
-	case 2: //Transmissions
-		sg.commMenu.transmissionsList.HandleKeypress(key)
-		if key == sdl.K_RETURN && len(sg.commMenu.comms.Transmissions) > 0 {
-			//s := sg.commMenu.transmissionsList.GetSelection()
-			//msg := sg.commMenu.comms.Transmissions[s]
-			//burl.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
+	case 2: // Transmissions
+		if key_event.Key == input.K_RETURN {
+			if s := cm.transmissionsList.GetSelectionIndex(); s != -1 {
+				msg := cm.comms.Transmissions[s]
+				tyumi.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
+				tyumi.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
+			}
 		}
 	}
+
+	return
 }
 
-func (cm *CommMenu) Update() {
-	switch cm.CurrentIndex() {
+func (cm *CommMenu) UpdateCurrentPage() {
+	switch cm.GetPageIndex() {
 	case 0: //Inbox
 		cm.UpdateInbox()
 	case 1: //Contacts
@@ -85,37 +97,52 @@ func (cm *CommMenu) Update() {
 }
 
 func (cm *CommMenu) UpdateInbox() {
+	if cm.GetPageIndex() != 0 {
+		return
+	}
+
 	//build message list
-	cm.inboxList.ClearElements()
-	w, _ := cm.inboxList.Dims()
+	cm.inboxList.RemoveAll()
+	w := cm.inboxList.Size().W
 	for _, m := range cm.comms.Inbox {
-		message := burl.NewContainer(w, 3, 0, 0, 0, false)
-		message.Add(burl.NewTextbox(w, 1, 0, 0, 0, false, false, m.title))
-		message.Add(burl.NewTextbox(w/2, 1, 0, 1, 0, false, false, "From: "+m.sender.Name))
-		message.Add(burl.NewTextbox(w/2, 1, w/2, 1, 0, false, false, "Date: "+GetDateString(m.date)))
-		message.Add(burl.NewTextbox(w, 1, 0, 2, 0, false, false, m.message[:40]+"..."))
-		cm.inboxList.Add(message)
+		var message ui.Element
+		message.Init(vec.Dims{w, 3}, vec.ZERO_COORD, 0)
+		message.AddChild(ui.NewTextbox(vec.Dims{w, 1}, vec.Coord{0, 0}, 0, m.title, ui.JUSTIFY_LEFT))
+		message.AddChild(ui.NewTextbox(vec.Dims{w / 2, 1}, vec.Coord{0, 1}, 0, "From: "+m.sender.Name, ui.JUSTIFY_LEFT))
+		message.AddChild(ui.NewTextbox(vec.Dims{w / 2, 1}, vec.Coord{w / 2, 1}, 0, "Date: "+GetDateString(m.date), ui.JUSTIFY_LEFT))
+		message.AddChild(ui.NewTextbox(vec.Dims{w, 1}, vec.Coord{0, 2}, 0, m.message[:40]+"...", ui.JUSTIFY_LEFT))
+		cm.inboxList.Insert(&message)
 	}
 }
 
 func (cm *CommMenu) UpdateContacts() {
-
+	if cm.GetPageIndex() != 1 {
+		return
+	}
 }
 
 func (cm *CommMenu) UpdateTransmissions() {
+	if cm.GetPageIndex() != 2 {
+		return
+	}
+
 	//build message list
-	cm.transmissionsList.ClearElements()
-	w, _ := cm.transmissionsList.Dims()
+	cm.transmissionsList.RemoveAll()
+	w := cm.transmissionsList.Size().W
 	for _, m := range cm.comms.Transmissions {
-		message := burl.NewContainer(w, 3, 0, 0, 0, false)
-		message.Add(burl.NewTextbox(w, 1, 0, 0, 0, false, false, m.title))
-		message.Add(burl.NewTextbox(w/2, 1, 0, 1, 0, false, false, "From: "+m.sender.Name))
-		message.Add(burl.NewTextbox(w/2, 1, w/2, 1, 0, false, false, "Date: "+GetDateString(m.date)))
-		message.Add(burl.NewTextbox(w, 1, 0, 2, 0, false, false, m.message[:40]+"..."))
-		cm.transmissionsList.Add(message)
+		var message ui.Element
+		message.Init(vec.Dims{w, 3}, vec.ZERO_COORD, 0)
+		message.AddChild(ui.NewTextbox(vec.Dims{w, 1}, vec.Coord{0, 0}, 0, m.title, ui.JUSTIFY_LEFT))
+		message.AddChild(ui.NewTextbox(vec.Dims{w / 2, 1}, vec.Coord{0, 1}, 0, "From: "+m.sender.Name, ui.JUSTIFY_LEFT))
+		message.AddChild(ui.NewTextbox(vec.Dims{w / 2, 1}, vec.Coord{w / 2, 1}, 0, "Date: "+GetDateString(m.date), ui.JUSTIFY_LEFT))
+		message.AddChild(ui.NewTextbox(vec.Dims{w, 1}, vec.Coord{0, 2}, 0, m.message[:40]+"...", ui.JUSTIFY_LEFT))
+		cm.transmissionsList.Insert(&message)
 	}
 }
 
 func (cm *CommMenu) UpdateLogs() {
+	if cm.GetPageIndex() != 3 {
+		return
+	}
 
 }

@@ -4,8 +4,6 @@ import (
 	"slices"
 
 	"github.com/bennicholls/tyumi"
-	"github.com/bennicholls/tyumi/event"
-	"github.com/bennicholls/tyumi/gfx"
 	"github.com/bennicholls/tyumi/gfx/ui"
 	"github.com/bennicholls/tyumi/input"
 	"github.com/bennicholls/tyumi/util"
@@ -211,24 +209,13 @@ func (cd *CommDialog) Init() {
 	cd.Scene.InitCentered(vec.Dims{48, 12})
 	cd.Window().EnableBorder()
 
-	cd.okayButton.Init(vec.Dims{6, 1}, vec.Coord{0, 10}, 1, "Sounds Good!", nil)
+	cd.okayButton.Init(vec.Dims{6, 1}, vec.Coord{0, 10}, 1, "Sounds Good!", func() {
+		cd.CreateTimer(20, func() { cd.done = true })
+	})
 	cd.okayButton.EnableBorder()
 	cd.okayButton.Focus()
-	//cd.okayButton.OnPressAnimation.(*gfx.PulseAnimation).Blocking = true
 
 	cd.Window().AddChild(&cd.okayButton)
-
-	cd.Events().Listen(gfx.EV_ANIMATION_COMPLETE)
-	cd.SetEventHandler(cd.HandleEvent)
-}
-
-func (cd *CommDialog) HandleEvent(game_event event.Event) (event_handled bool) {
-	if game_event.ID() == gfx.EV_ANIMATION_COMPLETE {
-		cd.done = true
-		return true
-	}
-
-	return
 }
 
 func (cd CommDialog) Done() bool {
