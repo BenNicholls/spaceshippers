@@ -48,7 +48,7 @@ type SpaceshipGame struct {
 	galaxyMenu *GalaxyMenu //(F3)
 	crewMenu   *CrewMenu   //(F4)
 	commMenu   CommMenu    //(F5)
-	viewMenu   *ViewMenu   //(F6)
+	viewMenu   ViewMenu   //(F6)
 	mainMenu   MainMenu    //(ESC)
 
 	activeMenu Menu
@@ -165,10 +165,10 @@ func (sg *SpaceshipGame) SetupUI() {
 	// sg.galaxyMenu = NewGalaxyMenu(sg.galaxy, sg.player.SpaceShip)
 	// sg.crewMenu = NewCrewMenu(sg.playerShip)
 	sg.commMenu.Init(sg.playerShip.Comms)
-	// sg.viewMenu = NewViewMenu()
+	sg.viewMenu.Init()
 	sg.mainMenu.Init()
 
-	sg.Window().AddChildren(&sg.gameMenu, &sg.commMenu, &sg.mainMenu)
+	sg.Window().AddChildren(&sg.gameMenu, &sg.commMenu, &sg.viewMenu, &sg.mainMenu)
 
 	sg.gameMenuButton.Init(vec.Dims{10, 1}, vec.Coord{4, 1}, 10, "Game", func() { sg.ActivateMenu(&sg.gameMenu) })
 	sg.gameMenuButton.SetupBorder("", "F1")
@@ -180,7 +180,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.crewMenuButton.SetupBorder("", "F4")
 	sg.commMenuButton.Init(vec.Dims{10, 1}, vec.Coord{56, 1}, 10, "Communications", func() { sg.ActivateMenu(&sg.commMenu) })
 	sg.commMenuButton.SetupBorder("", "F5")
-	sg.viewMenuButton.Init(vec.Dims{10, 1}, vec.Coord{69, 1}, 10, "View Mode", nil)
+	sg.viewMenuButton.Init(vec.Dims{10, 1}, vec.Coord{69, 1}, 10, "View Mode", func() { sg.ActivateMenu(&sg.viewMenu) })
 	sg.viewMenuButton.SetupBorder("", "F6")
 	sg.mainMenuButton.Init(vec.Dims{10, 1}, vec.Coord{82, 1}, 10, "Main Menu", func() { sg.ActivateMenu(&sg.mainMenu) })
 	sg.mainMenuButton.SetupBorder("", "ESC")

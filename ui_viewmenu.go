@@ -1,11 +1,14 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/bennicholls/tyumi/gfx"
+	"github.com/bennicholls/tyumi/gfx/col"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/log"
+	"github.com/bennicholls/tyumi/vec"
 )
 
-//view modes
+// view modes
 const (
 	VIEW_DEFAULT int = iota
 	VIEW_ATMO_PRESSURE
@@ -18,10 +21,10 @@ const (
 type ViewModeData struct {
 	name                string
 	description         string
-	palette             burl.Palette
+	palette             col.Gradient
 	min, max            float64
 	target              float64
-	cmin, ctarget, cmax uint32
+	cmin, ctarget, cmax col.Colour
 	labels              map[float64]string
 }
 
@@ -32,15 +35,16 @@ func (vmd *ViewModeData) SetTarget(t float64) {
 
 func (vmd *ViewModeData) GeneratePalette() {
 	if vmd.target == vmd.min || vmd.target == vmd.max {
-		vmd.palette = burl.GeneratePalette(40, vmd.cmin, vmd.cmax)
+		vmd.palette = col.GenerateGradient(40, vmd.cmin, vmd.cmax)
 	} else {
 		targetnum := int(40 * (vmd.target - vmd.min) / (vmd.max - vmd.min))
-		vmd.palette = burl.GeneratePalette(targetnum, vmd.cmin, vmd.ctarget)
-		vmd.palette.Add(burl.GeneratePalette(41-targetnum, vmd.ctarget, vmd.cmax))
+		vmd.palette = col.GenerateGradient(targetnum, vmd.cmin, vmd.ctarget)
+		vmd.palette = append(vmd.palette[:targetnum-1], col.GenerateGradient(41-targetnum, vmd.ctarget, vmd.cmax)...)
+		log.Debug(len(vmd.palette))
 	}
 }
 
-func (vmd ViewModeData) GetColour(val float64) uint32 {
+func (vmd ViewModeData) GetColour(val float64) col.Colour {
 	return vmd.palette[int(float64(len(vmd.palette))*(val-vmd.min)/(vmd.max-vmd.min))]
 }
 
@@ -58,12 +62,12 @@ func init() {
 		min:         0,
 		target:      100, //approximate default. overwritten on ship setup
 		max:         500,
-		cmin:        burl.COL_BLACK,
-		ctarget:     burl.COL_GREEN,
-		cmax:        burl.COL_RED,
+		cmin:        col.BLACK,
+		ctarget:     col.GREEN,
+		cmax:        col.RED,
 		labels: map[float64]string{
-			0:   "0 kPa: Total vaccuum. Very bad for your skin.",
-			34:  "34 kPa: Pressure at the top of Mt. Everest.",
+			0:   "0 kPa:   Total vaccuum. Very bad for your skin.",
+			34:  "34 kPa:  Pressure at the top of Mt. Everest.",
 			101: "100 kPa: Approximate air pressue at sea level on our beloved Earth.",
 			500: "500 kPa: The pressure of a very strong fist punch. Good for Mike Tyson, bad for air that you want to breathe.",
 		},
@@ -74,11 +78,11 @@ func init() {
 		min:         0,
 		target:      22, //approximate default. overwritten on ship setup
 		max:         50,
-		cmin:        burl.COL_NAVY,
-		ctarget:     burl.COL_GREEN,
-		cmax:        burl.COL_RED,
+		cmin:        col.NAVY,
+		ctarget:     col.GREEN,
+		cmax:        col.RED,
 		labels: map[float64]string{
-			0:  "0 kPa: Zero oxygen. Very very bad.",
+			0:  "0 kPa:  Zero oxygen. Very very bad.",
 			5:  "5 kPa:  Approximate oxygen you get at extreme elevations on Earth. Lowest non-fatal amount for humans.",
 			15: "15 kPa: Minimum amount required for normal healthy respiration.",
 			21: "21 kPa: Oxygen pressure in a standard Earth atmosphere.",
@@ -87,30 +91,30 @@ func init() {
 	}
 	viewModeData[VIEW_ATMO_TEMP] = ViewModeData{
 		name:        "Internal Temperature",
-		description: "/nTemperature, in Kelvin (K), of the internal environment./n/nSee Life Support System to dial the thermostat up or down .",
+		description: "/nTemperature, in Kelvin (K), of the internal environment./n/nSee Life Support System to dial the thermostat up or down.",
 		min:         0,
 		target:      290, //approximate default. overwritten on ship setup
 		max:         500,
-		cmin:        burl.COL_BLUE,
-		ctarget:     burl.COL_GREEN,
-		cmax:        burl.COL_RED,
+		cmin:        col.BLUE,
+		ctarget:     col.GREEN,
+		cmax:        col.RED,
 		labels: map[float64]string{
 			0:   "0K: Absolute zero. If you have this, you may have destroyed the universe.",
 			273: "273K: Freezing/melting point of water.",
-			288: "288K: Room temperature. Comfortable for most humans.",
+			288: "288K: Room temperature. Comfortable for humans.",
 			373: "373K: Boiling point of water. Uncomfortable for humans.",
 			500: "500K: Boiling point of humans (probably). VERY uncomfortable for humans.",
 		},
 	}
 	viewModeData[VIEW_ATMO_CO2] = ViewModeData{
 		name:        "Carbon Dioxide Level",
-		description: "/nPressure of internal atmosphere's Carbon Dioxide (CO2). CO2 is exhaled by humans, every time they breathe!. They don't like breathing it back in though. High Levels of CO2 are poisonous./n/nSee Life Support System to manage CO2 elimination.",
+		description: "/nPressure of internal atmosphere's Carbon Dioxide (CO2). CO2 is exhaled by humans every time they breathe! They don't like breathing it back in though. High Levels of CO2 are poisonous./n/nSee Life Support System to manage CO2 elimination.",
 		min:         0,
 		target:      0, //approximate default. overwritten on ship setup
 		max:         10,
-		cmin:        burl.COL_GREEN,
-		ctarget:     burl.COL_GREEN,
-		cmax:        burl.COL_RED,
+		cmin:        col.GREEN,
+		ctarget:     col.GREEN,
+		cmax:        col.RED,
 		labels: map[float64]string{
 			0:  "0 kPa: No CO2 content. Excellent.",
 			1:  "1 kPa: Starting to get to be a little much. Humans begin getting dizzy.",
@@ -123,33 +127,38 @@ func init() {
 }
 
 type ViewMenu struct {
-	burl.Container
+	ui.Element
 
-	modeList            *burl.List
-	modeDescriptionText *burl.Textbox
-	paletteView         *burl.TileView
-	paletteLabels       *burl.Container
+	modeList            ui.List
+	modeDescriptionText ui.Textbox
+	paletteView         ui.Element
+	paletteLabels       ui.Element
 }
 
-func NewViewMenu() (vm *ViewMenu) {
-	vm = new(ViewMenu)
-	vm.Container = *burl.NewContainer(56, 45, 39, 4, 10, true)
+func (vm *ViewMenu) Init() {
+	vm.Element.Init(vec.Dims{56, 45}, vec.Coord{39, 4}, 10)
+	vm.EnableBorder()
+	vm.Hide()
+	vm.AcceptInput = true
 
-	vm.SetVisibility(false)
+	vm.modeList.Init(vec.Dims{18, 30}, vec.Coord{1, 1}, 1)
+	vm.modeList.SetupBorder("", "PgUp/PgDown to scroll")
+	vm.modeList.SetEmptyText("No Viewmodes Found???")
+	vm.modeList.AcceptInput = true
+	vm.modeList.ToggleHighlight()
+	vm.modeList.OnChangeSelection = vm.UpdateViewModeData
 
-	vm.modeList = burl.NewList(18, 30, 1, 1, 1, true, "No Viewmodes Found???")
-	vm.modeList.SetHint("PgUp/PgDown to scroll")
-
-	vm.modeDescriptionText = burl.NewTextbox(18, 12, 1, 32, 1, true, false, "Viewmode Description")
+	vm.modeDescriptionText.Init(vec.Dims{18, 12}, vec.Coord{1, 32}, 1, "ViewMode Description", ui.JUSTIFY_CENTER)
+	vm.modeDescriptionText.EnableBorder()
 
 	for i := 0; i < VIEWMODE_NUM; i++ {
-		vm.modeList.Append(viewModeData[i].name)
+		vm.modeList.InsertText(ui.JUSTIFY_LEFT, viewModeData[i].name)
 	}
 
-	vm.paletteView = burl.NewTileView(1, 40, 21, 2, 1, false)
-	vm.paletteLabels = burl.NewContainer(32, 42, 23, 2, 1, false)
+	vm.paletteView.Init(vec.Dims{1, 40}, vec.Coord{21, 2}, 1)
+	vm.paletteLabels.Init(vec.Dims{32, 42}, vec.Coord{23, 2}, 1)
 
-	vm.Add(vm.modeList, vm.modeDescriptionText, vm.paletteView, vm.paletteLabels)
+	vm.AddChildren(&vm.modeList, &vm.modeDescriptionText, &vm.paletteView, &vm.paletteLabels)
 
 	vm.UpdateViewModeData()
 
@@ -157,32 +166,30 @@ func NewViewMenu() (vm *ViewMenu) {
 }
 
 func (vm *ViewMenu) UpdateViewModeData() {
-	mode := vm.modeList.GetSelection()
-	vm.modeDescriptionText.ChangeText(viewModeData[mode].description)
+	mode := vm.GetViewMode()
+	vmd := viewModeData[mode]
+	vm.modeDescriptionText.ChangeText(vmd.description)
 
-	vm.paletteView.Reset()
-	vm.paletteView.DrawPalette(0, 0, viewModeData[vm.GetViewMode()].palette, burl.VERTICAL)
+	if mode != VIEW_DEFAULT {
+		for i, colour := range vmd.palette {
+			vm.paletteView.DrawColours(vec.ZERO_COORD.StepN(vec.DIR_DOWN, i), 0, col.Pair{colour, colour})
+		}
+	} else {
+		vm.paletteView.Clear()
+	}
 
-	vm.paletteLabels.ClearElements()
-	vmd := viewModeData[vm.GetViewMode()]
+	vm.paletteLabels.RemoveAllChildren()
 	for k, v := range vmd.labels {
 		pos := int(40 * (k - vmd.min) / (vmd.max - vmd.min))
-		vm.paletteLabels.Add(burl.NewTextbox(32, burl.CalcWrapHeight("<-- "+v, 32), 0, burl.Min(pos, 39), 0, false, false, "<-- "+v))
+		vm.paletteLabels.AddChild(ui.NewTextbox(vec.Dims{32, ui.FIT_TEXT}, vec.Coord{0, min(pos, 39)}, 0, "<-- "+v, ui.JUSTIFY_LEFT))
 	}
 
-	if vm.GetViewMode() != VIEW_DEFAULT {
+	if mode != VIEW_DEFAULT {
 		pos := int(40 * (vmd.target - vmd.min) / (vmd.max - vmd.min))
-		vm.paletteView.Draw(0, pos, burl.GLYPH_DIAMOND, burl.COL_WHITE, burl.COL_NONE)
-	}
-}
-
-func (vm *ViewMenu) HandleKeypress(key sdl.Keycode) {
-	if key == sdl.K_PAGEUP || key == sdl.K_PAGEDOWN {
-		vm.modeList.HandleKeypress(key)
-		vm.UpdateViewModeData()
+		vm.paletteView.DrawVisuals(vec.Coord{0, pos}, 0, gfx.NewGlyphVisuals(gfx.GLYPH_DIAMOND, col.Pair{col.WHITE, col.NONE}))
 	}
 }
 
 func (vm ViewMenu) GetViewMode() int {
-	return vm.modeList.GetSelection()
+	return vm.modeList.GetSelectionIndex()
 }
