@@ -232,7 +232,7 @@ func (sdm *ShipDesignMenu) SaveShip(filename string) {
 	err := template.Save()
 	if err != nil {
 		log.Error(err)
-	} 
+	}
 	sdm.UpdateShipDetails()
 }
 

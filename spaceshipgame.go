@@ -43,7 +43,7 @@ type SpaceshipGame struct {
 	viewMenuButton   ui.Button
 	mainMenuButton   ui.Button
 
-	gameMenu   *GameMenu   //(F1)
+	gameMenu   GameMenu    //(F1)
 	shipMenu   *ShipMenu   //(F2)
 	galaxyMenu *GalaxyMenu //(F3)
 	crewMenu   *CrewMenu   //(F4)
@@ -58,7 +58,7 @@ type SpaceshipGame struct {
 	simSpeed  int //4 speeds, plus pause (0)
 	paused    bool
 
-	viewMode     int
+	viewMode int
 
 	galaxy     *Galaxy
 	player     *Player
@@ -101,6 +101,10 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 
 	sg.LoadSpaceEvents()
 
+	sg.player.AddMission(GenerateGoToMission(sg.playerShip, sg.galaxy.GetEarth(), nil))
+	sg.player.AddMission(GenerateGoToMission(sg.playerShip, sg.playerShip, sg.galaxy.GetEarth()))
+	sg.gameMenu.UpdateMissions() // REMOVE THIS LATER
+
 	//sg.OpenDialog(NewSpaceEventDialog(spaceEvents[1]))
 
 	// burl.RegisterDebugCommand("fuel", func() {
@@ -135,6 +139,7 @@ func (sg *SpaceshipGame) CenterShip() {
 
 func (sg *SpaceshipGame) SetupUI() {
 	sg.Init()
+	sg.Window().SendEventsToUnfocused = true
 
 	sg.shipView.Init(vec.Dims{96, 46}, vec.Coord{0, 3}, 1, &sg.playerShip.shipMap)
 	sg.shipView.SetDefaultVisuals(gfx.Visuals{Mode: gfx.DRAW_NONE, Colours: col.Pair{col.WHITE, col.BLACK}})
@@ -152,7 +157,7 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.Window().AddChildren(&sg.logOutput, &sg.shipView, &sg.stars, &sg.timeDisplay, &sg.quickstats)
 
-	// sg.gameMenu = NewGameMenu(sg.player)
+	sg.gameMenu.Init(sg.player)
 	// sg.shipMenu = NewShipMenu(sg.playerShip)
 	// sg.galaxyMenu = NewGalaxyMenu(sg.galaxy, sg.player.SpaceShip)
 	// sg.crewMenu = NewCrewMenu(sg.playerShip)
@@ -160,9 +165,9 @@ func (sg *SpaceshipGame) SetupUI() {
 	// sg.viewMenu = NewViewMenu()
 	sg.mainMenu.Init()
 
-	sg.Window().AddChildren(&sg.mainMenu)
+	sg.Window().AddChildren(&sg.gameMenu, &sg.mainMenu)
 
-	sg.gameMenuButton.Init(vec.Dims{10, 1}, vec.Coord{4, 1}, 10, "Game", nil)
+	sg.gameMenuButton.Init(vec.Dims{10, 1}, vec.Coord{4, 1}, 10, "Game", func() { sg.ActivateMenu(&sg.gameMenu) })
 	sg.gameMenuButton.SetupBorder("", "F1")
 	sg.shipMenuButton.Init(vec.Dims{10, 1}, vec.Coord{17, 1}, 10, "Ship", nil)
 	sg.shipMenuButton.SetupBorder("", "F2")
