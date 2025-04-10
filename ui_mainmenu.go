@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/bennicholls/tyumi/gfx/ui"
-	"github.com/bennicholls/tyumi/vec"
 )
 
 type MainMenu struct {
@@ -10,7 +9,7 @@ type MainMenu struct {
 }
 
 func (mm *MainMenu) Init() {
-	mm.PageContainer.Init(vec.Dims{56, 45}, vec.Coord{39, 4}, 10)
+	mm.PageContainer.Init(menuSize, menuPos, menuDepth)
 	mm.PageContainer.EnableBorder()
 	mm.Hide()
 

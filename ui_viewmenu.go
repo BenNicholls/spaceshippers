@@ -136,7 +136,7 @@ type ViewMenu struct {
 }
 
 func (vm *ViewMenu) Init() {
-	vm.Element.Init(vec.Dims{56, 45}, vec.Coord{39, 4}, 10)
+	vm.Element.Init(menuSize, menuPos, menuDepth)
 	vm.EnableBorder()
 	vm.Hide()
 	vm.AcceptInput = true

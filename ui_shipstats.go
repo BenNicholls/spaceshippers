@@ -20,8 +20,8 @@ type QuickStatsWindow struct {
 	ship *Ship
 }
 
-func (qsw *QuickStatsWindow) Init(pos vec.Coord, s *Ship) {
-	qsw.Element.Init(vec.Dims{39, 3}, pos, 10)
+func (qsw *QuickStatsWindow) Init(s *Ship) {
+	qsw.Element.Init(vec.Dims{39, 3}, vec.Coord{39, 50}, menuDepth)
 	qsw.EnableBorder()
 
 	qsw.alertText.Init(vec.Dims{39, 1}, vec.ZERO_COORD, ui.BorderDepth, "All Optimal", ui.JUSTIFY_CENTER)

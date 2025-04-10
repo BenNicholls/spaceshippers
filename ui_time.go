@@ -17,7 +17,7 @@ type TimeDisplay struct {
 }
 
 func (td *TimeDisplay) Init(pos vec.Coord, g *Galaxy) {
-	td.Element.Init(vec.Dims{16, 3}, pos, 10)
+	td.Element.Init(vec.Dims{16, 3}, pos, menuDepth)
 	td.TreeNode.Init(td)
 	td.SetupBorder("", "+/-: change speed")
 	td.speedDisplay.Init(vec.Dims{4, 1}, vec.Coord{12, 0}, ui.BorderDepth)

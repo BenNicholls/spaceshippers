@@ -24,7 +24,7 @@ type GameMenu struct {
 }
 
 func (gm *GameMenu) Init(p *Player) {
-	gm.PageContainer.Init(vec.Dims{56, 45}, vec.Coord{39, 4}, 10)
+	gm.PageContainer.Init(menuSize, menuPos, menuDepth)
 	gm.EnableBorder()
 	gm.Hide()
 	gm.player = p

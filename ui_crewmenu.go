@@ -1,124 +1,130 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/bennicholls/tyumi/gfx/col"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 type CrewMenu struct {
-	burl.PagedContainer
+	ui.PageContainer
 
-	detailPage    *burl.Container
-	rolePage      *burl.Container
-	jobPage       *burl.Container
-	passengerPage *burl.Container
-	projectPage   *burl.Container
+	detailPage    *ui.Page
+	rolePage      *ui.Page
+	jobPage       *ui.Page
+	passengerPage *ui.Page
+	projectPage   *ui.Page
 
 	//detailPage
-	crewList    *burl.List
-	crewDetails *burl.Container
+	crewList    ui.List
+	crewDetails ui.Element
 
-	detailsNameText     *burl.Textbox
-	detailsBirthdayText *burl.Textbox
-	detailsRaceText     *burl.Textbox
-	detailsJobText      *burl.Textbox
-	detailsPicView      *burl.TileView
-	detailsStats        *burl.Container
-	detailsHPBar        *burl.ProgressBar
-	detailsAlertnessBar *burl.ProgressBar
-	detailsCO2Bar       *burl.ProgressBar
-	detailsStatusText   *burl.Textbox
-	detailsEffectsText  *burl.Textbox
+	detailsNameText     ui.Textbox
+	detailsBirthdayText ui.Textbox
+	detailsRaceText     ui.Textbox
+	detailsJobText      ui.Textbox
+	detailsPicView      ui.Image
+	detailsStats        ui.Element
+	detailsHPBar        ui.ProgressBar
+	detailsAlertnessBar ui.ProgressBar
+	detailsCO2Bar       ui.ProgressBar
+	detailsStatusText   ui.Textbox
+	detailsEffectsText  ui.Textbox
 
 	ship *Ship
 }
 
-func NewCrewMenu(s *Ship) (cm *CrewMenu) {
-	cm = new(CrewMenu)
-	cm.ship = s
-	cm.PagedContainer = *burl.NewPagedContainer(56, 45, 39, 4, 10, true)
-	_, ph := cm.GetPageDims()
+func (cm *CrewMenu) Init(s *Ship) {
+	cm.PageContainer.Init(menuSize, menuPos, menuDepth)
+	cm.EnableBorder()
+	cm.AcceptInput = true
+	cm.Hide()
 
 	//INIT DETAILS PAGE//
-	cm.detailPage = cm.AddPage("Crew Details")
-	cm.detailPage.Add(burl.NewTextbox(13, 1, 1, 1, 1, true, true, "Crew List"))
-	cm.crewList = burl.NewList(13, ph-4, 1, 3, 1, true, "No crew!")
-	cm.crewList.SetHint("PgUp/PgDown to select")
-	cm.crewDetails = burl.NewContainer(41, ph, 15, 0, 0, false)
-	cm.detailPage.Add(cm.crewList, cm.crewDetails)
+	cm.detailPage = cm.CreatePage("Crew Details")
+	ph := cm.detailPage.Size().H
+	cm.detailPage.AddChild(ui.NewTitleTextbox(vec.Dims{13, 1}, vec.Coord{1, 1}, 1, "Crew List"))
+	cm.crewList.Init(vec.Dims{13, ph - 4}, vec.Coord{1, 3}, 1)
+	cm.crewList.SetupBorder("", "PgUp/PgDown to select")
+	cm.crewList.SetEmptyText("No Crew!")
+	cm.crewList.OnChangeSelection = cm.InitCrewDetails
 
-	w, _ := cm.crewDetails.Dims()
-	cm.detailsNameText = burl.NewTextbox(w-13, 1, 1, 1, 0, false, false, "Name: ")
-	cm.detailsBirthdayText = burl.NewTextbox(w-13, 1, 1, 2, 0, false, false, "Age: ")
-	cm.detailsRaceText = burl.NewTextbox(w-13, 1, 1, 3, 0, false, false, "Race: ")
-	cm.detailsJobText = burl.NewTextbox(w-13, 1, 1, 7, 0, false, false, "Job:")
-	cm.detailsPicView = burl.NewTileView(12, 12, 29, 0, 0, false)
-	cm.crewDetails.Add(cm.detailsNameText, cm.detailsBirthdayText, cm.detailsRaceText, cm.detailsJobText, cm.detailsPicView)
+	cm.crewDetails.Init(vec.Dims{41, ph}, vec.Coord{15, 0}, 0)
+	cm.detailPage.AddChildren(&cm.crewList, &cm.crewDetails)
 
-	cm.detailsStats = burl.NewContainer(w-2, 3, 1, 13, 2, true)
-	cm.detailsHPBar = burl.NewProgressBar((w-2)/2, 1, 0, 0, 0, true, true, "HP", burl.COL_RED)
-	cm.detailsAlertnessBar = burl.NewProgressBar((w-2)/2, 1, (w-2)/2+1, 0, 0, true, true, "Alertness", burl.COL_GREEN)
-	cm.detailsCO2Bar = burl.NewProgressBar((w-2)/2, 1, 0, 2, 0, true, true, "CO2 Buildup", burl.COL_LIGHTGREY)
-	cm.detailsStats.Add(cm.detailsAlertnessBar, cm.detailsHPBar, cm.detailsCO2Bar)
-	cm.crewDetails.Add(cm.detailsStats)
+	w := cm.crewDetails.Size().W
+	cm.detailsNameText.Init(vec.Dims{w - 13, 1}, vec.Coord{1, 1}, 0, "Name: ", ui.JUSTIFY_LEFT)
+	cm.detailsBirthdayText.Init(vec.Dims{w - 13, 1}, vec.Coord{1, 2}, 0, "Age: ", ui.JUSTIFY_LEFT)
+	cm.detailsRaceText.Init(vec.Dims{w - 13, 1}, vec.Coord{1, 3}, 0, "Race: ", ui.JUSTIFY_LEFT)
+	cm.detailsJobText.Init(vec.Dims{w - 13, 1}, vec.Coord{1, 7}, 0, "Job: ", ui.JUSTIFY_LEFT)
+	cm.detailsPicView.Init(vec.Coord{29, 0}, 0, "")
+	cm.crewDetails.AddChildren(&cm.detailsNameText, &cm.detailsBirthdayText, &cm.detailsRaceText, &cm.detailsJobText, &cm.detailsPicView)
 
-	cm.detailsStatusText = burl.NewTextbox(16, 23, 1, 18, 6, true, false, "Statuses and crap")
-	cm.detailsEffectsText = burl.NewTextbox(w-19, 23, 18, 18, 6, true, false, "Effects and crap")
+	cm.detailsStats.Init(vec.Dims{w - 2, 3}, vec.Coord{1, 13}, 2)
+	cm.detailsStats.EnableBorder()
+	cm.detailsHPBar.Init(vec.Dims{(w - 2) / 2, 1}, vec.ZERO_COORD, ui.BorderDepth, col.RED, "HP")
+	cm.detailsHPBar.EnableBorder()
+	cm.detailsAlertnessBar.Init(vec.Dims{(w - 2) / 2, 1}, vec.Coord{(w-2)/2 + 1, 0}, ui.BorderDepth, col.GREEN, "Alertness")
+	cm.detailsHPBar.EnableBorder()
+	cm.detailsCO2Bar.Init(vec.Dims{(w - 2) / 2, 1}, vec.Coord{0, 2}, ui.BorderDepth, col.LIGHTGREY, "CO2 Buildup")
+	cm.detailsHPBar.EnableBorder()
+	cm.detailsStats.AddChildren(&cm.detailsAlertnessBar, &cm.detailsHPBar, &cm.detailsCO2Bar)
+	cm.crewDetails.AddChild(&cm.detailsStats)
 
-	cm.crewDetails.Add(cm.detailsStatusText, cm.detailsEffectsText)
+	cm.detailsStatusText.Init(vec.Dims{16, 23}, vec.Coord{1, 18}, 6, "Statuses and crap", ui.JUSTIFY_CENTER)
+	cm.detailsEffectsText.Init(vec.Dims{w - 19, 23}, vec.Coord{18, 18}, 6, "Effects and crap", ui.JUSTIFY_CENTER)
+
+	cm.crewDetails.AddChildren(&cm.detailsStatusText, &cm.detailsEffectsText)
 
 	//TODO: OTHER PAGES//
-	cm.rolePage = cm.AddPage("Roles")
-	cm.jobPage = cm.AddPage("Jobs")
-	cm.passengerPage = cm.AddPage("Passengers")
-	cm.projectPage = cm.AddPage("Projects")
+	cm.rolePage = cm.CreatePage("Roles")
+	cm.jobPage = cm.CreatePage("Jobs")
+	cm.passengerPage = cm.CreatePage("Passengers")
+	cm.projectPage = cm.CreatePage("Projects")
 
-	cm.SetVisibility(false)
-	cm.SetHint("TAB to switch submenus")
-
+	cm.ship = s
 	cm.UpdateCrewList()
 
 	return
 }
 
 func (cm *CrewMenu) UpdateCrewList() {
+	i := cm.crewList.GetSelectionIndex()
+	cm.crewList.RemoveAll()
 	if len(cm.ship.Crew) == 0 {
-		cm.crewList.ClearElements()
 		return
 	}
 
-	i := cm.crewList.GetSelection()
-	cm.crewList.ClearElements()
 	for _, c := range cm.ship.Crew {
-		cm.crewList.Append(c.Name)
+		cm.crewList.InsertText(ui.JUSTIFY_LEFT, c.Name)
 	}
 	cm.crewList.Select(i)
 
 	cm.InitCrewDetails()
 }
 
-//Updates the static data for the crew details page. This is only called when the selected crew member is changed.
+// Updates the static data for the crew details page. This is only called when the selected crew member is changed.
 func (cm *CrewMenu) InitCrewDetails() {
 	if len(cm.ship.Crew) == 0 {
 		return
 	}
 
-	c := cm.ship.Crew[cm.crewList.GetSelection()]
+	c := cm.ship.Crew[cm.crewList.GetSelectionIndex()]
 	cm.detailsNameText.ChangeText("Name: " + c.Name)
 	cm.detailsRaceText.ChangeText("Race: " + c.Race)
 	cm.detailsBirthdayText.ChangeText("Birthdate: " + GetDateString(c.BirthDate))
-	cm.detailsPicView.LoadImageFromXP(c.Pic)
+	cm.detailsPicView.LoadImage(c.Pic)
 
 	cm.UpdateCrewDetails()
 }
 
-//Updates variable data for crew details page. Called whenever a UI_UPDATE event for the crew is received (most frames)
+// Updates variable data for crew details page. Called whenever a UI_UPDATE event for the crew is received (most frames)
 func (cm *CrewMenu) UpdateCrewDetails() {
 	if len(cm.ship.Crew) == 0 {
 		return
 	}
 
-	c := cm.ship.Crew[cm.crewList.GetSelection()]
+	c := cm.ship.Crew[cm.crewList.GetSelectionIndex()]
 
 	cm.detailsHPBar.SetProgress(c.HP.GetPct())
 	cm.detailsAlertnessBar.SetProgress(c.Awakeness.GetPct())
@@ -139,7 +145,7 @@ func (cm *CrewMenu) UpdateCrewDetails() {
 	if len(c.Statuses) == 0 {
 		statusString += " - " + "No statuses. Boooring!"
 	} else {
-		for i := 0; i < int(STATUS_MAX); i++ {
+		for i := range int(STATUS_MAX) {
 			if s, ok := c.Statuses[StatusID(i)]; ok {
 				statusString += " - " + s.Name + "/n"
 				effectString += " -> "
@@ -152,16 +158,4 @@ func (cm *CrewMenu) UpdateCrewDetails() {
 	}
 	cm.detailsStatusText.ChangeText(statusString)
 	cm.detailsEffectsText.ChangeText(effectString)
-}
-
-func (cm *CrewMenu) HandleKeypress(key sdl.Keycode) {
-	cm.PagedContainer.HandleKeypress(key)
-
-	switch cm.CurrentPage() {
-	case cm.detailPage:
-		if key == sdl.K_PAGEUP || key == sdl.K_PAGEDOWN {
-			cm.crewList.HandleKeypress(key)
-			cm.InitCrewDetails()
-		}
-	}
 }

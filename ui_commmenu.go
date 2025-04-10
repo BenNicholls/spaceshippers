@@ -26,7 +26,7 @@ type CommMenu struct {
 func (cm *CommMenu) Init(comm *CommSystem) {
 	cm.comms = comm
 
-	cm.PageContainer.Init(vec.Dims{56, 45}, vec.Coord{39, 4}, 10)
+	cm.PageContainer.Init(menuSize, menuPos, menuDepth)
 	cm.EnableBorder()
 	cm.Hide()
 	cm.AcceptInput = true

@@ -46,9 +46,9 @@ type SpaceshipGame struct {
 	gameMenu   GameMenu    //(F1)
 	shipMenu   *ShipMenu   //(F2)
 	galaxyMenu *GalaxyMenu //(F3)
-	crewMenu   *CrewMenu   //(F4)
+	crewMenu   CrewMenu    //(F4)
 	commMenu   CommMenu    //(F5)
-	viewMenu   ViewMenu   //(F6)
+	viewMenu   ViewMenu    //(F6)
 	mainMenu   MainMenu    //(ESC)
 
 	activeMenu Menu
@@ -149,11 +149,11 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.shipView.CenterOnTileMapCoord(sg.playerShip.Bounds().Center())
 	sg.stars.Init(sg.shipView.Size(), vec.Coord{0, 3}, 0, 20, 0)
 
-	sg.logOutput.Init(vec.Dims{37, 8}, vec.Coord{1, 45}, 10)
+	sg.logOutput.Init(vec.Dims{37, 8}, vec.Coord{1, 45}, menuDepth)
 	sg.logOutput.SetupBorder("SPACE LOG", "PgUp/PgDown to scroll")
 	sg.logOutput.SetEmptyText("Nothing to report, Captain!")
 
-	sg.quickstats.Init(vec.Coord{39, 50}, sg.playerShip)
+	sg.quickstats.Init(sg.playerShip)
 
 	sg.timeDisplay.Init(vec.Coord{79, 50}, sg.galaxy)
 	sg.timeDisplay.UpdateSpeed(sg.simSpeed)
@@ -163,12 +163,12 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.gameMenu.Init(sg.player)
 	// sg.shipMenu = NewShipMenu(sg.playerShip)
 	// sg.galaxyMenu = NewGalaxyMenu(sg.galaxy, sg.player.SpaceShip)
-	// sg.crewMenu = NewCrewMenu(sg.playerShip)
+	sg.crewMenu.Init(sg.playerShip)
 	sg.commMenu.Init(sg.playerShip.Comms)
 	sg.viewMenu.Init()
 	sg.mainMenu.Init()
 
-	sg.Window().AddChildren(&sg.gameMenu, &sg.commMenu, &sg.viewMenu, &sg.mainMenu)
+	sg.Window().AddChildren(&sg.gameMenu, &sg.crewMenu, &sg.commMenu, &sg.viewMenu, &sg.mainMenu)
 
 	sg.gameMenuButton.Init(vec.Dims{10, 1}, vec.Coord{4, 1}, 10, "Game", func() { sg.ActivateMenu(&sg.gameMenu) })
 	sg.gameMenuButton.SetupBorder("", "F1")
@@ -176,7 +176,7 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.shipMenuButton.SetupBorder("", "F2")
 	sg.galaxyMenuButton.Init(vec.Dims{10, 1}, vec.Coord{30, 1}, 10, "Galaxy", nil)
 	sg.galaxyMenuButton.SetupBorder("", "F3")
-	sg.crewMenuButton.Init(vec.Dims{10, 1}, vec.Coord{43, 1}, 10, "Crew", nil)
+	sg.crewMenuButton.Init(vec.Dims{10, 1}, vec.Coord{43, 1}, 10, "Crew", func() { sg.ActivateMenu(&sg.crewMenu) })
 	sg.crewMenuButton.SetupBorder("", "F4")
 	sg.commMenuButton.Init(vec.Dims{10, 1}, vec.Coord{56, 1}, 10, "Communications", func() { sg.ActivateMenu(&sg.commMenu) })
 	sg.commMenuButton.SetupBorder("", "F5")
