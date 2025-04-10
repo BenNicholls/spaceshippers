@@ -272,7 +272,7 @@ func (sdm *ShipDesignMenu) HandleKeypress(key_event *input.KeyboardEvent) (event
 	switch sdm.CurrentState() {
 	case sdm.addRoomState:
 		if dir := key_event.Direction(); dir != vec.DIR_NONE {
-			sdm.roomToAddElement.Move(dir.X, dir.Y)
+			sdm.roomToAddElement.Move(dir.Coord().X, dir.Coord().Y)
 			sdm.UpdateRoomState()
 		}
 		switch key_event.Key {

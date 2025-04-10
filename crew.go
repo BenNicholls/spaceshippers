@@ -3,8 +3,10 @@ package main
 import (
 	"math/rand"
 
-	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/gfx"
+	"github.com/bennicholls/tyumi/gfx/col"
 	"github.com/bennicholls/tyumi/log"
+	"github.com/bennicholls/tyumi/rl"
 	"github.com/bennicholls/tyumi/vec"
 )
 
@@ -16,14 +18,23 @@ func init() {
 	LASTNAMES = []string{"Andleman", "Bunchlo", "Cogsworth", "Doofer", "Encelada", "Fink", "Gusto", "Humber", "Illiamson", "Jasprex", "Klefbom", "Lorax", "Munkleberg", "Ning", "Olberson", "Pinzip", "Quaker", "Ruffsborg", "Shlemko", "Thrace", "Undergarb", "Von Satan", "White", "Xom", "Yillian", "Zaphod"}
 }
 
+var ENTITY_CREWMAN = rl.RegisterEntityType(rl.EntityData{
+	Name:    "Crewman",
+	Desc:    "A loyal member of the crew, devoted to exploring space with their best buds!",
+	Glyph:   gfx.GLYPH_FACE1,
+	Colours: col.Pair{col.WHITE, col.NONE},
+})
+
 type Crewman struct {
-	burl.EntityPrototype
+	rl.Entity
 	Person
 
+	Updated bool // true if crew menu UI needs to re-render
+
 	//defining characteristics of various types
-	HP        burl.Stat
-	Awakeness burl.Stat
-	CO2       burl.Stat //level of CO2 in the blood.
+	HP        rl.Stat[int]
+	Awakeness rl.Stat[int]
+	CO2       rl.Stat[int] //level of CO2 in the blood.
 	Dead      bool
 
 	CurrentTask Job
@@ -36,14 +47,10 @@ type Crewman struct {
 
 func NewCrewman() *Crewman {
 	c := new(Crewman)
-	c.Visuals = burl.Visuals{
-		Glyph:      burl.GLYPH_FACE1,
-		ForeColour: burl.COL_WHITE,
-		BackColour: burl.COL_NONE,
-	}
-	c.HP = burl.NewStat(100)
-	c.Awakeness = burl.NewStat((rand.Intn(4) + 7) * HOUR)
-	c.CO2 = burl.NewStat(1000000)
+	c.Init(ENTITY_CREWMAN)
+	c.HP = rl.NewBasicStat(100)
+	c.Awakeness = rl.NewBasicStat((rand.Intn(4) + 7) * HOUR)
+	c.CO2 = rl.NewBasicStat(1000000)
 	c.CO2.Set(0)
 	c.randomizeName()
 	c.Ptype = PERSON_CREWMAN
@@ -61,6 +68,17 @@ func (c *Crewman) randomizeName() {
 	c.Name = FIRSTNAMES[rand.Intn(len(FIRSTNAMES))] + " " + LASTNAMES[rand.Intn(len(LASTNAMES))]
 }
 
+func (c Crewman) GetVisuals() (v gfx.Visuals) {
+	v = c.Entity.GetVisuals()
+	if c.Dead {
+		v.Colours.Fore = col.RED
+	} else if !c.IsAwake() {
+		v.Colours.Fore = col.YELLOW
+	}
+
+	return
+}
+
 // general per-tick update function.
 func (c *Crewman) Update(spaceTime int) {
 	if c.Dead {
@@ -76,7 +94,7 @@ func (c *Crewman) Update(spaceTime int) {
 	//increase sleepy. if too sleepy, drop what you're doing and go to sleep.
 	if c.IsAwake() {
 		c.Awakeness.Mod(-1)
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "crew"))
+		c.Updated = true
 		if c.Awakeness.GetPct() < 10 {
 			c.AddStatus(STATUS_SLEEPY)
 		}
@@ -86,11 +104,10 @@ func (c *Crewman) Update(spaceTime int) {
 
 		//walk around randomly like a doofus.
 		if spaceTime%20 == 0 {
-			// dx, dy := burl.RandomDirection()
-			// if c.ship.shipMap.GetTile(c.X+dx, c.Y+dy).Empty() {
-			// 	c.ship.shipMap.MoveEntity(c.X, c.Y, dx, dy)
-			// 	c.Move(dx, dy)
-			// }
+			dir := vec.RandomDirection()
+			if c.ship.shipMap.GetTile(c.Position().Step(dir)).IsPassable() {
+				c.ship.shipMap.MoveEntity(c.Position(), c.Position().Step(dir))
+			}
 		}
 	}
 
@@ -112,7 +129,6 @@ func (c *Crewman) Update(spaceTime int) {
 
 	if c.HP.Get() == 0 {
 		c.Dead = true
-		c.ChangeForeColour(burl.COL_RED)
 		if c.CurrentTask != nil {
 			c.CurrentTask.OnInterrupt()
 			c.CurrentTask = nil
@@ -127,7 +143,7 @@ func (c *Crewman) Breathe() {
 		return
 	}
 
-	r := c.ship.GetRoom(vec.Coord{c.X, c.Y})
+	r := c.ship.GetRoom(c.Position())
 	if r == nil {
 		//no room found... person is outside? TODO: spacemen dont like being outside. hurts their eyes. handle that.
 		return
@@ -215,6 +231,7 @@ func (c *Crewman) AddStatus(s StatusID) {
 
 	status := NewCrewStatus(s)
 	c.Statuses[s] = status
+	c.Updated = true
 
 	for _, id := range status.Effects {
 		c.AddEffect(id, s)
@@ -232,6 +249,7 @@ func (c *Crewman) RemoveStatus(s StatusID) {
 
 	status := c.Statuses[s]
 	delete(c.Statuses, s)
+	c.Updated = true
 
 	for _, e := range status.Effects {
 		effect := c.Effects[e]
@@ -257,6 +275,7 @@ func (c *Crewman) AddEffect(e EffectID, s StatusID) {
 	effect.AddSource(s)
 
 	c.Effects[e] = effect
+	c.Updated = true
 }
 
 // Per-turn things for effects

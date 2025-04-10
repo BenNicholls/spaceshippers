@@ -8,6 +8,7 @@ import (
 	"github.com/bennicholls/tyumi/gfx/col"
 	"github.com/bennicholls/tyumi/log"
 	"github.com/bennicholls/tyumi/rl"
+	"github.com/bennicholls/tyumi/util"
 	"github.com/bennicholls/tyumi/vec"
 )
 
@@ -97,14 +98,12 @@ func (s *Ship) SetupShip(g *Galaxy) {
 	s.CalcShipBounds()
 
 	//crew -- need to set the crew's jobs to point back at the crew, add crew to shipmap
-	// for i := range s.Crew {
-	// 	if s.Crew[i].CurrentTask != nil {
-	// 		s.Crew[i].CurrentTask.SetWorker(s.Crew[i])
-	// 	}
-	// 	rx, ry := s.Crew[i].X, s.Crew[i].Y
-	// 	s.shipMap.AddEntity(rx, ry, s.Crew[i])
-	// 	s.Crew[i].MoveTo(rx, ry)
-	// }
+	for i := range s.Crew {
+		if s.Crew[i].CurrentTask != nil {
+			s.Crew[i].CurrentTask.SetWorker(s.Crew[i])
+		}
+		s.shipMap.AddEntity(s.Crew[i], s.Crew[i].Position())
+	}
 
 	s.Engine.ship = s
 	s.Navigation.ship = s
@@ -200,19 +199,18 @@ func (s *Ship) CheckRoomValidAdd(r *Room) bool {
 }
 
 func (s *Ship) AddCrewman(c *Crewman) {
-	// s.Crew = append(s.Crew, c)
-	// c.ship = s
+	s.Crew = append(s.Crew, c)
+	c.ship = s
 
-	// //place randomly in ship
-	// for {
-	// 	start := s.Rooms[rand.Intn(len(s.Rooms))]
-	// 	rx, ry := burl.GenerateCoord(start.X, start.Y, start.Width, start.Height)
-	// 	if s.shipMap.GetTile(rx, ry).Empty() {
-	// 		s.shipMap.AddEntity(rx, ry, c)
-	// 		c.MoveTo(rx, ry)
-	// 		break
-	// 	}
-	// }
+	//place randomly in ship
+	for {
+		room := util.PickOne(s.Rooms)
+		pos := vec.RandomCoordInArea(room)
+		if s.shipMap.GetTile(pos).IsPassable() {
+			s.shipMap.AddEntity(c, pos)
+			break
+		}
+	}
 }
 
 func (s *Ship) ConnectRooms(r1, r2 *Room) {

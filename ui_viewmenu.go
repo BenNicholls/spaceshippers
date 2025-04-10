@@ -4,7 +4,6 @@ import (
 	"github.com/bennicholls/tyumi/gfx"
 	"github.com/bennicholls/tyumi/gfx/col"
 	"github.com/bennicholls/tyumi/gfx/ui"
-	"github.com/bennicholls/tyumi/log"
 	"github.com/bennicholls/tyumi/vec"
 )
 
@@ -40,7 +39,6 @@ func (vmd *ViewModeData) GeneratePalette() {
 		targetnum := int(40 * (vmd.target - vmd.min) / (vmd.max - vmd.min))
 		vmd.palette = col.GenerateGradient(targetnum, vmd.cmin, vmd.ctarget)
 		vmd.palette = append(vmd.palette[:targetnum-1], col.GenerateGradient(41-targetnum, vmd.ctarget, vmd.cmax)...)
-		log.Debug(len(vmd.palette))
 	}
 }
 

@@ -236,10 +236,6 @@ func (sg *SpaceshipGame) HandleEvent(event event.Event) (event_handled bool) {
 	// 		sg.commMenu.UpdateTransmissions()
 	// 	case "missions":
 	// 		sg.gameMenu.UpdateMissions()
-	// 	case "crew":
-	// 		if sg.activeMenu == sg.crewMenu {
-	// 			sg.crewMenu.UpdateCrewDetails()
-	// 		}
 	// 	case "stores":
 	// 		sg.shipMenu.storesMenu.Update()
 	// 	case "ship status":

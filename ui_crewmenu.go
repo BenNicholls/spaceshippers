@@ -48,6 +48,8 @@ func (cm *CrewMenu) Init(s *Ship) {
 	cm.crewList.SetupBorder("", "PgUp/PgDown to select")
 	cm.crewList.SetEmptyText("No Crew!")
 	cm.crewList.OnChangeSelection = cm.InitCrewDetails
+	cm.crewList.AcceptInput = true
+	cm.crewList.ToggleHighlight()
 
 	cm.crewDetails.Init(vec.Dims{41, ph}, vec.Coord{15, 0}, 0)
 	cm.detailPage.AddChildren(&cm.crewList, &cm.crewDetails)
@@ -65,14 +67,16 @@ func (cm *CrewMenu) Init(s *Ship) {
 	cm.detailsHPBar.Init(vec.Dims{(w - 2) / 2, 1}, vec.ZERO_COORD, ui.BorderDepth, col.RED, "HP")
 	cm.detailsHPBar.EnableBorder()
 	cm.detailsAlertnessBar.Init(vec.Dims{(w - 2) / 2, 1}, vec.Coord{(w-2)/2 + 1, 0}, ui.BorderDepth, col.GREEN, "Alertness")
-	cm.detailsHPBar.EnableBorder()
+	cm.detailsAlertnessBar.EnableBorder()
 	cm.detailsCO2Bar.Init(vec.Dims{(w - 2) / 2, 1}, vec.Coord{0, 2}, ui.BorderDepth, col.LIGHTGREY, "CO2 Buildup")
-	cm.detailsHPBar.EnableBorder()
+	cm.detailsCO2Bar.EnableBorder()
 	cm.detailsStats.AddChildren(&cm.detailsAlertnessBar, &cm.detailsHPBar, &cm.detailsCO2Bar)
 	cm.crewDetails.AddChild(&cm.detailsStats)
 
 	cm.detailsStatusText.Init(vec.Dims{16, 23}, vec.Coord{1, 18}, 6, "Statuses and crap", ui.JUSTIFY_CENTER)
+	cm.detailsStatusText.EnableBorder()
 	cm.detailsEffectsText.Init(vec.Dims{w - 19, 23}, vec.Coord{18, 18}, 6, "Effects and crap", ui.JUSTIFY_CENTER)
+	cm.detailsEffectsText.EnableBorder()
 
 	cm.crewDetails.AddChildren(&cm.detailsStatusText, &cm.detailsEffectsText)
 
@@ -86,6 +90,18 @@ func (cm *CrewMenu) Init(s *Ship) {
 	cm.UpdateCrewList()
 
 	return
+}
+
+func (cm *CrewMenu) Update() {
+	if cm.GetPageIndex() != 0 || len(cm.ship.Crew) == 0 {
+		return
+	}
+
+	c := cm.ship.Crew[cm.crewList.GetSelectionIndex()]
+	if c.Updated {
+		cm.UpdateCrewDetails()
+		c.Updated = false
+	}
 }
 
 func (cm *CrewMenu) UpdateCrewList() {
@@ -143,7 +159,7 @@ func (cm *CrewMenu) UpdateCrewDetails() {
 	statusString := "STATUSES:/n/n"
 	effectString := "EFFECTS:/n/n"
 	if len(c.Statuses) == 0 {
-		statusString += " - " + "No statuses. Boooring!"
+		statusString += "No statuses. Boooring!"
 	} else {
 		for i := range int(STATUS_MAX) {
 			if s, ok := c.Statuses[StatusID(i)]; ok {

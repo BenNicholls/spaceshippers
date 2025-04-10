@@ -57,6 +57,10 @@ func (g Galaxy) Dims() vec.Dims {
 	return vec.Dims{g.width, g.height}
 }
 
+func (g Galaxy) Bounds() vec.Rect {
+	return g.Dims().Bounds()
+}
+
 func (g *Galaxy) GenerateStart() Locatable {
 	ss := g.GenerateRandomSubSector()
 	ss.starSystem = NewStarSystem(ss.GetCoords())
@@ -74,17 +78,17 @@ func (g *Galaxy) GenerateEarth() {
 }
 
 func (g *Galaxy) GenerateRandomSubSector() (ss *SubSector) {
-	var sx, sy int
+	var sectorCoord vec.Coord
 	//pick random non-empty sector
 	for {
-		sx, sy = util.GenerateCoord(0, 0, g.width, g.height)
-		s := g.GetSector(vec.Coord{sx, sy})
+		sectorCoord = vec.RandomCoordInArea(g)
+		s := g.GetSector(sectorCoord)
 		if s.Density != 0 {
 			break
 		}
 	}
 
-	ss = g.GetSector(vec.Coord{sx, sy}).GenerateSubSector(util.GenerateCoord(0, 0, coord_SECTOR_MAX, coord_SECTOR_MAX))
+	ss = g.GetSector(sectorCoord).GenerateSubSector(vec.RandomCoordInArea(vec.Rect{vec.ZERO_COORD, vec.Dims{coord_SECTOR_MAX, coord_SECTOR_MAX}}))
 
 	return
 }
@@ -184,19 +188,19 @@ func (s Sector) GetSubSector(c vec.Coord) *SubSector {
 }
 
 // generates a subsector and adds it to the subsector map. if (x, y) already exists, just returns the old one
-func (s *Sector) GenerateSubSector(x, y int) *SubSector {
-	if s, ok := s.subSectors[x+y*coord_SUBSECTOR_MAX]; ok {
+func (s *Sector) GenerateSubSector(pos vec.Coord) *SubSector {
+	if s, ok := s.subSectors[pos.ToIndex(coord_SUBSECTOR_MAX)]; ok {
 		return s
 	}
 
 	ss := new(SubSector)
 	ss.Coords = s.Coords
 	ss.Coords.Resolution = coord_SUBSECTOR
-	ss.Coords.SubSector.MoveTo(x, y)
+	ss.Coords.SubSector.MoveTo(pos.X, pos.Y)
 
 	//PUT STAR GENERATION CODE HERE WHY DON'T YOU.
 
-	s.subSectors[x+y*coord_SUBSECTOR_MAX] = ss
+	s.subSectors[pos.ToIndex(coord_SUBSECTOR_MAX)] = ss
 	return ss
 }
 
