@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
 	"github.com/bennicholls/tyumi/gfx/col"
 	"github.com/bennicholls/tyumi/gfx/ui"
 	"github.com/bennicholls/tyumi/vec"
@@ -47,21 +46,21 @@ func (qsw *QuickStatsWindow) Init(s *Ship) {
 func (qsw *QuickStatsWindow) Update() {
 	qsw.hullBar.SetProgress(qsw.ship.Hull.GetPct())
 	//qsw.fuelBar.SetProgress(int(100 * qsw.ship.Storage.GetItemVolume("Fuel") / float64(qsw.ship.Storage.GetStat(STAT_FUEL_STORAGE))))
-	//qsw.powerBar.ChangeProgress(qsw.ship.PowerSystem.GetPowerUsagePct())
+	//qsw.energyBar.SetProgress(qsw.ship.PowerSystem.GetPowerUsagePct())
 	qsw.courseBar.SetProgress(qsw.ship.Navigation.GetCurrentProgress())
 }
 
-type ShipStatsWindow struct {
-	burl.Container
+// type ShipStatsWindow struct {
+// 	burl.Container
 
-	name        *burl.Textbox
-	speed       *burl.Textbox
-	fuel        *burl.ProgressBar
-	location    *burl.Textbox
-	destination *burl.Textbox
+// 	name        *burl.Textbox
+// 	speed       *burl.Textbox
+// 	fuel        *burl.ProgressBar
+// 	location    *burl.Textbox
+// 	destination *burl.Textbox
 
-	playerShip *Ship
-}
+// 	playerShip *Ship
+// }
 
 // func NewShipStatsWindow(x, y int, ship *Ship) *ShipStatsWindow {
 // 	ss := new(ShipStatsWindow)

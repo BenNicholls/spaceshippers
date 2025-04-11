@@ -32,7 +32,7 @@ type Ship struct {
 	Systems map[SystemType]ShipSystem
 
 	//status numbers.
-	Hull burl.Stat
+	Hull rl.Stat[int]
 
 	Velocity vec.Vec2Polar
 
@@ -72,7 +72,7 @@ func NewShip(n string, g *Galaxy) *Ship {
 	s.Storage = NewStorageSystem(s)
 	s.Systems[SYS_STORAGE] = s.Storage
 
-	s.Hull = burl.NewStat(100)
+	s.Hull = rl.NewBasicStat(100)
 
 	s.shipMap.Init(vec.Dims{100, 100}, rl.TILE_NONE)
 

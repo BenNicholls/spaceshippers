@@ -2,8 +2,6 @@ package main
 
 import (
 	"errors"
-
-	"github.com/bennicholls/burl-E/burl"
 )
 
 type Storable interface {
@@ -23,7 +21,8 @@ type StorageSystem struct {
 	volume   [STORE_MAXTYPES]float64 //General and liquid storage volume/capacity is in litres, gas is in molar value (pressure*volume)
 	capacity [STORE_MAXTYPES]float64
 
-	ship *Ship
+	ship    *Ship
+	Updated bool
 }
 
 type StorageType int
@@ -53,7 +52,7 @@ func (ss *StorageSystem) OnStatUpdate() {
 	ss.capacity[STORE_GENERAL] = float64(ss.GetStat(STAT_GENERAL_STORAGE))
 	ss.capacity[STORE_LIQUID] = float64(ss.GetStat(STAT_LIQUID_STORAGE))
 	ss.capacity[STORE_GAS] = float64(ss.GetStat(STAT_GAS_STORAGE) * 50000) //NOTE: currently limiting gas storage to 50000 kPa
-	burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
+	ss.Updated = true
 }
 
 func (ss *StorageSystem) Store(item Storable) error {
@@ -73,7 +72,7 @@ func (ss *StorageSystem) Store(item Storable) error {
 		ss.items[item.GetName()] = item
 	}
 
-	burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
+	ss.Updated = true
 
 	return nil
 }
@@ -89,11 +88,11 @@ func (ss *StorageSystem) Remove(item Storable) (amount float64, err error) {
 			err = errors.New("Insufficient amount of item in stores")
 		}
 		delete(ss.items, i.GetName())
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
+		ss.Updated = true
 		return i.GetAmount(), err
 	} else {
 		i.ChangeAmount(-item.GetAmount())
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "stores"))
+		ss.Updated = true
 		return item.GetAmount(), nil
 	}
 }

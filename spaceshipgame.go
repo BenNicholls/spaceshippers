@@ -44,7 +44,7 @@ type SpaceshipGame struct {
 	mainMenuButton   ui.Button
 
 	gameMenu   GameMenu    //(F1)
-	shipMenu   *ShipMenu   //(F2)
+	shipMenu   ShipMenu    //(F2)
 	galaxyMenu *GalaxyMenu //(F3)
 	crewMenu   CrewMenu    //(F4)
 	commMenu   CommMenu    //(F5)
@@ -82,12 +82,14 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	//fuel up the ship!!! Take up 50% of liquid storage.
 	sg.playerShip.Storage.Store(&Item{
 		Name:        "Fuel",
-		Volume:      s.Storage.GetCapacity(STORE_LIQUID)/2 - sg.playerShip.Storage.GetItemVolume("Fuel"),
+		Description: "The horrible acidic goop that your engines eat.",
+		Volume:      s.Storage.GetCapacity(STORE_LIQUID)/2 - s.Storage.GetItemVolume("Fuel"),
 		StorageType: STORE_LIQUID,
 	})
 
 	sg.playerShip.Storage.Store(&Item{
 		Name:        "Candy",
+		Description: "The stuff that keeps a weary crew going when space-madness rears its ugly head.",
 		Volume:      50,
 		StorageType: STORE_GENERAL,
 	})
@@ -161,18 +163,18 @@ func (sg *SpaceshipGame) SetupUI() {
 	sg.Window().AddChildren(&sg.logOutput, &sg.shipView, &sg.stars, &sg.timeDisplay, &sg.quickstats)
 
 	sg.gameMenu.Init(sg.player)
-	// sg.shipMenu = NewShipMenu(sg.playerShip)
+	sg.shipMenu.Init(sg.playerShip)
 	// sg.galaxyMenu = NewGalaxyMenu(sg.galaxy, sg.player.SpaceShip)
 	sg.crewMenu.Init(sg.playerShip)
 	sg.commMenu.Init(sg.playerShip.Comms)
 	sg.viewMenu.Init()
 	sg.mainMenu.Init()
 
-	sg.Window().AddChildren(&sg.gameMenu, &sg.crewMenu, &sg.commMenu, &sg.viewMenu, &sg.mainMenu)
+	sg.Window().AddChildren(&sg.gameMenu, &sg.shipMenu, &sg.crewMenu, &sg.commMenu, &sg.viewMenu, &sg.mainMenu)
 
 	sg.gameMenuButton.Init(vec.Dims{10, 1}, vec.Coord{4, 1}, 10, "Game", func() { sg.ActivateMenu(&sg.gameMenu) })
 	sg.gameMenuButton.SetupBorder("", "F1")
-	sg.shipMenuButton.Init(vec.Dims{10, 1}, vec.Coord{17, 1}, 10, "Ship", nil)
+	sg.shipMenuButton.Init(vec.Dims{10, 1}, vec.Coord{17, 1}, 10, "Ship", func() { sg.ActivateMenu(&sg.shipMenu) })
 	sg.shipMenuButton.SetupBorder("", "F2")
 	sg.galaxyMenuButton.Init(vec.Dims{10, 1}, vec.Coord{30, 1}, 10, "Galaxy", nil)
 	sg.galaxyMenuButton.SetupBorder("", "F3")
@@ -236,8 +238,6 @@ func (sg *SpaceshipGame) HandleEvent(event event.Event) (event_handled bool) {
 	// 		sg.commMenu.UpdateTransmissions()
 	// 	case "missions":
 	// 		sg.gameMenu.UpdateMissions()
-	// 	case "stores":
-	// 		sg.shipMenu.storesMenu.Update()
 	// 	case "ship status":
 	// 		sg.quickstats.Update()
 	// 	case "ship move":
@@ -245,11 +245,6 @@ func (sg *SpaceshipGame) HandleEvent(event event.Event) (event_handled bool) {
 	// 			sg.galaxyMenu.Update()
 	// 		}
 	// 		sg.quickstats.Update()
-	// 	}
-	// case burl.EV_LIST_CYCLE:
-	// 	switch event.Caller {
-	// 	case sg.crewMenu.crewList:
-	// 		sg.crewMenu.UpdateCrewDetails()
 	// 	}
 
 	return
