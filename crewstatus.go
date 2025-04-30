@@ -12,7 +12,7 @@ const (
 	EFFECT_POISONED
 )
 
-//These effect the way the crew act, effects their stats, etc. Think of them like BUFFS and DEBUFFS
+//These affect the way the crew act, affects their stats, etc. Think of them like BUFFS and DEBUFFS
 type CrewEffect struct {
 	Name         string
 	Description  string

@@ -3,7 +3,6 @@ package main
 import (
 	"slices"
 
-	"github.com/bennicholls/burl-E/burl"
 	"github.com/bennicholls/tyumi/gfx"
 	"github.com/bennicholls/tyumi/gfx/col"
 	"github.com/bennicholls/tyumi/log"
@@ -159,7 +158,6 @@ func (s *Ship) AddRoom(pos vec.Coord, r *Room) {
 	s.DrawRoom(r)
 	s.CalcShipBounds()
 	s.CompileStats()
-
 }
 
 func (s *Ship) RemoveRoom(r *Room) {
@@ -290,39 +288,39 @@ func (s *Ship) GetRoom(c vec.Coord) *Room {
 }
 
 // draws the ship to the provided TileView UI object, offset by (offX, offY). mode is the VIEWMODE
-func (s *Ship) DrawToTileView(view *burl.TileView, mode, offX, offY int) {
-	// x, y := 0, 0
-	// displayWidth, displayHeight := view.Dims()
+// func (s *Ship) DrawToTileView(view *burl.TileView, mode, offX, offY int) {
+// x, y := 0, 0
+// displayWidth, displayHeight := view.Dims()
 
-	// for i := 0; i < s.width*s.height; i++ {
-	// 	//tileView-space coords
-	// 	x = i%s.width + s.x - offX
-	// 	y = i/s.width + s.y - offY
+// for i := 0; i < s.width*s.height; i++ {
+// 	//tileView-space coords
+// 	x = i%s.width + s.x - offX
+// 	y = i/s.width + s.y - offY
 
-	// 	if burl.CheckBounds(x, y, displayWidth, displayHeight) {
-	// 		if t := s.shipMap.GetTile(i%s.width+s.x, i/s.width+s.y); t.TileType != 0 {
-	// 			tv := t.GetVisuals()
+// 	if burl.CheckBounds(x, y, displayWidth, displayHeight) {
+// 		if t := s.shipMap.GetTile(i%s.width+s.x, i/s.width+s.y); t.TileType != 0 {
+// 			tv := t.GetVisuals()
 
-	// 			if t.TileType != TILE_WALL && t.TileType != TILE_DOOR {
-	// 				r := s.GetRoom(vec.Coord{i%s.width + s.x, i/s.width + s.y})
-	// 				switch mode {
-	// 				case VIEW_ATMO_PRESSURE:
-	// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.Pressure())
-	// 				case VIEW_ATMO_O2:
-	// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.PartialPressure(GAS_O2))
-	// 				case VIEW_ATMO_TEMP:
-	// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.Temp)
-	// 				case VIEW_ATMO_CO2:
-	// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.PartialPressure(GAS_CO2))
-	// 				}
-	// 			}
+// 			if t.TileType != TILE_WALL && t.TileType != TILE_DOOR {
+// 				r := s.GetRoom(vec.Coord{i%s.width + s.x, i/s.width + s.y})
+// 				switch mode {
+// 				case VIEW_ATMO_PRESSURE:
+// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.Pressure())
+// 				case VIEW_ATMO_O2:
+// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.PartialPressure(GAS_O2))
+// 				case VIEW_ATMO_TEMP:
+// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.Temp)
+// 				case VIEW_ATMO_CO2:
+// 					tv.BackColour = viewModeData[mode].GetColour(r.atmo.PartialPressure(GAS_CO2))
+// 				}
+// 			}
 
-	// 			view.DrawObject(x, y, tv)
-	// 		}
+// 			view.DrawObject(x, y, tv)
+// 		}
 
-	// 		if e := s.shipMap.GetEntity(i%s.width+s.x, i/s.width+s.y); e != nil {
-	// 			view.DrawObject(x, y, e)
-	// 		}
-	// 	}
-	// }
-}
+// 		if e := s.shipMap.GetEntity(i%s.width+s.x, i/s.width+s.y); e != nil {
+// 			view.DrawObject(x, y, e)
+// 		}
+// 	}
+// }
+//}
