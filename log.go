@@ -15,8 +15,8 @@ type SpaceLogEvent struct {
 
 func fireSpaceLogEvent(message string) {
 	logEvent := SpaceLogEvent{
-		EventPrototype:  event.New(EV_LOG),
-		message: message,
+		EventPrototype: event.New(EV_LOG),
+		message:        message,
 	}
 
 	event.Fire(&logEvent)

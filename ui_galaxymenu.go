@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
+	"github.com/bennicholls/tyumi"
 	"github.com/bennicholls/tyumi/gfx/ui"
 	"github.com/bennicholls/tyumi/input"
-	"github.com/bennicholls/tyumi/log"
 	"github.com/bennicholls/tyumi/vec"
 )
 
@@ -98,15 +98,12 @@ func (gm *GalaxyMenu) HandleKeypress(key_event *input.KeyboardEvent) (event_hand
 }
 
 func (gm *GalaxyMenu) OpenSetCourseDialog() {
-	log.Info("Opening set course dialog!")
-	// 		locations := gm.starchartMapView.systemFocus.GetLocations()
-	// 		l := locations[gm.localLocationList.GetSelection()]
-	// 		if l != gm.playerShip && l != gm.playerShip.currentLocation {
-	// 			burl.OpenDialog(NewSetCourseDialog(gm.playerShip, l, gm.galaxy.spaceTime))
-	// 		}
-	// 	}
-	// }
-	return
+	locations := gm.starchartMapView.systemFocus.GetLocations()
+	l := locations[gm.localLocationList.GetSelectionIndex()]
+	if l != gm.playerShip && l != gm.playerShip.currentLocation {
+		tyumi.OpenDialog(NewSetCourseDialog(gm.playerShip, l, gm.galaxy.spaceTime))
+	}
+
 }
 
 func (gm *GalaxyMenu) OnZoomChange(level zoomLevel) {

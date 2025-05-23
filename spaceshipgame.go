@@ -103,6 +103,8 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 
 	sg.LoadSpaceEvents()
 
+	sg.Events().Listen(EV_LOG)
+
 	//STUFF FOR TESTING
 	sg.player.AddMission(GenerateGoToMission(sg.playerShip, sg.galaxy.GetEarth(), nil))
 	sg.player.AddMission(GenerateGoToMission(sg.playerShip, sg.playerShip, sg.galaxy.GetEarth()))

@@ -2,22 +2,26 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 
-	"github.com/bennicholls/burl-E/burl"
-	"github.com/veandco/go-sdl2/sdl"
+	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/gfx/col"
+	"github.com/bennicholls/tyumi/gfx/ui"
+	"github.com/bennicholls/tyumi/input"
+	"github.com/bennicholls/tyumi/vec"
 )
 
 type SetCourseDialog struct {
-	burl.StatePrototype
+	tyumi.Scene
 
-	travelTimeText  *burl.Textbox
-	travelSpeedText *burl.Textbox
-	arrivalTimeText *burl.Textbox
-	fuelGauge       *burl.ProgressBar
-	places          *burl.List
-	goButton        *burl.Button
-	cancelButton    *burl.Button
+	done bool
+
+	travelTimeText  ui.Textbox
+	travelSpeedText ui.Textbox
+	arrivalTimeText ui.Textbox
+	fuelGauge       ui.ProgressBar
+	places          ui.List
+	goButton        ui.Button
+	cancelButton    ui.Button
 
 	ship        *Ship
 	destination Locatable
@@ -26,105 +30,101 @@ type SetCourseDialog struct {
 	course      Course
 }
 
-func NewSetCourseDialog(s *Ship, d Locatable, time int) *SetCourseDialog {
-	sc := new(SetCourseDialog)
+func NewSetCourseDialog(s *Ship, d Locatable, time int) (sc *SetCourseDialog) {
+	sc = new(SetCourseDialog)
 	sc.ship = s
 	sc.destination = d
 	sc.startTime = time
 
-	sc.Window = burl.NewContainer(58, 33, 1, 1, 50, true)
-	sc.Window.CenterInConsole()
-	sc.Window.SetTitle("OFF WE GO!")
-	sc.Window.ToggleFocus()
+	sc.InitCentered(vec.Dims{58, 33})
+	sc.Window().SetupBorder("OFF WE GO!", "")
+	windowStyle := ui.DefaultBorderStyle
+	windowStyle.TitleJustification = ui.JUSTIFY_CENTER
+	windowStyle.Colours = col.Pair{col.ORANGE, col.DARKGREY}
+	sc.Window().Border.SetStyle(ui.BORDER_STYLE_CUSTOM, windowStyle)
+	sc.SetKeypressHandler(sc.HandleKeypress)
 
 	//left column
-	courseLabel := burl.NewTextbox(26, 1, 1, 0, 0, false, true, "Setting Course For:")
-	destName := burl.NewTextbox(26, 1, 1, 2, 1, true, true, d.GetName())
-	destDescription := burl.NewTextbox(26, 13, 1, 4, 1, true, true, d.GetDescription())
-	sc.places = burl.NewList(26, 14, 1, 18, 1, true, "Nothing in orbit! :(")
-	sc.Window.Add(courseLabel, destName, destDescription, sc.places)
+	courseLabel := ui.NewTextbox(vec.Dims{26, 1}, vec.Coord{1, 1}, 0, "Setting Course For:", ui.JUSTIFY_CENTER)
+	destName := ui.NewTitleTextbox(vec.Dims{26, 1}, vec.Coord{1, 2}, 0, d.GetName())
+	destDescription := ui.NewTitleTextbox(vec.Dims{26, 13}, vec.Coord{1, 4}, 0, d.GetDescription())
+	sc.places.Init(vec.Dims{26, 14}, vec.Coord{1, 18}, 0)
+	sc.places.EnableBorder()
+	sc.places.SetEmptyText("Nothing in orbit! :()")
+	sc.Window().AddChildren(courseLabel, destName, destDescription, &sc.places)
 
 	sc.distance = s.Coords.CalcVector(d.GetCoords()).Distance * METERS_PER_LY
-	distanceText := burl.NewTextbox(26, 1, 30, 2, 0, false, false, "Distance: "+strconv.Itoa(int(sc.distance/1000))+" km")
-	orbitText := burl.NewTextbox(26, 1, 30, 3, 3, false, false, "Required Speed to Orbit: "+strconv.Itoa(int(d.GetVisitSpeed()/1000))+" km/s")
-	shipSpeedText := burl.NewTextbox(26, 1, 30, 4, 3, false, false, "Current Ship Speed: "+strconv.Itoa(s.GetSpeed())+" m/s")
-	maxFuelText := burl.NewTextbox(26, 1, 30, 5, 3, false, false, "Fuel Available: "+fmt.Sprint(s.Storage.GetItemVolume("Fuel"))+" Litres")
-	fuelUseText := burl.NewTextbox(26, 1, 30, 6, 3, false, false, "Fuel Use Rate: "+fmt.Sprint(s.Engine.FuelUse)+" Litres per second")
-	engineThrustText := burl.NewTextbox(26, 1, 30, 7, 3, false, false, "Total Engine Thrust: "+strconv.Itoa(int(s.Engine.Thrust))+" m/s/s")
+	distanceText := ui.NewTextbox(vec.Dims{26, 1}, vec.Coord{30, 2}, 0, fmt.Sprintf("Distance: %.0f km", sc.distance/1000), ui.JUSTIFY_LEFT)
+	orbitText := ui.NewTextbox(vec.Dims{26, 1}, vec.Coord{30, 3}, 0, fmt.Sprintf("Required Speed to Orbit: %.0f km/s", d.GetVisitSpeed()/1000), ui.JUSTIFY_LEFT)
+	shipSpeedText := ui.NewTextbox(vec.Dims{26, 1}, vec.Coord{30, 4}, 0, fmt.Sprintf("Current Ship Speed: %d m/s", s.GetSpeed()), ui.JUSTIFY_LEFT)
+	maxFuelText := ui.NewTextbox(vec.Dims{26, 1}, vec.Coord{30, 5}, 0, fmt.Sprintf("Fuel Available: %.0f Litres", s.Storage.GetItemVolume("Fuel")), ui.JUSTIFY_LEFT)
+	fuelUseText := ui.NewTextbox(vec.Dims{26, 1}, vec.Coord{30, 6}, 0, fmt.Sprintf("Fuel Use Rate: %.2f Litres per second", s.Engine.FuelUse), ui.JUSTIFY_LEFT)
+	engineThrustText := ui.NewTextbox(vec.Dims{26, 1}, vec.Coord{30, 7}, 0, fmt.Sprintf("Total Engine Thrust: %.1f m/s/s", s.Engine.Thrust), ui.JUSTIFY_LEFT)
 
-	sc.Window.Add(distanceText, orbitText, shipSpeedText, maxFuelText, fuelUseText, engineThrustText)
+	sc.Window().AddChildren(distanceText, orbitText, shipSpeedText, maxFuelText, fuelUseText, engineThrustText)
 
-	sc.travelTimeText = burl.NewTextbox(26, 1, 30, 9, 3, false, false, "")
-	sc.travelSpeedText = burl.NewTextbox(26, 1, 30, 10, 3, false, false, "")
-	sc.arrivalTimeText = burl.NewTextbox(26, 1, 30, 11, 3, false, false, "")
-
-	sc.fuelGauge = burl.NewProgressBar(26, 1, 30, 14, 1, true, true, "", burl.COL_GREEN)
+	sc.travelTimeText.Init(vec.Dims{26, 1}, vec.Coord{30, 9}, 0, "", ui.JUSTIFY_LEFT)
+	sc.travelSpeedText.Init(vec.Dims{26, 1}, vec.Coord{30, 10}, 0, "", ui.JUSTIFY_LEFT)
+	sc.arrivalTimeText.Init(vec.Dims{26, 1}, vec.Coord{30, 11}, 0, "", ui.JUSTIFY_LEFT)
+	sc.fuelGauge.Init(vec.Dims{26, 1}, vec.Coord{30, 14}, 0, col.GREEN, "")
+	sc.fuelGauge.SetupBorder("", "<-/->")
 	sc.fuelGauge.SetProgress(50)
+	sc.Window().AddChildren(&sc.travelSpeedText, &sc.travelTimeText, &sc.arrivalTimeText, &sc.fuelGauge)
 
-	sc.Window.Add(sc.travelSpeedText, sc.travelTimeText, sc.arrivalTimeText, sc.fuelGauge)
+	sc.goButton.Init(vec.Dims{20, 1}, vec.Coord{33, 20}, 1, "This Looks Good, Let's Go!!", func() {
+		sc.ship.SetCourse(sc.destination, sc.course)
+		fireSpaceLogEvent("Setting course for " + sc.destination.GetName())
+		sc.CreateTimer(20, func() { sc.done = true })
+	})
+	sc.goButton.EnableBorder()
+	sc.cancelButton.Init(vec.Dims{20, 1}, vec.Coord{33, 23}, 1, "On Second Thought, nevermind.", func() {
+		fireSpaceLogEvent("Course selection cancelled.")
+		sc.CreateTimer(20, func() { sc.done = true })
+	})
+	sc.cancelButton.EnableBorder()
+	sc.Window().AddChildren(&sc.goButton, &sc.cancelButton)
+
+	sc.Window().SetTabbingOrder(&sc.goButton, &sc.cancelButton)
+	sc.goButton.Focus()
 
 	sc.UpdateCourse()
-
-	sc.goButton = burl.NewButton(20, 1, 33, 20, 1, true, true, "This Looks Good, Let's Go!!")
-	sc.goButton.ToggleFocus()
-	sc.cancelButton = burl.NewButton(20, 1, 33, 23, 2, true, true, "On Second Thought, nevermind.")
-
-	sc.Window.Add(sc.goButton, sc.cancelButton)
 
 	return sc
 }
 
-func (sc *SetCourseDialog) HandleKeypress(key sdl.Keycode) {
-	switch key {
-	case sdl.K_LEFT:
-		if sc.fuelGauge.GetProgress() > 10 {
-			sc.fuelGauge.ChangeProgress(-5)
+func (sc *SetCourseDialog) HandleKeypress(key_event *input.KeyboardEvent) (event_handled bool) {
+	switch key_event.Direction() {
+	case vec.DIR_LEFT:
+		if fuel := sc.fuelGauge.GetProgress(); fuel > 10 {
+			sc.fuelGauge.SetProgress(fuel - 5)
 			sc.UpdateCourse()
+			return true
 		}
-	case sdl.K_RIGHT:
-		if sc.fuelGauge.GetProgress() < 100 {
-			sc.fuelGauge.ChangeProgress(5)
+	case vec.DIR_RIGHT:
+		if fuel := sc.fuelGauge.GetProgress(); fuel < 100 {
+			sc.fuelGauge.SetProgress(fuel + 5)
 			sc.UpdateCourse()
-		}
-	case sdl.K_UP, sdl.K_DOWN:
-		sc.goButton.ToggleFocus()
-		sc.cancelButton.ToggleFocus()
-	case sdl.K_RETURN:
-		if sc.goButton.IsFocused() {
-			sc.ship.SetCourse(sc.destination, sc.course)
-			sc.goButton.Press()
-		} else {
-			sc.cancelButton.Press()
+			return true
 		}
 	}
+
+	return
 }
 
 func (sc *SetCourseDialog) UpdateCourse() {
-	maxFuel := burl.MinF(sc.ship.Storage.GetItemVolume("Fuel"), sc.ship.Engine.FuelUse*(sc.ship.Navigation.CalcMaxBurnTime(sc.destination.GetVisitSpeed(), sc.distance)))
-	c := sc.ship.Navigation.ComputeCourse(sc.destination, maxFuel*float64(sc.fuelGauge.GetProgress())/100, sc.startTime)
+	maxFuel := min(sc.ship.Storage.GetItemVolume("Fuel"), sc.ship.Engine.FuelUse*(sc.ship.Navigation.CalcMaxBurnTime(sc.destination.GetVisitSpeed(), sc.distance)))
+	c := sc.ship.Navigation.ComputeCourse(sc.destination, maxFuel*sc.fuelGauge.GetProgressNormalized(), sc.startTime)
 
-	sc.fuelGauge.ChangeText("Fuel to burn: " + fmt.Sprint(maxFuel*float64(sc.fuelGauge.GetProgress())/100))
-	sc.travelTimeText.ChangeText("Travel Time: " + GetDurationString(c.TotalTime))
+	sc.fuelGauge.ChangeText("Fuel to burn: " + fmt.Sprint(maxFuel*sc.fuelGauge.GetProgressNormalized()))
+	sc.travelTimeText.ChangeText(fmt.Sprintf("Travel Time: %s", GetDurationString(c.TotalTime)))
 
 	speed := sc.ship.GetSpeed() + int(float64(c.AccelTime-c.StartTime)*sc.ship.Engine.Thrust)
-	sc.travelSpeedText.ChangeText("Max Travel Speed: " + strconv.Itoa(speed/1000) + " km/s")
-	sc.arrivalTimeText.ChangeText("Arrival Time: " + GetTimeString(c.Arrivaltime) + ", " + GetDateString(c.Arrivaltime))
+	sc.travelSpeedText.ChangeText(fmt.Sprintf("Max Travel Speed: %d km/s", speed/1000))
+	sc.arrivalTimeText.ChangeText(fmt.Sprintf("Arrival Time: %s, %s", GetTimeString(c.Arrivaltime), GetDateString(c.Arrivaltime)))
 
 	sc.course = c
 }
 
 func (sc *SetCourseDialog) Done() bool {
-	if sc.goButton.IsFocused() {
-		if sc.goButton.PressPulse.IsFinished() {
-			fireSpaceLogEvent("Setting course for " + sc.destination.GetName())
-			return true
-		}
-	} else {
-		if sc.cancelButton.PressPulse.IsFinished() {
-			fireSpaceLogEvent("Course selection cancelled.")
-			return true
-		}
-	}
-
-	return false
+	return sc.done
 }
