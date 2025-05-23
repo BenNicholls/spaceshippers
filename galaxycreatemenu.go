@@ -71,6 +71,7 @@ func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 
 	cgm.galaxyMap.Init(vec.Dims{25, 25}, vec.Coord{69, 0}, ui.BorderDepth, cgm.galaxy)
 	cgm.galaxyMap.EnableBorder()
+	cgm.galaxyMap.ToggleHighlight()
 	cgm.Window().AddChild(&cgm.galaxyMap)
 
 	cgm.nameInput.Focus()
@@ -136,7 +137,7 @@ func (cgm *CreateGalaxyMenu) GeneratePreview() {
 
 	cgm.galaxy = NewGalaxy(cgm.nameInput.InputtedText(), size, densityFactor)
 	cgm.galaxyMap.galaxy = cgm.galaxy
-	cgm.galaxyMap.DrawGalaxyMap()
+	cgm.galaxyMap.Updated = true
 }
 
 func (cgm *CreateGalaxyMenu) Generate() {

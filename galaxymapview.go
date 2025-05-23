@@ -1,11 +1,12 @@
 package main
 
 import (
+	"slices"
+
 	"github.com/bennicholls/tyumi/gfx"
 	"github.com/bennicholls/tyumi/gfx/col"
 	"github.com/bennicholls/tyumi/gfx/ui"
 	"github.com/bennicholls/tyumi/input"
-	"github.com/bennicholls/tyumi/log"
 	"github.com/bennicholls/tyumi/util"
 	"github.com/bennicholls/tyumi/vec"
 )
@@ -27,10 +28,16 @@ type GalaxyMapView struct {
 
 	galaxy *Galaxy
 
-	cursor    vec.Coord
-	highlight gfx.PulseAnimation
+	cursor       vec.Coord
+	OnCursorMove func(new_pos vec.Coord) //callback called when cursor is moved
+	highlight    gfx.PulseAnimation      //animation object for cursor
 
-	zoom zoomLevel
+	galacticObjects []MapDrawable //objects to draw on the galactic map
+	localObjects    []MapDrawable //objects to draw on the local map
+	markerLayer     ui.Element
+
+	zoom             zoomLevel
+	OnZoomTypeChange func(zoom zoomLevel) // callback called when map is zoomed to/from galaxy/local mode
 
 	//for local map drawing
 	localZoom   int
@@ -43,68 +50,101 @@ func (gmv *GalaxyMapView) Init(size vec.Dims, pos vec.Coord, depth int, galaxy *
 	gmv.TreeNode.Init(gmv)
 	gmv.galaxy = galaxy
 
-	gmv.highlight = gfx.NewPulseAnimation(vec.Rect{vec.Coord{0, 0}, vec.Dims{1, 1}}, 0, 100, col.Pair{col.WHITE, col.WHITE})
+	gmv.markerLayer.Init(size, vec.ZERO_COORD, 10)
+	gmv.markerLayer.SetDefaultVisuals(gfx.Visuals{
+		Mode:    gfx.DRAW_NONE,
+		Colours: col.Pair{col.WHITE, col.BLACK},
+	})
+	gmv.markerLayer.OnRender = gmv.DrawObjectMarkers
+	gmv.AddChild(&gmv.markerLayer)
+
+	gmv.cursor = vec.Coord{gmv.Size().W / 2, gmv.Size().H / 2}
+	gmv.highlight = gfx.NewPulseAnimation(vec.Dims{1, 1}.Bounds(), 0, 30, col.Pair{col.NONE, col.WHITE})
 	gmv.highlight.Repeat = true
-	gmv.AddAnimation(&gmv.highlight)
+	gmv.markerLayer.AddAnimation(&gmv.highlight)
+	gmv.ToggleHighlight()
 }
 
 func (gmv *GalaxyMapView) ZoomIn() {
-	if gmv.zoom == zoom_GALAXY {
+	switch gmv.zoom {
+	case zoom_GALAXY:
 		gmv.zoom = zoom_LOCAL
-		gmv.DrawLocalMap()
 		gmv.ToggleHighlight()
-	} else if gmv.zoom == zoom_LOCAL {
-		if gmv.localZoom < 7 {
-			gmv.localZoom += 1
-			gmv.DrawLocalMap()
+		if gmv.OnZoomTypeChange != nil {
+			gmv.OnZoomTypeChange(gmv.zoom)
 		}
+	case zoom_LOCAL:
+		if gmv.localZoom == 7 {
+			return
+		}
+
+		gmv.localZoom += 1
 	}
+
+	gmv.Updated = true
+	gmv.markerLayer.Updated = true
 }
 
 func (gmv *GalaxyMapView) ZoomOut() {
-	if gmv.zoom == zoom_LOCAL {
-		if gmv.localZoom == 0 {
-			gmv.zoom = zoom_GALAXY
-			gmv.DrawGalaxyMap()
-			gmv.ToggleHighlight()
-		} else {
-			gmv.localZoom -= 1
-			gmv.DrawLocalMap()
-		}
-	}
-}
-
-func (gmv *GalaxyMapView) DrawMap() {
 	switch gmv.zoom {
 	case zoom_GALAXY:
-		gmv.DrawGalaxyMap()
+		return
 	case zoom_LOCAL:
-		gmv.DrawLocalMap()
-	default:
-		log.Error("No draw function for selected zoom level.")
+		if gmv.localZoom == 0 {
+			gmv.zoom = zoom_GALAXY
+			gmv.ToggleHighlight()
+			if gmv.OnZoomTypeChange != nil {
+				gmv.OnZoomTypeChange(gmv.zoom)
+			}
+		} else {
+			gmv.localZoom -= 1
+		}
 	}
-}
 
-func (gmv *GalaxyMapView) DrawGalaxyMap() {
 	gmv.Updated = true
+	gmv.markerLayer.Updated = true
 }
 
 func (gmv *GalaxyMapView) Render() {
 	if gmv.galaxy == nil {
 		return
 	}
-	// TODO: offset galaxy drawing to be centered inside mapview
-	for cursor := range vec.EachCoordInArea(vec.Rect{vec.ZERO_COORD, gmv.galaxy.Dims()}) {
-		s := gmv.galaxy.GetSector(cursor)
-		bright := util.Lerp(uint8(0), uint8(255), s.Density, 100)
-		g := gfx.GLYPH_FILL_SPARSE
-		if bright == 0 {
-			g = gfx.GLYPH_NONE
+
+	switch gmv.zoom {
+	case zoom_GALAXY:
+		gmv.ClearAtDepth(1, gmv.DrawableArea())
+		// TODO: offset galaxy drawing to be centered inside mapview
+		for cursor := range vec.EachCoordInArea(gmv.galaxy.Dims()) {
+			s := gmv.galaxy.GetSector(cursor)
+			bright := util.Lerp[uint8](0, 255, s.Density, 100)
+			g := gfx.GLYPH_FILL_SPARSE
+			if bright == 0 {
+				g = gfx.GLYPH_NONE
+			}
+			gmv.DrawVisuals(cursor, 0, gfx.NewGlyphVisuals(g, col.Pair{col.MakeOpaque(bright, bright, bright), col.NONE}))
 		}
-		gmv.DrawVisuals(cursor, 0, gfx.NewGlyphVisuals(g, col.Pair{col.MakeOpaque(bright, bright, bright), col.BLACK}))
+
+		if earth := gmv.galaxy.GetEarth(); earth.IsKnown() {
+			gmv.DrawMapObject(earth.(MapDrawable))
+		}
+
+	case zoom_LOCAL:
+		gmv.ClearAtDepth(1, gmv.DrawableArea())
+		smc := gmv.calcLocalMapCoord(gmv.systemFocus.Star.GetCoords())
+
+		//draw system things!
+		orbitVisuals := gfx.NewGlyphVisuals(gfx.GLYPH_PERIOD, col.Pair{0xFF114411, col.BLACK})
+		//draw orbits. TODO: some way of culling orbit drawing. currently drawing all of them
+		for _, p := range gmv.systemFocus.Planets {
+			gmv.DrawCircle(smc, 0, util.RoundFloatToInt(p.oDistance/gmv.localZoomFactor()), orbitVisuals, false)
+			gmv.DrawMapObject(p)
+		}
+
+		gmv.DrawMapObject(gmv.systemFocus.Star)
 	}
 }
 
+// TODO: cache this computation for gfactor and the camera, it doesn't change often.
 func (gmv *GalaxyMapView) calcLocalMapCoord(c Coordinates) (mc vec.Coord) {
 	gFactor := gmv.localZoomFactor()
 
@@ -122,37 +162,55 @@ func (gmv *GalaxyMapView) localZoomFactor() float64 {
 	return coord_LOCAL_MAX / float64(gmv.Size().W) / float64(util.Pow(2, gmv.localZoom))
 }
 
-func (gmv *GalaxyMapView) DrawLocalMap() {
-	gmv.Clear()
-	smc := gmv.calcLocalMapCoord(gmv.systemFocus.Star.GetCoords())
-
-	//draw system things!
-	orbitVisuals := gfx.NewGlyphVisuals(gfx.GLYPH_PERIOD, col.Pair{0xFF114411, col.BLACK})
-	for _, p := range gmv.systemFocus.Planets {
-		//draw orbits. TODO: some way of culling orbit drawing. currently drawing all of them
-		gmv.DrawCircle(smc, 0, util.RoundFloatToInt(p.oDistance/gmv.localZoomFactor()), orbitVisuals, false)
-		gmv.DrawMapObject(p)
-	}
-
-	gmv.DrawMapObject(gmv.systemFocus.Star)
-}
-
+// Draws an object to the map (NOT the marker layer!). Use for static bodies.
 func (gmv *GalaxyMapView) DrawMapObject(object MapDrawable) {
 	var c vec.Coord
 
 	switch gmv.zoom {
 	case zoom_GALAXY:
-		c = object.GetCoords().Sector
+		c := object.GetCoords().Sector
+		gmv.DrawObject(c, 1, object)
 	case zoom_LOCAL:
 		c = gmv.calcLocalMapCoord(object.GetCoords())
+		gmv.DrawObject(c, 1, object)
 	}
-
-	gmv.DrawObject(c, 0, object)
 }
 
-// Draws a custom visual marker v on the map at map coord (not physical coord) c. Good for waypoints, etc.
-func (gmv *GalaxyMapView) DrawMapMarker(pos vec.Coord, marker gfx.Visuals) {
-	gmv.DrawVisuals(pos, 0, marker)
+// Adds an object to be drawn in both galactic and local modes.
+func (gmv *GalaxyMapView) AddMapObjectMarker(object MapDrawable) {
+	gmv.AddGalacticMapObjectMarker(object)
+	gmv.AddLocalMapObjectMarker(object)
+}
+
+// Adds an object to be drawn on the galactic version of the map.
+func (gmv *GalaxyMapView) AddGalacticMapObjectMarker(object MapDrawable) {
+	if !slices.Contains(gmv.galacticObjects, object) {
+		gmv.galacticObjects = append(gmv.galacticObjects, object)
+	}
+}
+
+// Adds an object to be drawn on the local version of the map.
+func (gmv *GalaxyMapView) AddLocalMapObjectMarker(object MapDrawable) {
+	if !slices.Contains(gmv.localObjects, object) {
+		gmv.localObjects = append(gmv.localObjects, object)
+	}
+}
+
+func (gmv *GalaxyMapView) DrawObjectMarkers() {
+	gmv.markerLayer.Clear()
+
+	switch gmv.zoom {
+	case zoom_GALAXY:
+		for _, object := range gmv.galacticObjects {
+			c := object.GetCoords().Sector
+			gmv.markerLayer.DrawObject(c, 0, object)
+		}
+	case zoom_LOCAL:
+		for _, object := range gmv.localObjects {
+			c := gmv.calcLocalMapCoord(object.GetCoords())
+			gmv.markerLayer.DrawObject(c, 0, object)
+		}
+	}
 }
 
 func (gmv *GalaxyMapView) ToggleHighlight() {
@@ -182,18 +240,8 @@ func (gmv *GalaxyMapView) HandleKeypress(key_event *input.KeyboardEvent) (event_
 	//zoom-level specific
 	switch gmv.zoom {
 	case zoom_GALAXY:
-		switch key_event.Key {
-		case input.K_UP:
-			gmv.MoveCursor(0, -1)
-			event_handled = true
-		case input.K_DOWN:
-			gmv.MoveCursor(0, 1)
-			event_handled = true
-		case input.K_LEFT:
-			gmv.MoveCursor(-1, 0)
-			event_handled = true
-		case input.K_RIGHT:
-			gmv.MoveCursor(1, 0)
+		if dir := key_event.Direction(); dir != vec.DIR_NONE {
+			gmv.MoveCursor(dir)
 			event_handled = true
 		}
 	}
@@ -201,10 +249,18 @@ func (gmv *GalaxyMapView) HandleKeypress(key_event *input.KeyboardEvent) (event_
 	return
 }
 
-func (gmv *GalaxyMapView) MoveCursor(dx, dy int) {
-	new_pos := gmv.cursor.Add(vec.Coord{dx, dy})
-	if new_pos.IsInside(vec.Rect{vec.ZERO_COORD, gmv.Size()}) {
-		gmv.cursor.Move(dx, dy)
-		gmv.highlight.MoveTo(gmv.cursor)
+func (gmv *GalaxyMapView) SetCursor(pos vec.Coord) {
+	if !pos.IsInside(gmv.Size()) || gmv.cursor == pos {
+		return
 	}
+
+	gmv.cursor = pos
+	gmv.highlight.MoveTo(gmv.cursor)
+	if gmv.OnCursorMove != nil {
+		gmv.OnCursorMove(gmv.cursor)
+	}
+}
+
+func (gmv *GalaxyMapView) MoveCursor(dir vec.Direction) {
+	gmv.SetCursor(gmv.cursor.Step(dir))
 }

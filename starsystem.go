@@ -82,6 +82,8 @@ func (s *StarSystem) GenerateSolSystem() {
 	s.Planets = append(s.Planets, NewUniquePlanet(s.Coords, 1427e9, 60268e3, 5.68319e26, "Saturn", PLANET_GASGIANT))
 	s.Planets = append(s.Planets, NewUniquePlanet(s.Coords, 2871e9, 25559e3, 8.681e25, "Uranus", PLANET_GASGIANT))
 	s.Planets = append(s.Planets, NewUniquePlanet(s.Coords, 4497e9, 24764e3, 1.024e26, "Neptune", PLANET_GASGIANT))
+
+	s.Planets[2].SetKnown() // FOR EARTH LOCATION TESTING. REMOVE THIS SOMEDAY
 }
 
 // Returns a list of all locations in the system. Right now that means the star and planets,

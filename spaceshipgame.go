@@ -43,13 +43,13 @@ type SpaceshipGame struct {
 	viewMenuButton   ui.Button
 	mainMenuButton   ui.Button
 
-	gameMenu   GameMenu    //(F1)
-	shipMenu   ShipMenu    //(F2)
-	galaxyMenu *GalaxyMenu //(F3)
-	crewMenu   CrewMenu    //(F4)
-	commMenu   CommMenu    //(F5)
-	viewMenu   ViewMenu    //(F6)
-	mainMenu   MainMenu    //(ESC)
+	gameMenu   GameMenu   //(F1)
+	shipMenu   ShipMenu   //(F2)
+	galaxyMenu GalaxyMenu //(F3)
+	crewMenu   CrewMenu   //(F4)
+	commMenu   CommMenu   //(F5)
+	viewMenu   ViewMenu   //(F6)
+	mainMenu   MainMenu   //(ESC)
 
 	activeMenu Menu
 
@@ -164,19 +164,19 @@ func (sg *SpaceshipGame) SetupUI() {
 
 	sg.gameMenu.Init(sg.player)
 	sg.shipMenu.Init(sg.playerShip)
-	// sg.galaxyMenu = NewGalaxyMenu(sg.galaxy, sg.player.SpaceShip)
+	sg.galaxyMenu.Init(sg.galaxy, sg.player.SpaceShip)
 	sg.crewMenu.Init(sg.playerShip)
 	sg.commMenu.Init(sg.playerShip.Comms)
 	sg.viewMenu.Init()
 	sg.mainMenu.Init()
 
-	sg.Window().AddChildren(&sg.gameMenu, &sg.shipMenu, &sg.crewMenu, &sg.commMenu, &sg.viewMenu, &sg.mainMenu)
+	sg.Window().AddChildren(&sg.gameMenu, &sg.shipMenu, &sg.galaxyMenu, &sg.crewMenu, &sg.commMenu, &sg.viewMenu, &sg.mainMenu)
 
 	sg.gameMenuButton.Init(vec.Dims{10, 1}, vec.Coord{4, 1}, 10, "Game", func() { sg.ActivateMenu(&sg.gameMenu) })
 	sg.gameMenuButton.SetupBorder("", "F1")
 	sg.shipMenuButton.Init(vec.Dims{10, 1}, vec.Coord{17, 1}, 10, "Ship", func() { sg.ActivateMenu(&sg.shipMenu) })
 	sg.shipMenuButton.SetupBorder("", "F2")
-	sg.galaxyMenuButton.Init(vec.Dims{10, 1}, vec.Coord{30, 1}, 10, "Galaxy", nil)
+	sg.galaxyMenuButton.Init(vec.Dims{10, 1}, vec.Coord{30, 1}, 10, "Galaxy", func() { sg.ActivateMenu(&sg.galaxyMenu) })
 	sg.galaxyMenuButton.SetupBorder("", "F3")
 	sg.crewMenuButton.Init(vec.Dims{10, 1}, vec.Coord{43, 1}, 10, "Crew", func() { sg.ActivateMenu(&sg.crewMenu) })
 	sg.crewMenuButton.SetupBorder("", "F4")
