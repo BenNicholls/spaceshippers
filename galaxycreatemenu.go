@@ -27,7 +27,7 @@ type CreateGalaxyMenu struct {
 func NewCreateGalaxyMenu() (cgm *CreateGalaxyMenu) {
 	cgm = new(CreateGalaxyMenu)
 	cgm.Scene.InitBordered()
-	cgm.Events().Listen(ui.EV_FOCUS_CHANGED, ui.EV_CHOICE_CHANGED)
+	cgm.Listen(ui.EV_FOCUS_CHANGED, ui.EV_CHOICE_CHANGED)
 	cgm.SetEventHandler(cgm.HandleEvent)
 
 	cgm.Window().SetupBorder("CREATE A WHOLE GALAXY WHY NOT", "")
