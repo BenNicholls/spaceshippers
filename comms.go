@@ -3,8 +3,11 @@ package main
 import (
 	"math/rand"
 
-	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/event"
 )
+
+var EV_TRANSMISSIONRECEIVED = event.Register("Transmission Recieved", event.SIMPLE)
+var EV_INBOXMESSAGERECEIVED = event.Register("Inbox Message Recieved", event.SIMPLE)
 
 type CommSystem struct {
 	SystemStats
@@ -63,7 +66,7 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 		if len(cs.Inbox) != cap(cs.Inbox) {
 			cs.Inbox = append(cs.Inbox, trans)
 		}
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "inbox"))
+		event.FireSimple(EV_INBOXMESSAGERECEIVED)
 		fireSpaceLogEvent("A new message has been received! Check your inbox.")
 	case t < 10:
 		//9% chance to win a radio contest
@@ -73,7 +76,7 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 		if len(cs.Transmissions) != cap(cs.Transmissions) {
 			cs.Transmissions = append(cs.Transmissions, trans)
 		}
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "transmissions"))
+		event.FireSimple(EV_TRANSMISSIONRECEIVED)
 		fireSpaceLogEvent("A transmission has been decoded.")
 	default:
 		trans.sender = NewPersonContact("Unknown")
@@ -82,7 +85,7 @@ func (cs *CommSystem) AddRandomTransmission(tick int) {
 		if len(cs.Transmissions) != cap(cs.Transmissions) {
 			cs.Transmissions = append(cs.Transmissions, trans)
 		}
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "transmissions"))
+		event.FireSimple(EV_TRANSMISSIONRECEIVED)
 		fireSpaceLogEvent("A garbled transmission was intercepted.")
 	}
 }

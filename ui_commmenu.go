@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/event"
 	"github.com/bennicholls/tyumi/gfx/ui"
 	"github.com/bennicholls/tyumi/input"
 	"github.com/bennicholls/tyumi/vec"
@@ -31,6 +32,9 @@ func (cm *CommMenu) Init(comm *CommSystem) {
 	cm.Hide()
 	cm.AcceptInput = true
 	cm.OnPageChanged = cm.UpdateCurrentPage
+	cm.Listen(EV_INBOXMESSAGERECEIVED, EV_TRANSMISSIONRECEIVED)
+	cm.SuppressDuplicateEvents(event.KeepFirst)
+	cm.SetEventHandler(cm.handleEvent)
 
 	cm.inboxPage = cm.CreatePage("Messages")
 	ph := cm.inboxPage.Size().H
@@ -48,6 +52,7 @@ func (cm *CommMenu) Init(comm *CommSystem) {
 	cm.transmissionsList.EnableBorder()
 	cm.transmissionsList.SetEmptyText("NO TRANSMISSIONS")
 	cm.transmissionsList.ToggleHighlight()
+	cm.transmissionsList.AcceptInput = true
 	cm.transmissionsPage.AddChild(&cm.transmissionsList)
 	cm.UpdateTransmissions()
 
@@ -78,6 +83,23 @@ func (cm *CommMenu) HandleKeypress(key_event *input.KeyboardEvent) (event_handle
 				tyumi.OpenDialog(NewCommDialog(msg.sender.Name, "You", msg.sender.Pic, msg.message))
 			}
 		}
+	}
+
+	return
+}
+
+func (cm *CommMenu) handleEvent(e event.Event) (event_handled bool) {
+	switch e.ID() {
+	case EV_INBOXMESSAGERECEIVED:
+		if cm.GetPageIndex() == 0 {
+			cm.UpdateInbox()
+		}
+		event_handled = true
+	case EV_TRANSMISSIONRECEIVED:
+		if cm.GetPageIndex() == 2 {
+			cm.UpdateTransmissions()
+		}
+		event_handled = true
 	}
 
 	return
