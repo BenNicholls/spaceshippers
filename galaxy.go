@@ -1,10 +1,8 @@
 package main
 
 import (
-	"math"
 	"math/rand"
 
-	"github.com/bennicholls/burl-E/burl"
 	"github.com/bennicholls/tyumi/util"
 	"github.com/bennicholls/tyumi/vec"
 )
@@ -21,10 +19,10 @@ const (
 
 // oh the places you'll go...
 type Galaxy struct {
-	name          string //all good galaxies have names
-	width, height int
-	spaceTime     int //time since beginning of the Digital Era
-	radius        int //radius in sectors
+	name      string //all good galaxies have names
+	size      vec.Dims
+	spaceTime int //time since beginning of the Digital Era
+	radius    int //radius in sectors
 
 	sectors []*Sector //galactic map data goes in here! potential for crazy hugeness in here
 
@@ -34,17 +32,16 @@ type Galaxy struct {
 func NewGalaxy(name string, radius, densityFactor int) (g *Galaxy) {
 	g = new(Galaxy)
 	g.name = name
-	g.width, g.height = coord_SECTOR_MAX, coord_SECTOR_MAX
+	g.size = vec.Dims{coord_SECTOR_MAX, coord_SECTOR_MAX}
 	g.radius = radius
 
-	g.sectors = make([]*Sector, 0, g.width*g.height)
+	g.sectors = make([]*Sector, 0, g.size.Area())
 	g.spaceTime = 50*CYCLE + 80*DAY + 8*HOUR //start time for the game. super arbitrary.
 
-	for i := 0; i < cap(g.sectors); i++ {
-		x, y := i%g.width, i/g.width
-		dist := math.Sqrt(float64(burl.Distance(12, 12, x, y))) + rand.Float64()*2
+	for cursor := range vec.EachCoordInArea(g) {
+		dist := cursor.DistanceTo(vec.Coord{12, 12}) + rand.Float64()*2
 		density := util.Clamp(densityFactor-int(float64(densityFactor)*dist/float64(g.radius)), 0, densityFactor)
-		g.sectors = append(g.sectors, NewSector(x, y, density))
+		g.sectors = append(g.sectors, NewSector(cursor, density))
 	}
 
 	g.GenerateEarth()
@@ -54,7 +51,7 @@ func NewGalaxy(name string, radius, densityFactor int) (g *Galaxy) {
 }
 
 func (g Galaxy) Dims() vec.Dims {
-	return vec.Dims{g.width, g.height}
+	return g.size
 }
 
 func (g Galaxy) Bounds() vec.Rect {
@@ -95,10 +92,10 @@ func (g *Galaxy) GenerateRandomSubSector() (ss *SubSector) {
 
 // Retreives sector at (x, y). Returns nil if x,y out of bounds (bad).
 func (g Galaxy) GetSector(c vec.Coord) *Sector {
-	if !c.IsInside(vec.Rect{vec.ZERO_COORD, vec.Dims{coord_SECTOR_MAX, coord_SECTOR_MAX}}) {
+	if !c.IsInside(g) {
 		return nil
 	}
-	return g.sectors[c.ToIndex(g.width)]
+	return g.sectors[c.ToIndex(g.size.W)]
 }
 
 func (g Galaxy) GetLocation(c Coordinates) Locatable {
@@ -150,7 +147,7 @@ type Sector struct {
 	subSectors map[int]*SubSector
 }
 
-func NewSector(x, y, density int) (s *Sector) {
+func NewSector(pos vec.Coord, density int) (s *Sector) {
 	s = new(Sector)
 	name := ""
 	if density == 0 {
@@ -164,7 +161,7 @@ func NewSector(x, y, density int) (s *Sector) {
 	} else {
 		name = "Galactic Core Space"
 	}
-	s.Location = Location{name, "Sectors are 1000x1000 lightyears! Wow!", loc_SECTOR, false, true, NewSectorCoordinate(x, y), 0, 0}
+	s.Location = Location{name, "Sectors are 1000x1000 lightyears! Wow!", loc_SECTOR, false, true, NewSectorCoordinate(pos.X, pos.Y), 0, 0}
 	s.Density = max(density, 0) //ensures density is at least 0
 
 	s.subSectors = make(map[int]*SubSector)
