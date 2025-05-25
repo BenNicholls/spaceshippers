@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
 	"github.com/bennicholls/tyumi/event"
+	"github.com/bennicholls/tyumi/rl"
 )
 
 var EV_SHIPMOVE = event.Register("Ship Moved", event.SIMPLE)
@@ -11,9 +11,9 @@ type PropulsionSystem struct {
 	SystemStats
 
 	ship        *Ship
-	RepairState burl.Stat //0 = broken. NOTE: Do systems break, or do rooms break? Think on this.
-	Thrust      float64   //acceleration provided by the engines in m/s^2.
-	FuelUse     float64   //fuel used in 1 second while on
+	RepairState rl.Stat[int] //0 = broken. NOTE: Do systems break, or do rooms break? Think on this.
+	Thrust      float64      //acceleration provided by the engines in m/s^2.
+	FuelUse     float64      //fuel used in 1 second while on
 	Firing      bool
 }
 
@@ -23,7 +23,7 @@ func NewPropulsionSystem(s *Ship) *PropulsionSystem {
 	ps.InitStats()
 	ps.UpdateEngineStats()
 	ps.ship = s
-	ps.RepairState = burl.NewStat(100)
+	ps.RepairState = rl.NewBasicStat(100)
 	ps.Firing = false
 
 	return ps

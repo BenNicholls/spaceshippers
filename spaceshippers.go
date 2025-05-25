@@ -21,7 +21,6 @@ func main() {
 	tyumi.EnableCursor()
 
 	//console.SetFullscreen(true)
-	//burl.Debug()
 
 	startMenu := StartMenu{}
 	startMenu.Init()

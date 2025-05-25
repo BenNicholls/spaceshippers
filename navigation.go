@@ -1,7 +1,11 @@
 package main
 
-import "math"
-import "github.com/bennicholls/burl-E/burl"
+import (
+	"math"
+
+	"github.com/bennicholls/tyumi/util"
+	"github.com/bennicholls/tyumi/vec"
+)
 
 type NavigationSystem struct {
 	SystemStats
@@ -62,17 +66,17 @@ func (ns *NavigationSystem) Update(tick int) {
 				ns.ship.Engine.Firing = false
 				ns.CurrentCourse.Done = true
 
-				fireSpaceLogEvent("We have arrived at "+ns.ship.currentLocation.GetName())
+				fireSpaceLogEvent("We have arrived at " + ns.ship.currentLocation.GetName())
 			}
 		}
 	}
 }
 
-//returns the pct of our current course that has been completed.
+// returns the pct of our current course that has been completed.
 func (ns NavigationSystem) GetCurrentProgress() int {
 	if ns.ship.destination != nil {
 		d := ns.ship.GetCoords().CalcVector(ns.ship.destination.GetCoords()).Distance * METERS_PER_LY
-		return burl.RoundFloatToInt((ns.CurrentCourse.Distance - d) / ns.CurrentCourse.Distance * 100)
+		return util.RoundFloatToInt((ns.CurrentCourse.Distance - d) / ns.CurrentCourse.Distance * 100)
 	}
 
 	return 0
@@ -86,14 +90,14 @@ const (
 	phase_BRAKE
 )
 
-//Plan of action for the nav system
+// Plan of action for the nav system
 type Course struct {
 	//precomputed factors, we'll see if they turn out to be right
 	FuelUse   float64 //amount of fuel the plan uses
 	TotalTime int     //time the course takes
 
 	StartTime   int
-	StartPos    burl.Vec2
+	StartPos    vec.Vec2f
 	AccelTime   int //time to stop accelerating
 	BrakeTime   int //time to start braking
 	Arrivaltime int //time of arrival
@@ -103,8 +107,8 @@ type Course struct {
 	Done  bool
 }
 
-//Computes the course parameters subject to a fuel limit
-//These formulae are the product of way too much algebra don't screw with them.
+// Computes the course parameters subject to a fuel limit
+// These formulae are the product of way too much algebra don't screw with them.
 func (ns NavigationSystem) ComputeStraightCourse(V_f, B, D float64) (t_a, t_c, t_d int) {
 	V_i := ns.ship.Velocity.R
 	T := ns.ship.Engine.Thrust
@@ -117,9 +121,9 @@ func (ns NavigationSystem) ComputeStraightCourse(V_f, B, D float64) (t_a, t_c, t
 		c = (2*D + (V_f*V_f+V_i*V_i)/(2*T) - V_f*V_i/T - B*(V_f+V_i) - T*B*B/2) / (V_f + V_i + T*B)
 	}
 
-	t_d = burl.RoundFloatToInt(math.Sqrt((V_f*V_f+V_i*V_i)/2+T*T*c*c/4+T*D)/T - V_f/T - c/2)
-	t_a = burl.RoundFloatToInt(math.Sqrt((V_f*V_f+V_i*V_i)/2+T*T*c*c/4+T*D)/T - V_i/T - c/2)
-	t_c = burl.RoundFloatToInt(c)
+	t_d = util.RoundFloatToInt(math.Sqrt((V_f*V_f+V_i*V_i)/2+T*T*c*c/4+T*D)/T - V_f/T - c/2)
+	t_a = util.RoundFloatToInt(math.Sqrt((V_f*V_f+V_i*V_i)/2+T*T*c*c/4+T*D)/T - V_i/T - c/2)
+	t_c = util.RoundFloatToInt(c)
 
 	return
 }
@@ -130,7 +134,7 @@ func (ns NavigationSystem) CalcMaxBurnTime(V_f, D float64) float64 {
 	return 2*math.Sqrt((V_f*V_f+V_i*V_i)/2+T*D)/T - (V_f+V_i)/T
 }
 
-//Calculates the required burntime required to brake the ship down to V_f. If V_f > ship speed, returns 0.
+// Calculates the required burntime required to brake the ship down to V_f. If V_f > ship speed, returns 0.
 func (ns NavigationSystem) CalcMinBurnTime(V_f float64) float64 {
 	if V_f > ns.ship.Velocity.R {
 		return 0
@@ -139,7 +143,7 @@ func (ns NavigationSystem) CalcMinBurnTime(V_f float64) float64 {
 	}
 }
 
-//Returns a Course based on the parameters.
+// Returns a Course based on the parameters.
 func (ns NavigationSystem) ComputeCourse(d Locatable, fuelToUse float64, tick int) (course Course) {
 	course.StartTime = tick
 	V_f := d.GetVisitSpeed()

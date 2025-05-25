@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/bennicholls/burl-E/burl"
 	"github.com/bennicholls/tyumi/gfx"
 	"github.com/bennicholls/tyumi/gfx/col"
 	"github.com/bennicholls/tyumi/vec"
@@ -16,7 +15,7 @@ const GRAVCONST float64 = 6.674e-11
 
 type StarSystem struct {
 	Location
-	burl.Visuals
+	gfx.Visuals
 
 	Star    Star
 	Planets []Planet

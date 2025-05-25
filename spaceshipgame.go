@@ -113,26 +113,7 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	sg.gameMenu.UpdateMissions()
 	// REMOVE THIS LATER
 
-	//sg.OpenDialog(NewSpaceEventDialog(spaceEvents[1]))
-
-	// burl.RegisterDebugCommand("fuel", func() {
-	// 	sg.playerShip.Storage.Store(&Item{
-	// 		Name:        "Fuel",
-	// 		Volume:      s.Storage.GetCapacity(STORE_LIQUID)/2 - sg.playerShip.Storage.GetItemVolume("Fuel"),
-	// 		StorageType: STORE_LIQUID,
-	// 	})
-	// })
-
-	// burl.RegisterDebugCommand("earth", func() {
-	// 	sg.playerShip.SetLocation(sg.galaxy.GetEarth())
-	// 	sg.galaxyMenu.starchartMapView.systemFocus = sg.galaxy.GetStarSystem(sg.playerShip.GetCoords()) //this is messy.
-	// })
-
-	// for _, r := range sg.playerShip.Rooms {
-	// 	burl.RegisterWatch(r.Name+" o2", &r.atmo.gasses)
-	// 	burl.RegisterWatch(r.Name+" co2", &r.atmo.CO2)
-	// 	burl.RegisterWatch(r.Name+" total", &r.atmo.pressure)
-	// }
+	sg.OpenDialog(NewSpaceEventDialog(spaceEvents[1]))
 
 	return sg
 }
@@ -229,23 +210,6 @@ func (sg *SpaceshipGame) HandleEvent(event event.Event) (event_handled bool) {
 		sg.AddLogMessage(event.(*SpaceLogEvent).message)
 		return true
 	}
-	// switch event.ID {
-	// case burl.EV_UPDATE_UI:
-	// 	switch event.Message {
-	// 	case "inbox":
-	// 		sg.commMenu.UpdateInbox()
-	// 	case "transmissions":
-	// 		sg.commMenu.UpdateTransmissions()
-	// 	case "missions":
-	// 		sg.gameMenu.UpdateMissions()
-	// 	case "ship status":
-	// 		sg.quickstats.Update()
-	// 	case "ship move":
-	// 		if sg.activeMenu == sg.galaxyMenu {
-	// 			sg.galaxyMenu.Update()
-	// 		}
-	// 		sg.quickstats.Update()
-	// 	}
 
 	return
 }
