@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/bennicholls/tyumi/event"
 	"github.com/bennicholls/tyumi/gfx/ui"
 	"github.com/bennicholls/tyumi/vec"
 )
@@ -33,6 +34,9 @@ func (gm *GameMenu) Init(p *Player) {
 	gm.playerPage = gm.CreatePage("Player")
 
 	gm.missionsPage = gm.CreatePage("Missions")
+	gm.missionsPage.Listen(EV_MISSIONSTATUSCHANGED)
+	gm.missionsPage.SuppressDuplicateEvents(event.KeepFirst)
+	gm.missionsPage.SetEventHandler(gm.handleMissionEvent)
 	ph := gm.missionsPage.Size().H
 	gm.missionList.Init(vec.Dims{16, ph - 2}, vec.Coord{1, 1}, 1)
 	gm.missionList.SetupBorder("", "PgUp/PgDown")
@@ -57,6 +61,16 @@ func (gm *GameMenu) Init(p *Player) {
 
 	gm.missionsPage.AddChildren(&gm.missionList, &gm.missionDescriptionText, &gm.missionStatusText, &gm.missionGoalList, &gm.missionCriteriaList)
 
+	return
+}
+
+func (gm *GameMenu) handleMissionEvent(e event.Event) (event_handled bool) {
+	switch e.ID() {
+	case EV_MISSIONADDED:
+		gm.UpdateMissions()
+	case EV_MISSIONSTATUSCHANGED:
+		gm.UpdateMissionView()
+	}
 	return
 }
 

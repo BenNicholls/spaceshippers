@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/bennicholls/burl-E/burl"
-	"github.com/bennicholls/tyumi/log"
+	"github.com/bennicholls/tyumi/event"
 )
+
+var EV_MISSIONADDED = event.Register("Mission Added", event.SIMPLE)
 
 type Player struct {
 	Person
@@ -32,6 +33,6 @@ func NewPlayer(n string) (p *Player) {
 // Adds a mission to the player's missionlog.
 func (p *Player) AddMission(m *Mission) {
 	p.MissionLog = append(p.MissionLog, m)
-	log.Info("Added Mission: ", m.name)
-	burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "missions"))
+	fireSpaceLogEvent("Mission added:" + m.name)
+	event.FireSimple(EV_MISSIONADDED)
 }

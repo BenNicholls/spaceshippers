@@ -3,8 +3,10 @@ package main
 import (
 	"strconv"
 
-	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/event"
 )
+
+var EV_MISSIONSTATUSCHANGED = event.Register("Mission status changed.", event.SIMPLE)
 
 type GoalStatus int
 
@@ -62,15 +64,15 @@ func (g *Goal) Update() {
 
 	if g.failure() {
 		g.status = goal_FAILED
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "missions"))
+		event.FireSimple(EV_MISSIONSTATUSCHANGED)
 	} else if g.success() {
 		g.status = goal_COMPLETE
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "missions"))
+		event.FireSimple(EV_MISSIONSTATUSCHANGED)
 	}
 }
 
-//TODO: Implement some sort of "Dirty" flag so we can tell when a
-//mission parameter has changed.
+// TODO: Implement some sort of "Dirty" flag so we can tell when a
+// mission parameter has changed.
 type Mission struct {
 	Goal
 
@@ -93,7 +95,7 @@ func NewMission(name, desc string) (m *Mission) {
 				return false
 			}
 		}
-		fireSpaceLogEvent("You have completed: "+m.name)
+		fireSpaceLogEvent("You have completed: " + m.name)
 		return true
 	}
 
@@ -101,7 +103,7 @@ func NewMission(name, desc string) (m *Mission) {
 		for _, c := range m.criteria {
 			c.Update()
 			if c.IsFailed() {
-				fireSpaceLogEvent("You have failed: "+m.name)
+				fireSpaceLogEvent("You have failed: " + m.name)
 				return true
 			}
 		}
