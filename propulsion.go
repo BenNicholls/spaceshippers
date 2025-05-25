@@ -2,7 +2,10 @@ package main
 
 import (
 	"github.com/bennicholls/burl-E/burl"
+	"github.com/bennicholls/tyumi/event"
 )
+
+var EV_SHIPMOVE = event.Register("Ship Moved", event.SIMPLE)
 
 type PropulsionSystem struct {
 	SystemStats
@@ -62,7 +65,6 @@ func (ps *PropulsionSystem) Update(tick int) {
 	rectVelo := ps.ship.Velocity.ToRect()
 	if rectVelo.NonZero() {
 		ps.ship.Coords.moveLocal(rectVelo.X, rectVelo.Y)
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship move"))
-		burl.PushEvent(burl.NewEvent(burl.EV_UPDATE_UI, "ship status"))
+		event.FireSimple(EV_SHIPMOVE)
 	}
 }

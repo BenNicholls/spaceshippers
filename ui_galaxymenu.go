@@ -4,11 +4,13 @@ import (
 	"fmt"
 
 	"github.com/bennicholls/tyumi"
+	"github.com/bennicholls/tyumi/event"
 	"github.com/bennicholls/tyumi/gfx/ui"
 	"github.com/bennicholls/tyumi/input"
 	"github.com/bennicholls/tyumi/vec"
 )
 
+// TODO: separate out starchart page into its own custom submenu type
 type GalaxyMenu struct {
 	ui.PageContainer
 
@@ -32,6 +34,10 @@ type GalaxyMenu struct {
 func (gm *GalaxyMenu) Init(g *Galaxy, s *Ship) {
 	gm.galaxy = g
 	gm.playerShip = s
+
+	gm.Listen(EV_SHIPMOVE)
+	gm.SuppressDuplicateEvents(event.KeepFirst)
+	gm.SetEventHandler(gm.handleEvent)
 
 	gm.PageContainer.Init(menuSize, menuPos, menuDepth)
 	gm.EnableBorder()
@@ -92,6 +98,15 @@ func (gm *GalaxyMenu) HandleKeypress(key_event *input.KeyboardEvent) (event_hand
 		case input.K_s:
 			gm.selectedSetCourseButton.Press()
 		}
+	}
+
+	return
+}
+
+func (gm *GalaxyMenu) handleEvent(e event.Event) (event_handled bool) {
+	switch e.ID() {
+	case EV_SHIPMOVE:
+		gm.starchartMapView.markerLayer.Updated = true
 	}
 
 	return

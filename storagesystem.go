@@ -2,7 +2,12 @@ package main
 
 import (
 	"errors"
+
+	"github.com/bennicholls/tyumi/event"
 )
+
+var EV_STORAGECAPACITYCHANGED = event.Register("Storage system capacities changed", event.SIMPLE)
+var EV_STORAGEITEMCHANGED = event.Register("Item in storage changed", event.SIMPLE)
 
 type Storable interface {
 	GetName() string
@@ -21,8 +26,7 @@ type StorageSystem struct {
 	volume   [STORE_MAXTYPES]float64 //General and liquid storage volume/capacity is in litres, gas is in molar value (pressure*volume)
 	capacity [STORE_MAXTYPES]float64
 
-	ship    *Ship
-	Updated bool
+	ship *Ship
 }
 
 type StorageType int
@@ -49,10 +53,18 @@ func (ss *StorageSystem) Update(tick int) {
 
 // ensure storage capacities are updated if stats change
 func (ss *StorageSystem) OnStatUpdate() {
-	ss.capacity[STORE_GENERAL] = float64(ss.GetStat(STAT_GENERAL_STORAGE))
-	ss.capacity[STORE_LIQUID] = float64(ss.GetStat(STAT_LIQUID_STORAGE))
-	ss.capacity[STORE_GAS] = float64(ss.GetStat(STAT_GAS_STORAGE) * 50000) //NOTE: currently limiting gas storage to 50000 kPa
-	ss.Updated = true
+	capGeneral := float64(ss.GetStat(STAT_GENERAL_STORAGE))
+	capLiquid := float64(ss.GetStat(STAT_LIQUID_STORAGE))
+	capGas := float64(ss.GetStat(STAT_GAS_STORAGE) * 50000) //NOTE: currently limiting gas storage to 50000 kPa
+
+	if ss.capacity[STORE_GENERAL] == capGeneral && ss.capacity[STORE_LIQUID] == capLiquid && ss.capacity[STORE_GAS] == capGas {
+		return
+	}
+
+	ss.capacity[STORE_GENERAL] = capGeneral
+	ss.capacity[STORE_LIQUID] = capLiquid
+	ss.capacity[STORE_GAS] = capGas
+	event.FireSimple(EV_STORAGECAPACITYCHANGED)
 }
 
 func (ss *StorageSystem) Store(item Storable) error {
@@ -72,7 +84,7 @@ func (ss *StorageSystem) Store(item Storable) error {
 		ss.items[item.GetName()] = item
 	}
 
-	ss.Updated = true
+	event.FireSimple(EV_STORAGEITEMCHANGED)
 
 	return nil
 }
@@ -88,11 +100,13 @@ func (ss *StorageSystem) Remove(item Storable) (amount float64, err error) {
 			err = errors.New("Insufficient amount of item in stores")
 		}
 		delete(ss.items, i.GetName())
-		ss.Updated = true
+		ss.volume[item.GetStorageType()] = 0
+		event.FireSimple(EV_STORAGEITEMCHANGED)
 		return i.GetAmount(), err
 	} else {
 		i.ChangeAmount(-item.GetAmount())
-		ss.Updated = true
+		ss.volume[item.GetStorageType()] -= item.GetAmount()
+		event.FireSimple(EV_STORAGEITEMCHANGED)
 		return item.GetAmount(), nil
 	}
 }

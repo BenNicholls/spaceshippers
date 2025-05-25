@@ -67,6 +67,9 @@ type SpaceshipGame struct {
 
 func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	sg := new(SpaceshipGame)
+	sg.SetKeypressHandler(sg.HandleKeypress)
+	sg.SetEventHandler(sg.HandleEvent)
+	sg.Listen(EV_LOG)
 
 	sg.simSpeed = 1
 
@@ -102,8 +105,6 @@ func NewSpaceshipGame(g *Galaxy, s *Ship) *SpaceshipGame {
 	sg.SetupUI() //must be done after ship setup
 
 	sg.LoadSpaceEvents()
-
-	sg.Listen(EV_LOG)
 
 	//STUFF FOR TESTING
 	sg.player.AddMission(GenerateGoToMission(sg.playerShip, sg.galaxy.GetEarth(), nil))
@@ -197,9 +198,6 @@ func (sg *SpaceshipGame) SetupUI() {
 	viewModeData[VIEW_ATMO_CO2].SetTarget(sg.playerShip.LifeSupport.targetCO2)
 
 	sg.CenterShip()
-
-	sg.SetKeypressHandler(sg.HandleKeypress)
-	sg.SetEventHandler(sg.HandleEvent)
 }
 
 func (sg *SpaceshipGame) Update() {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/bennicholls/tyumi/event"
 	"github.com/bennicholls/tyumi/gfx/ui"
 	"github.com/bennicholls/tyumi/vec"
 
@@ -61,6 +62,10 @@ func (ss *StorageSubmenu) Setup(s *Ship) {
 	ss.ship = s
 	ss.OnActivate = ss.UpdateStorage
 
+	ss.Listen(EV_STORAGEITEMCHANGED, EV_STORAGECAPACITYCHANGED)
+	ss.SuppressDuplicateEvents(event.KeepFirst)
+	ss.SetEventHandler(ss.handleEvent)
+
 	size := ss.Size()
 	stats := ui.Element{}
 	stats.Init(vec.Dims{size.W, 6}, vec.ZERO_COORD, 0)
@@ -92,21 +97,30 @@ func (ss *StorageSubmenu) Setup(s *Ship) {
 	ss.UpdateItemDescription()
 }
 
-func (ss *StorageSubmenu) Update() {
-	if ss.ship.Storage.Updated {
+func (ss *StorageSubmenu) handleEvent(e event.Event) (event_handled bool) {
+	switch e.ID() {
+	case EV_STORAGECAPACITYCHANGED:
+		ss.UpdateStorageOverview()
+		event_handled = true
+	case EV_STORAGEITEMCHANGED:
 		ss.UpdateStorage()
-		ss.ship.Storage.Updated = false
+		event_handled = true
 	}
+
+	return
 }
 
 func (ss *StorageSubmenu) UpdateStorage() {
+	ss.UpdateStorageOverview()
+	ss.UpdateInventoryList()
+}
+
+func (ss *StorageSubmenu) UpdateStorageOverview() {
 	var capacities string
 	capacities += fmt.Sprint("General Storage: ", ss.ship.Storage.GetFilledVolume(STORE_GENERAL), "/", ss.ship.Storage.GetCapacity(STORE_GENERAL), "/n")
 	capacities += fmt.Sprint("Liquid Storage: ", ss.ship.Storage.GetFilledVolume(STORE_LIQUID), "/", ss.ship.Storage.GetCapacity(STORE_LIQUID), "/n")
 	capacities += fmt.Sprint("Gas Storage: ", ss.ship.Storage.GetFillPct(STORE_GAS), "% full/n")
 	ss.capacitiesText.ChangeText(capacities)
-
-	ss.UpdateInventoryList()
 }
 
 func (ss *StorageSubmenu) CompileInventoryList() {
