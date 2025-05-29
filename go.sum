@@ -1,7 +1,11 @@
-github.com/bennicholls/burl-E v0.0.0-20190708032244-24ccafc7d477 h1:s8o01EEZWM14JsEzjb2r8bWKXh4eCWWpy0jzf/HQcyk=
-github.com/bennicholls/burl-E v0.0.0-20190708032244-24ccafc7d477/go.mod h1:pdB8gAj78onH7fOHmRouDeqhB0Vm+zjGJlHDi9gkAxg=
+github.com/bennicholls/reximage v1.1.1 h1:VjnOMNTKtEpb9vbAWeyUsgtY270j/CrdQHD5iVzyqE4=
+github.com/bennicholls/reximage v1.1.1/go.mod h1:l3G3bA+Hz03QFl2b2TF9wF1OPcmD6nNRkyTCbIlGaC8=
+github.com/bennicholls/tyumi v0.2.0 h1:scrFsUlu+mv2R35fnjuQfTWxcaVqyh3TT8wbcUy86+Q=
+github.com/bennicholls/tyumi v0.2.0/go.mod h1:akd3rE6LM52fOdkHaW4Wm4m8+nBr3m7S+teyrzwL+oQ=
 github.com/veandco/go-sdl2 v0.4.40 h1:fZv6wC3zz1Xt167P09gazawnpa0KY5LM7JAvKpX9d/U=
 github.com/veandco/go-sdl2 v0.4.40/go.mod h1:OROqMhHD43nT4/i9crJukyVecjPNYYuCofep6SNiAjY=
+golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 h1:y5zboxd6LQAqYIhHnB48p0ByQ/GnQx2BE33L8BOHQkI=
+golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6/go.mod h1:U6Lno4MTRCDY+Ba7aCcauB9T60gsv5s4ralQzP72ZoQ=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
